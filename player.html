@@ -155,7 +155,15 @@ select.fi::-ms-expand{display:none;}
 .xp-add-row input:focus,.xp-add-row select:focus{border-color:var(--gold-dim);}
 .xp-add-row select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}
 .xp-add-row select option{background:#0e0b08;color:#d4c898;}
-.xp-log{max-height:260px;overflow-y:auto;}
+.xp-ref{margin-bottom:14px;}
+.xp-ref-title{font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;padding-bottom:3px;border-bottom:1px solid rgba(196,154,34,.2);}
+.xp-ref-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.xp-ref-cat{background:rgba(122,94,24,.08);border:1px solid rgba(122,94,24,.25);padding:8px 10px;}
+.xp-ref-cat-title{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--crimson-lt);text-transform:uppercase;margin-bottom:5px;}
+.xp-ref-row{display:flex;justify-content:space-between;align-items:baseline;padding:2px 0;border-bottom:1px solid rgba(122,94,24,.1);font-size:11px;}
+.xp-ref-row:last-child{border-bottom:none;}
+.xp-ref-item{color:var(--text);}
+.xp-ref-cost{font-family:'Cinzel',serif;font-size:10px;color:var(--gold);white-space:nowrap;margin-left:8px;}
 .xp-entry{display:flex;align-items:center;gap:8px;padding:5px 8px;border-bottom:1px solid rgba(122,94,24,.15);font-size:12px;}
 .xp-entry:last-child{border-bottom:none;}
 .xp-entry-cost{font-family:'Cinzel',serif;font-size:11px;min-width:36px;text-align:right;flex-shrink:0;}
@@ -824,6 +832,33 @@ select.fi::-ms-expand{display:none;}
       </div>
     </div>
 
+    <!-- XP Cost Reference -->
+    <div class="xp-ref">
+      <div class="xp-ref-title">XP Cost Reference</div>
+      <div class="xp-ref-grid">
+        <div class="xp-ref-cat">
+          <div class="xp-ref-cat-title">Attributes &amp; Skills</div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Attribute (new dot)</span><span class="xp-ref-cost">5 per dot</span></div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Skill (new dot)</span><span class="xp-ref-cost">3 per dot</span></div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Skill Specialty</span><span class="xp-ref-cost">3</span></div>
+        </div>
+        <div class="xp-ref-cat">
+          <div class="xp-ref-cat-title">Disciplines</div>
+          <div class="xp-ref-row"><span class="xp-ref-item">In-clan (new dot)</span><span class="xp-ref-cost">5 per dot</span></div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Out-of-clan (new dot)</span><span class="xp-ref-cost">7 per dot</span></div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Blood Sorcery ritual</span><span class="xp-ref-cost">3 × level</span></div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Thin-Blood formula</span><span class="xp-ref-cost">3 × level</span></div>
+        </div>
+        <div class="xp-ref-cat">
+          <div class="xp-ref-cat-title">Other</div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Merit (new dot)</span><span class="xp-ref-cost">3 per dot</span></div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Blood Potency</span><span class="xp-ref-cost">6 per dot</span></div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Humanity (rouse)</span><span class="xp-ref-cost">3 per dot</span></div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Loresheets</span><span class="xp-ref-cost">1–5</span></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Add entry row -->
     <div class="xp-add-row">
       <select id="xp_type" style="flex:0 0 90px">
@@ -878,38 +913,6 @@ select.fi::-ms-expand{display:none;}
       <div class="itl" style="margin-top:8px">Desire <span style="color:var(--subtext);font-size:8px">(recovers Superficial Willpower damage)</span></div>
       <textarea class="fta" id="f_desire" placeholder="Your short-term goal, must involve someone on your relationship map..."></textarea>
     </div>
-  </div>
-</div>
-
-<!-- BACKGROUND -->
-<div class="panel full">
-  <div class="ph"><span class="ph-left">Background</span></div>
-  <div class="pb">
-    <textarea class="fta xxl" id="f_backstory" placeholder="Your character's history — mortal life, the Embrace, what brought you here..."></textarea>
-  </div>
-</div>
-
-<!-- PLAYER NOTES (visible to DM) -->
-<div class="panel full">
-  <div class="ph"><span class="ph-left">Player Notes &nbsp;<span style="font-size:8px;color:var(--green-lt);letter-spacing:1px">◈ Visible to DM when synced</span></span></div>
-  <div class="pb">
-    <div class="shared-label">These notes sync to your DM when you upload</div>
-    <div class="itl">Session Log</div>
-    <textarea class="fta lg" id="notes_session" placeholder="Session notes, events, what happened..."></textarea>
-    <div class="itl" style="margin-top:8px">NPC Relationships</div>
-    <textarea class="fta lg" id="notes_npcs" placeholder="People you've met, relationships, impressions..."></textarea>
-    <div class="itl" style="margin-top:8px">Goals & Plans</div>
-    <textarea class="fta" id="notes_goals" placeholder="What you're currently pursuing..."></textarea>
-    <div class="itl" style="margin-top:8px">General Notes</div>
-    <textarea class="fta lg" id="notes_general" placeholder="Anything else..."></textarea>
-  </div>
-</div>
-
-<!-- PRIVATE NOTES -->
-<div class="panel full">
-  <div class="ph"><span class="ph-left">Private Notes &nbsp;<span style="font-size:8px;color:var(--crimson-lt);letter-spacing:1px">✕ Never synced</span></span></div>
-  <div class="pb">
-    <textarea class="fta xl" id="notes_private" placeholder="Private thoughts — never uploaded to GitHub..."></textarea>
   </div>
 </div>
 
@@ -989,6 +992,38 @@ select.fi::-ms-expand{display:none;}
     <div id="npc_list">
       <div class="xp-empty" id="npc_empty">No NPCs tracked yet. Add people who matter to your character.</div>
     </div>
+  </div>
+</div>
+
+<!-- BACKGROUND -->
+<div class="panel full">
+  <div class="ph"><span class="ph-left">Background</span></div>
+  <div class="pb">
+    <textarea class="fta xxl" id="f_backstory" placeholder="Your character's history — mortal life, the Embrace, what brought you here..."></textarea>
+  </div>
+</div>
+
+<!-- PLAYER NOTES (visible to DM) -->
+<div class="panel full">
+  <div class="ph"><span class="ph-left">Player Notes &nbsp;<span style="font-size:8px;color:var(--green-lt);letter-spacing:1px">◈ Visible to DM when synced</span></span></div>
+  <div class="pb">
+    <div class="shared-label">These notes sync to your DM when you upload</div>
+    <div class="itl">Session Log</div>
+    <textarea class="fta lg" id="notes_session" placeholder="Session notes, events, what happened..."></textarea>
+    <div class="itl" style="margin-top:8px">NPC Relationships</div>
+    <textarea class="fta lg" id="notes_npcs" placeholder="People you've met, relationships, impressions..."></textarea>
+    <div class="itl" style="margin-top:8px">Goals & Plans</div>
+    <textarea class="fta" id="notes_goals" placeholder="What you're currently pursuing..."></textarea>
+    <div class="itl" style="margin-top:8px">General Notes</div>
+    <textarea class="fta lg" id="notes_general" placeholder="Anything else..."></textarea>
+  </div>
+</div>
+
+<!-- PRIVATE NOTES -->
+<div class="panel full">
+  <div class="ph"><span class="ph-left">Private Notes &nbsp;<span style="font-size:8px;color:var(--crimson-lt);letter-spacing:1px">✕ Never synced</span></span></div>
+  <div class="pb">
+    <textarea class="fta xl" id="notes_private" placeholder="Private thoughts — never uploaded to GitHub..."></textarea>
   </div>
 </div>
 
