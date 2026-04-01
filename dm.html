@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DM Dashboard</title>
+<title>Blood and Iron — DM Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -264,7 +264,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:1000;
 <!-- SIDEBAR -->
 <div class="sidebar">
   <div class="sb-header">
-    <div class="sb-title"></div>
+    <div class="sb-title">Blood & Iron</div>
     <div class="sb-sub">DM DASHBOARD</div>
   </div>
 
@@ -305,9 +305,17 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:1000;
 <div class="main">
   <div class="status-bar">
     <span class="sv-status" id="saveStatus">DM Dashboard</span>
-    <div style="display:flex;gap:8px">
-      <button class="btn" onclick="exportDMData()">Export DM Data</button>
-      <button class="btn" onclick="document.getElementById('importDM').click()">Import DM Data</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span id="pollStatus" style="font-size:10px;font-family:'Cinzel',serif;letter-spacing:1px;color:var(--subtext)">Live sync: off</span>
+      <button id="pollBtn" class="btn green" onclick="togglePolling()">&#9654; Live Sync</button>
+      <select id="pollIntervalSel" onchange="if(pollEnabled){startPolling(parseInt(this.value))}"
+        style="background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:11px;padding:3px 6px;outline:none">
+        <option value="15">15s</option><option value="30" selected>30s</option>
+        <option value="60">1min</option><option value="120">2min</option>
+      </select>
+      <button class="btn" onclick="refreshAllChars()">&#8635; Refresh Now</button>
+      <button class="btn" onclick="exportDMData()">Export</button>
+      <button class="btn" onclick="document.getElementById('importDM').click()">Import</button>
       <input type="file" id="importDM" accept=".json" style="display:none" onchange="importDMData(event)">
     </div>
   </div>
@@ -316,7 +324,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:1000;
   <div id="view_add" class="tab-content active">
     <div class="empty-state">
       <h2>Blood & Iron</h2>
-      <p>DM Dashboard</p>
+      <p>DM Dashboard for Vampire: The Masquerade V5</p>
       <br>
       <div class="add-char-panel" style="max-width:460px;margin:0 auto">
         <h3>Load Character Sheet</h3>
@@ -431,7 +439,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:1000;
     <div id="npc_list"></div>
   </div>
 
-  <div class="footer">✦ &nbsp; Made by Ryoko &nbsp;·&nbsp; DM Dashboard &nbsp;·&nbsp; I watch you shower &nbsp; ✦</div>
+  <div class="footer">✦ &nbsp; Blood & Iron &nbsp;·&nbsp; DM Dashboard &nbsp;·&nbsp; V5 Chronicle Tool &nbsp; ✦</div>
 </div>
 </div>
 
@@ -512,7 +520,7 @@ async function syncDMToGist(){
   collectDMData();
   try{
     const headers={'Authorization':'token '+cfg.token,'Content-Type':'application/json'};
-    const body={description:'VtM DM Dashboard',public:false,
+    const body={description:'VtM DM Dashboard — Blood and Iron',public:false,
       files:{'dm_data.json':{content:JSON.stringify(dmData,null,2)}}};
     let resp;
     if(cfg.dmGistId){
@@ -1063,6 +1071,64 @@ function toast(msg,type){
   el.className='toast'+(type==='error'?' error':''); el.textContent=msg;
   document.body.appendChild(el);
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.remove(),4000);
+}
+
+// ============================================================
+// LIVE POLLING — auto-refresh character sheets
+// ============================================================
+let pollInterval = null;
+let pollSeconds = 30;
+let pollCountdown = 0;
+let pollEnabled = false;
+
+function startPolling(secs) {
+  stopPolling();
+  pollSeconds = secs || 30;
+  pollEnabled = true;
+  pollCountdown = pollSeconds;
+  updatePollUI();
+  pollInterval = setInterval(async () => {
+    pollCountdown--;
+    updatePollUI();
+    if (pollCountdown <= 0) {
+      pollCountdown = pollSeconds;
+      await refreshAllChars();
+    }
+  }, 1000);
+}
+
+function stopPolling() {
+  clearInterval(pollInterval);
+  pollInterval = null;
+  pollEnabled = false;
+  updatePollUI();
+}
+
+function togglePolling() {
+  if (pollEnabled) stopPolling();
+  else startPolling(pollSeconds);
+}
+
+function updatePollUI() {
+  const btn = document.getElementById('pollBtn');
+  const status = document.getElementById('pollStatus');
+  if (!btn) return;
+  if (pollEnabled) {
+    btn.textContent = '⏸ Stop Live';
+    btn.className = 'btn danger';
+    if (status) status.textContent = 'Live sync: refreshing in ' + pollCountdown + 's';
+  } else {
+    btn.textContent = '▶ Live Sync';
+    btn.className = 'btn green';
+    if (status) status.textContent = 'Live sync: off';
+  }
+}
+
+async function refreshAllChars() {
+  if (!cfg.token) return;
+  const keys = Object.keys(loadedChars);
+  for (const gid of keys) { await refreshChar(gid); }
+  if (keys.length > 0) setStatus('Auto-refreshed ' + keys.length + ' sheet(s) — ' + new Date().toLocaleTimeString(), 'saved');
 }
 
 // ============================================================
