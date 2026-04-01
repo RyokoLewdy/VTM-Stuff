@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project Portal</title>
+</head>
+<body>
+    <h1>Welcome to the Dashboard</h1>
+    <a href="dm.html"><button>Go to DM Dashboard</button></a>
+    <a href="player.html"><button>Go to Player Page</button></a>
+</body>
+</html>
