@@ -21,19 +21,19 @@ body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,se
   radial-gradient(ellipse at 80% 80%,rgba(196,154,34,.04) 0%,transparent 60%);}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;opacity:.35;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");}
-.page{max-width:980px;margin:0 auto;padding:20px;}
+.page{max-width:1400px;margin:0 auto;padding:24px 32px;}
 
 /* HEADER */
 .header{text-align:center;padding:24px 20px 18px;border:1px solid var(--border);
-  background:linear-gradient(180deg,#1f1408,#120f09);margin-bottom:10px;position:relative;overflow:hidden;}
-.header::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(196,154,34,.04) 0%,transparent 50%,rgba(122,21,21,.06) 100%);}
+  background:linear-gradient(180deg,#1f1408,#120f09);margin-bottom:10px;position:relative;}
+.header::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(196,154,34,.04) 0%,transparent 50%,rgba(122,21,21,.06) 100%);pointer-events:none;}
 .header h1{font-family:'Cinzel Decorative',serif;font-size:28px;color:var(--gold-lt);letter-spacing:5px;
   text-shadow:0 0 40px rgba(196,154,34,.3),0 2px 4px rgba(0,0,0,.8);margin-bottom:4px;}
 .header-sub{font-family:'Cinzel',serif;font-size:8px;letter-spacing:5px;color:var(--subtext);margin-bottom:8px;}
 .header-div{width:180px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto;}
 .header-name-input{background:transparent;border:none;border-bottom:2px solid var(--gold-dim);color:var(--gold-lt);
   font-family:'Cinzel Decorative',serif;font-size:28px;letter-spacing:5px;text-align:center;outline:none;
-  width:100%;max-width:500px;text-transform:uppercase;}
+  width:100%;max-width:700px;text-transform:uppercase;position:relative;z-index:1;}
 .header-name-input::placeholder{color:rgba(232,201,106,.3);}
 .header-name-input:focus{border-bottom-color:var(--gold);}
 
@@ -72,14 +72,26 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;o
 .fi{flex:1;background:transparent;border:none;border-bottom:1px solid var(--field-border);
   color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:1px 4px;outline:none;transition:border-color .2s;width:100%;}
 .fi:focus{border-bottom-color:var(--gold-dim);}
-select.fi{cursor:pointer;}
+select.fi{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}
+select.fi option{background:#0e0b08;color:#d4c898;}
+select.fi:focus{border-bottom-color:var(--gold-dim);}
+select.fi::-ms-expand{display:none;}
 .fta{width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);
   font-family:'EB Garamond',serif;font-size:13px;padding:8px;outline:none;resize:vertical;min-height:80px;
   transition:border-color .2s;line-height:1.55;}
 .fta:focus{border-color:var(--gold-dim);}
 .fta.lg{min-height:120px;} .fta.xl{min-height:160px;} .fta.xxl{min-height:220px;}
 
-/* DOTS */
+/* INLINE SPECIALTY TAGS on skill/attr rows */
+.spec-tag{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;margin-left:6px;
+  border:1px solid rgba(196,154,34,.35);background:rgba(196,154,34,.07);
+  font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--gold);
+  white-space:nowrap;cursor:help;vertical-align:middle;position:relative;}
+.spec-tag:hover{border-color:var(--gold);background:rgba(196,154,34,.14);}
+.spec-tag-x{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:9px;
+  padding:0;margin-left:2px;line-height:1;transition:color .15s;}
+.spec-tag-x:hover{color:var(--crimson-lt);}
+.dr{display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap;}
 .dr{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
 .dr:last-child{margin-bottom:0;}
 .dl{font-size:11px;color:var(--text);min-width:108px;flex-shrink:0;}
@@ -119,6 +131,43 @@ select.fi{cursor:pointer;}
 .shared-label{font-size:9px;font-family:'Cinzel',serif;letter-spacing:1px;color:var(--green);margin-bottom:4px;display:flex;align-items:center;gap:5px;}
 .shared-label::before{content:'◈';font-size:8px;}
 .footer{text-align:center;padding:10px;font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:var(--subtext);border-top:1px solid var(--border);margin-top:10px;}
+
+/* BLOOD POTENCY PANEL */
+.bp-dots-row{display:flex;gap:7px;margin:8px 0 4px;flex-wrap:wrap;}
+.bp-dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;transition:all .15s;flex-shrink:0;}
+.bp-dot.filled{background:var(--crimson-lt);border-color:#e03030;box-shadow:0 0 8px rgba(192,32,32,.5);}
+.bp-dot:hover{transform:scale(1.12);}
+.bp-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.bp-stat{background:rgba(122,21,21,.12);border:1px solid rgba(122,94,24,.3);padding:8px 10px;}
+.bp-stat-label{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--subtext);text-transform:uppercase;margin-bottom:3px;}
+.bp-stat-value{font-size:13px;color:var(--gold-lt);}
+.bp-stat-value b{font-family:'Cinzel',serif;font-size:15px;color:var(--crimson-lt);font-weight:400;}
+
+/* XP TRACKER */
+.xp-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
+.xp-box{background:rgba(122,94,24,.1);border:1px solid rgba(122,94,24,.3);padding:10px;text-align:center;}
+.xp-box-label{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--subtext);text-transform:uppercase;margin-bottom:4px;}
+.xp-box-val{font-family:'Cinzel Decorative',serif;font-size:22px;color:var(--gold-lt);}
+.xp-box-val.spent{color:var(--crimson-lt);}
+.xp-box-val.remaining{color:var(--green-lt);}
+.xp-add-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+.xp-add-row input,.xp-add-row select{background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:5px 8px;outline:none;transition:border-color .2s;}
+.xp-add-row input:focus,.xp-add-row select:focus{border-color:var(--gold-dim);}
+.xp-add-row select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}
+.xp-add-row select option{background:#0e0b08;color:#d4c898;}
+.xp-log{max-height:260px;overflow-y:auto;}
+.xp-entry{display:flex;align-items:center;gap:8px;padding:5px 8px;border-bottom:1px solid rgba(122,94,24,.15);font-size:12px;}
+.xp-entry:last-child{border-bottom:none;}
+.xp-entry-cost{font-family:'Cinzel',serif;font-size:11px;min-width:36px;text-align:right;flex-shrink:0;}
+.xp-entry-cost.gain{color:var(--green-lt);}
+.xp-entry-cost.spend{color:var(--crimson-lt);}
+.xp-entry-cat{font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);min-width:70px;flex-shrink:0;text-transform:uppercase;}
+.xp-entry-desc{flex:1;color:var(--text);}
+.xp-entry-date{font-size:10px;color:var(--subtext);white-space:nowrap;flex-shrink:0;}
+.xp-entry-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;padding:0 3px;opacity:0;transition:opacity .2s;}
+.xp-entry:hover .xp-entry-del{opacity:1;}
+.xp-entry-del:hover{color:var(--crimson-lt);}
+.xp-empty{font-size:11px;color:var(--subtext);font-style:italic;padding:8px 0;text-align:center;}
 
 /* ═══════════════════════════════
    DYNAMIC CARDS — Disciplines / Merits / Flaws / Specialties
@@ -183,7 +232,92 @@ select.fi{cursor:pointer;}
 .ritual-card-remove:hover{color:var(--crimson-lt);}
 
 /* ═══════════════════════════════
-   TOOLTIP
+   HUNGER FRENZY WARNING
+   ═══════════════════════════════ */
+.frenzy-warning{display:none;margin-top:8px;padding:7px 12px;background:rgba(192,32,32,.18);
+  border:1px solid var(--crimson-lt);font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;
+  color:var(--crimson-lt);text-transform:uppercase;animation:frenzyPulse 1.8s ease-in-out infinite;}
+.frenzy-warning.show{display:flex;align-items:center;gap:8px;}
+@keyframes frenzyPulse{0%,100%{opacity:1;box-shadow:0 0 0 rgba(192,32,32,0);}50%{opacity:.75;box-shadow:0 0 14px rgba(192,32,32,.4);}}
+
+/* ═══════════════════════════════
+   FEEDING LOG
+   ═══════════════════════════════ */
+.feed-entry{display:flex;align-items:center;gap:8px;padding:5px 8px;border-bottom:1px solid rgba(122,94,24,.15);font-size:12px;}
+.feed-entry:last-child{border-bottom:none;}
+.feed-res{font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;padding:2px 7px;border:1px solid rgba(122,94,24,.4);
+  background:rgba(122,94,24,.1);color:var(--gold);min-width:80px;text-align:center;flex-shrink:0;}
+.feed-res.phleg{border-color:#5a7aaa;background:rgba(40,60,120,.2);color:#90b0e0;}
+.feed-res.sang{border-color:#7a3a5a;background:rgba(120,40,80,.2);color:#e080b0;}
+.feed-res.chol{border-color:#7a6a20;background:rgba(120,100,20,.2);color:#e0c060;}
+.feed-res.melan{border-color:#3a5a3a;background:rgba(40,80,40,.2);color:#80c080;}
+.feed-amount{font-family:'Cinzel',serif;font-size:10px;color:var(--crimson-lt);min-width:28px;text-align:center;flex-shrink:0;}
+.feed-target{flex:1;color:var(--text);}
+.feed-notes{font-size:11px;color:var(--subtext);font-style:italic;}
+.feed-date{font-size:10px;color:var(--subtext);white-space:nowrap;flex-shrink:0;}
+.feed-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;padding:0 3px;opacity:0;transition:opacity .2s;}
+.feed-entry:hover .feed-del{opacity:1;}
+.feed-del:hover{color:var(--crimson-lt);}
+.feed-log{max-height:220px;overflow-y:auto;}
+.feed-add-row{display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+.feed-add-row input,.feed-add-row select{background:var(--field-bg);border:1px solid var(--field-border);
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:5px 8px;outline:none;transition:border-color .2s;}
+.feed-add-row select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}
+.feed-add-row select option{background:#0e0b08;color:#d4c898;}
+
+/* ═══════════════════════════════
+   DOWNTIME TRACKER
+   ═══════════════════════════════ */
+.dt-session{border:1px solid rgba(122,94,24,.3);margin-bottom:8px;background:rgba(16,12,8,.5);}
+.dt-session-hdr{display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(122,94,24,.1);
+  border-bottom:1px solid rgba(122,94,24,.2);cursor:pointer;}
+.dt-session-title{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);flex:1;text-transform:uppercase;}
+.dt-session-body{padding:8px 10px;}
+.dt-activity{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid rgba(122,94,24,.1);}
+.dt-activity:last-child{border-bottom:none;}
+.dt-act-type{font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);min-width:80px;flex-shrink:0;text-transform:uppercase;padding-top:2px;}
+.dt-act-desc{flex:1;font-size:12px;color:var(--text);}
+.dt-act-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;padding:0 3px;opacity:0;transition:opacity .2s;}
+.dt-activity:hover .dt-act-del{opacity:1;}
+.dt-act-del:hover{color:var(--crimson-lt);}
+.dt-add-row{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap;}
+.dt-add-row input,.dt-add-row select{background:var(--field-bg);border:1px solid var(--field-border);
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:5px 8px;outline:none;}
+.dt-add-row select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}
+.dt-add-row select option{background:#0e0b08;color:#d4c898;}
+
+/* ═══════════════════════════════
+   COTERIE PANEL
+   ═══════════════════════════════ */
+.coterie-card{border:1px solid rgba(122,94,24,.35);background:rgba(16,12,8,.7);margin-bottom:8px;}
+.coterie-card-hdr{display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(122,21,21,.2);border-bottom:1px solid rgba(122,94,24,.25);}
+.coterie-name{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt);letter-spacing:2px;flex:1;}
+.coterie-clan{font-family:'Cinzel',serif;font-size:8px;color:var(--subtext);letter-spacing:1px;}
+.coterie-body{padding:8px 10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.coterie-field{font-size:11px;color:var(--text);}
+.coterie-field-label{font-family:'Cinzel',serif;font-size:8px;color:var(--subtext);letter-spacing:1px;margin-bottom:2px;text-transform:uppercase;}
+.coterie-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:12px;padding:0 3px;transition:color .2s;}
+.coterie-del:hover{color:var(--crimson-lt);}
+.coterie-vinculum{display:flex;gap:3px;align-items:center;}
+.vin-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;transition:all .12s;}
+.vin-dot.filled{background:var(--crimson-lt);border-color:#e03030;}
+
+/* ═══════════════════════════════
+   RELATIONSHIP / NPC MAP
+   ═══════════════════════════════ */
+.npc-card{border:1px solid rgba(122,94,24,.3);margin-bottom:6px;background:rgba(16,12,8,.6);}
+.npc-card-hdr{display:flex;align-items:center;gap:8px;padding:5px 10px;background:rgba(28,18,8,.8);border-bottom:1px solid rgba(122,94,24,.2);cursor:pointer;}
+.npc-name{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt);letter-spacing:1px;flex:1;}
+.npc-type{font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;padding:1px 6px;border:1px solid;flex-shrink:0;}
+.npc-type.ally{color:#5aaa5a;border-color:#3a7a3a;background:rgba(40,80,40,.15);}
+.npc-type.enemy{color:var(--crimson-lt);border-color:var(--crimson);background:rgba(122,21,21,.15);}
+.npc-type.neutral{color:var(--subtext);border-color:rgba(122,94,24,.4);background:rgba(122,94,24,.06);}
+.npc-type.complicated{color:#e0c060;border-color:#7a6a20;background:rgba(120,100,20,.12);}
+.npc-type.unknown{color:var(--subtext);border-color:rgba(80,80,80,.4);background:rgba(80,80,80,.06);}
+.npc-body{padding:8px 10px;display:none;}
+.npc-body.open{display:block;}
+.npc-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:12px;padding:0 3px;transition:color .2s;}
+.npc-del:hover{color:var(--crimson-lt);}
    ═══════════════════════════════ */
 #tooltip{
   position:fixed;z-index:9000;pointer-events:none;max-width:300px;
@@ -211,6 +345,8 @@ select.fi{cursor:pointer;}
   cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
 .modal-close:hover{background:rgba(196,154,34,.15);}
 .modal-body{padding:14px;max-height:70vh;overflow-y:auto;}
+.modal-body select{background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:5px 22px 5px 8px;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;}
+.modal-body select option{background:#0e0b08;color:#d4c898;}
 .modal-footer{padding:8px 14px;border-top:1px solid var(--field-border);display:flex;justify-content:flex-end;gap:8px;}
 
 /* DISCIPLINE SELECTOR */
@@ -260,7 +396,8 @@ select.fi{cursor:pointer;}
 .spec-form select,.spec-form input{background:var(--field-bg);border:1px solid var(--field-border);
   color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:5px 8px;outline:none;transition:border-color .2s;}
 .spec-form select:focus,.spec-form input:focus{border-color:var(--gold-dim);}
-.spec-form select{flex:0 0 140px;}
+.spec-form select{flex:0 0 140px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}
+.spec-form select option,.fi option{background:#0e0b08;color:#d4c898;}
 .spec-form input{flex:1;}
 
 /* CUSTOM INPUT FORM */
@@ -420,21 +557,21 @@ select.fi{cursor:pointer;}
     <div class="grid-3" style="margin-bottom:0">
       <div>
         <div class="cat">Physical</div>
-        <div class="dr"><span class="dl">Strength</span><div class="dots" id="attr_str" data-max="5" data-val="1"></div></div>
-        <div class="dr"><span class="dl">Dexterity</span><div class="dots" id="attr_dex" data-max="5" data-val="1"></div></div>
-        <div class="dr"><span class="dl">Stamina</span><div class="dots" id="attr_sta" data-max="5" data-val="1"></div></div>
+        <div class="dr" data-skill="Strength"><span class="dl">Strength</span><div class="dots" id="attr_str" data-max="5" data-val="1"></div></div>
+        <div class="dr" data-skill="Dexterity"><span class="dl">Dexterity</span><div class="dots" id="attr_dex" data-max="5" data-val="1"></div></div>
+        <div class="dr" data-skill="Stamina"><span class="dl">Stamina</span><div class="dots" id="attr_sta" data-max="5" data-val="1"></div></div>
       </div>
       <div>
         <div class="cat">Social</div>
-        <div class="dr"><span class="dl">Charisma</span><div class="dots" id="attr_cha" data-max="5" data-val="1"></div></div>
-        <div class="dr"><span class="dl">Manipulation</span><div class="dots" id="attr_man" data-max="5" data-val="1"></div></div>
-        <div class="dr"><span class="dl">Composure</span><div class="dots" id="attr_com" data-max="5" data-val="1"></div></div>
+        <div class="dr" data-skill="Charisma"><span class="dl">Charisma</span><div class="dots" id="attr_cha" data-max="5" data-val="1"></div></div>
+        <div class="dr" data-skill="Manipulation"><span class="dl">Manipulation</span><div class="dots" id="attr_man" data-max="5" data-val="1"></div></div>
+        <div class="dr" data-skill="Composure"><span class="dl">Composure</span><div class="dots" id="attr_com" data-max="5" data-val="1"></div></div>
       </div>
       <div>
         <div class="cat">Mental</div>
-        <div class="dr"><span class="dl">Intelligence</span><div class="dots" id="attr_int" data-max="5" data-val="1"></div></div>
-        <div class="dr"><span class="dl">Wits</span><div class="dots" id="attr_wit" data-max="5" data-val="1"></div></div>
-        <div class="dr"><span class="dl">Resolve</span><div class="dots" id="attr_res" data-max="5" data-val="1"></div></div>
+        <div class="dr" data-skill="Intelligence"><span class="dl">Intelligence</span><div class="dots" id="attr_int" data-max="5" data-val="1"></div></div>
+        <div class="dr" data-skill="Wits"><span class="dl">Wits</span><div class="dots" id="attr_wit" data-max="5" data-val="1"></div></div>
+        <div class="dr" data-skill="Resolve"><span class="dl">Resolve</span><div class="dots" id="attr_res" data-max="5" data-val="1"></div></div>
       </div>
     </div>
   </div>
@@ -447,39 +584,39 @@ select.fi{cursor:pointer;}
     <div class="grid-3" style="margin-bottom:0">
       <div>
         <div class="cat">Physical</div>
-        <div class="dr"><span class="dl">Athletics</span><div class="dots" id="sk_ath" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Brawl</span><div class="dots" id="sk_bra" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Craft</span><div class="dots" id="sk_cra" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Drive</span><div class="dots" id="sk_dri" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Firearms</span><div class="dots" id="sk_fir" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Larceny</span><div class="dots" id="sk_lar" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Melee</span><div class="dots" id="sk_mel" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Stealth</span><div class="dots" id="sk_ste" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Survival</span><div class="dots" id="sk_sur" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Athletics"><span class="dl">Athletics</span><div class="dots" id="sk_ath" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Brawl"><span class="dl">Brawl</span><div class="dots" id="sk_bra" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Craft"><span class="dl">Craft</span><div class="dots" id="sk_cra" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Drive"><span class="dl">Drive</span><div class="dots" id="sk_dri" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Firearms"><span class="dl">Firearms</span><div class="dots" id="sk_fir" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Larceny"><span class="dl">Larceny</span><div class="dots" id="sk_lar" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Melee"><span class="dl">Melee</span><div class="dots" id="sk_mel" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Stealth"><span class="dl">Stealth</span><div class="dots" id="sk_ste" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Survival"><span class="dl">Survival</span><div class="dots" id="sk_sur" data-max="5" data-val="0"></div></div>
       </div>
       <div>
         <div class="cat">Social</div>
-        <div class="dr"><span class="dl">Animal Ken</span><div class="dots" id="sk_ani" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Etiquette</span><div class="dots" id="sk_eti" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Insight</span><div class="dots" id="sk_ins" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Intimidation</span><div class="dots" id="sk_imi" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Leadership</span><div class="dots" id="sk_lea" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Performance</span><div class="dots" id="sk_per" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Persuasion</span><div class="dots" id="sk_prs" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Streetwise</span><div class="dots" id="sk_str" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Subterfuge</span><div class="dots" id="sk_sub" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Animal Ken"><span class="dl">Animal Ken</span><div class="dots" id="sk_ani" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Etiquette"><span class="dl">Etiquette</span><div class="dots" id="sk_eti" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Insight"><span class="dl">Insight</span><div class="dots" id="sk_ins" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Intimidation"><span class="dl">Intimidation</span><div class="dots" id="sk_imi" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Leadership"><span class="dl">Leadership</span><div class="dots" id="sk_lea" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Performance"><span class="dl">Performance</span><div class="dots" id="sk_per" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Persuasion"><span class="dl">Persuasion</span><div class="dots" id="sk_prs" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Streetwise"><span class="dl">Streetwise</span><div class="dots" id="sk_str" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Subterfuge"><span class="dl">Subterfuge</span><div class="dots" id="sk_sub" data-max="5" data-val="0"></div></div>
       </div>
       <div>
         <div class="cat">Mental</div>
-        <div class="dr"><span class="dl">Academics</span><div class="dots" id="sk_aca" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Awareness</span><div class="dots" id="sk_awa" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Finance</span><div class="dots" id="sk_fin" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Investigation</span><div class="dots" id="sk_inv" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Medicine</span><div class="dots" id="sk_med" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Occult</span><div class="dots" id="sk_occ" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Politics</span><div class="dots" id="sk_pol" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Science</span><div class="dots" id="sk_sci" data-max="5" data-val="0"></div></div>
-        <div class="dr"><span class="dl">Technology</span><div class="dots" id="sk_tec" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Academics"><span class="dl">Academics</span><div class="dots" id="sk_aca" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Awareness"><span class="dl">Awareness</span><div class="dots" id="sk_awa" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Finance"><span class="dl">Finance</span><div class="dots" id="sk_fin" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Investigation"><span class="dl">Investigation</span><div class="dots" id="sk_inv" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Medicine"><span class="dl">Medicine</span><div class="dots" id="sk_med" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Occult"><span class="dl">Occult</span><div class="dots" id="sk_occ" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Politics"><span class="dl">Politics</span><div class="dots" id="sk_pol" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Science"><span class="dl">Science</span><div class="dots" id="sk_sci" data-max="5" data-val="0"></div></div>
+        <div class="dr" data-skill="Technology"><span class="dl">Technology</span><div class="dots" id="sk_tec" data-max="5" data-val="0"></div></div>
       </div>
     </div>
   </div>
@@ -583,25 +720,133 @@ select.fi{cursor:pointer;}
   </div>
 </div>
 
-<!-- HUMANITY + HUNGER -->
-<div class="grid-2">
-  <div class="panel">
-    <div class="ph"><span class="ph-left">Humanity</span></div>
-    <div class="pb">
-      <div class="ld-row" id="humanity_dots"></div>
-      <div style="margin-top:5px;font-size:10px;color:var(--subtext)">Current: <span id="humanity_val">7</span>/10</div>
-      <div class="fr" style="margin-top:6px"><span class="fl">Stains</span><input class="fi" id="f_stains" value="0" style="max-width:40px"></div>
-    </div>
-  </div>
-  <div class="panel">
-    <div class="ph"><span class="ph-left">Hunger</span></div>
-    <div class="pb">
-      <div class="ld-row" id="hunger_dots"></div>
-      <div style="margin-top:5px;font-size:10px;color:var(--subtext)">Current: <span id="hunger_val">1</span>/5 — Hunger 4+ risks Frenzy</div>
-      <div style="margin-top:8px" class="na-box">
-        <strong style="color:var(--gold)">Resonance:</strong>
-        <input class="fi" id="f_resonance" placeholder="Current resonance type..." style="display:inline;border-bottom:1px solid var(--field-border);width:auto;min-width:150px;margin-left:6px">
+<!-- THE BLOOD -->
+<div class="panel full">
+  <div class="ph"><span class="ph-left">The Blood</span></div>
+  <div class="pb">
+
+    <!-- Blood Potency row -->
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:8px;">
+      <div>
+        <div class="itl" style="margin-top:0;margin-bottom:4px">Blood Potency</div>
+        <div class="bp-dots-row" id="bp_dots"></div>
+        <div style="font-size:10px;color:var(--subtext);margin-top:3px">Current: <span id="bp_val">1</span>/10</div>
       </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div>
+          <div class="itl" style="margin-top:0;margin-bottom:4px">Vampire Age</div>
+          <select class="fi" id="f_vamp_age" style="min-width:200px;" onchange="onAgeChange()">
+            <option value="">— Select Age Category —</option>
+            <option value="fledgling">Fledgling / Thin-Blood (0–20 yrs) · Gen 14–16</option>
+            <option value="neonate">Neonate (20–75 yrs) · Gen 12–13</option>
+            <option value="ancilla">Ancilla (75–250 yrs) · Gen 10–11</option>
+            <option value="elder">Elder (250–1000 yrs) · Gen 9 or lower</option>
+            <option value="methuselah">Methuselah (1000+ yrs) · Gen 4–5</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- BP stat grid -->
+    <div class="bp-stat-grid">
+      <div class="bp-stat">
+        <div class="bp-stat-label">Blood Surge</div>
+        <div class="bp-stat-value">Add <b id="bp_surge">2</b> dice to any pool</div>
+      </div>
+      <div class="bp-stat">
+        <div class="bp-stat-label">Bane Severity</div>
+        <div class="bp-stat-value"><b id="bp_bane_sev">2</b></div>
+      </div>
+      <div class="bp-stat">
+        <div class="bp-stat-label">Power Bonus</div>
+        <div class="bp-stat-value" id="bp_power_bonus">—</div>
+      </div>
+      <div class="bp-stat">
+        <div class="bp-stat-label">Mend Amount</div>
+        <div class="bp-stat-value" id="bp_mend">1 Superficial</div>
+      </div>
+      <div class="bp-stat">
+        <div class="bp-stat-label">Rouse Re-Roll</div>
+        <div class="bp-stat-value" id="bp_rouse">Level 1</div>
+      </div>
+      <div class="bp-stat">
+        <div class="bp-stat-label">Feeding Penalty</div>
+        <div class="bp-stat-value" id="bp_feeding">No penalty</div>
+      </div>
+    </div>
+
+    <div class="div"></div>
+
+    <!-- Humanity + Hunger + Stains row -->
+    <div class="grid-3" style="margin-bottom:0">
+      <div>
+        <div class="itl" style="margin-top:0;margin-bottom:4px">Humanity</div>
+        <div class="ld-row" id="humanity_dots"></div>
+        <div style="margin-top:5px;font-size:10px;color:var(--subtext)">Current: <span id="humanity_val">7</span>/10</div>
+        <div class="fr" style="margin-top:8px"><span class="fl">Stains</span><input class="fi" id="f_stains" value="0" style="max-width:40px"></div>
+      </div>
+      <div>
+        <div class="itl" style="margin-top:0;margin-bottom:4px">Hunger</div>
+        <div class="ld-row" id="hunger_dots"></div>
+        <div style="margin-top:5px;font-size:10px;color:var(--subtext)">Current: <span id="hunger_val">1</span>/5 — Hunger 4+ risks Frenzy</div>
+        <div class="frenzy-warning" id="frenzy_warning">⚠ FRENZY RISK — All provocation requires a Frenzy check</div>
+      </div>
+      <div>
+        <div class="itl" style="margin-top:0;margin-bottom:4px">Resonance</div>
+        <input class="fi" id="f_resonance" placeholder="Current resonance type..." style="width:100%;margin-bottom:6px">
+        <div class="itl" style="margin-bottom:4px">Dyscrasia</div>
+        <input class="fi" id="f_dyscrasia" placeholder="Exceptional resonance notes...">
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- XP TRACKER -->
+<div class="panel full">
+  <div class="ph">
+    <span class="ph-left">Experience</span>
+    <span style="font-size:8px;color:var(--subtext);letter-spacing:1px;margin-left:auto">Total: <span id="xp_total_hdr">0</span> &nbsp;·&nbsp; Spent: <span id="xp_spent_hdr">0</span> &nbsp;·&nbsp; Remaining: <span id="xp_remain_hdr">0</span></span>
+  </div>
+  <div class="pb">
+    <div class="xp-summary">
+      <div class="xp-box">
+        <div class="xp-box-label">Total Earned</div>
+        <div class="xp-box-val" id="xp_total_big">0</div>
+      </div>
+      <div class="xp-box">
+        <div class="xp-box-label">Spent</div>
+        <div class="xp-box-val spent" id="xp_spent_big">0</div>
+      </div>
+      <div class="xp-box">
+        <div class="xp-box-label">Remaining</div>
+        <div class="xp-box-val remaining" id="xp_remain_big">0</div>
+      </div>
+    </div>
+
+    <!-- Add entry row -->
+    <div class="xp-add-row">
+      <select id="xp_type" style="flex:0 0 90px">
+        <option value="gain">+ Gain</option>
+        <option value="spend">− Spend</option>
+      </select>
+      <input type="number" id="xp_amount" placeholder="XP" min="1" style="width:64px;flex-shrink:0">
+      <select id="xp_cat" style="flex:0 0 140px">
+        <option value="Award">Award</option>
+        <option value="Attribute">Attribute</option>
+        <option value="Skill">Skill</option>
+        <option value="Discipline">Discipline</option>
+        <option value="Ritual">Ritual</option>
+        <option value="Merit">Merit</option>
+        <option value="Other">Other</option>
+      </select>
+      <input type="text" id="xp_desc" placeholder="Description (e.g. Auspex ●●, session reward...)" style="flex:1;min-width:160px">
+      <button class="btn green" onclick="addXPEntry()">Add</button>
+    </div>
+
+    <!-- Log -->
+    <div class="xp-log" id="xp_log">
+      <div class="xp-empty" id="xp_empty">No entries yet. Add XP gains and spends above.</div>
     </div>
   </div>
 </div>
@@ -668,6 +913,85 @@ select.fi{cursor:pointer;}
   </div>
 </div>
 
+<!-- FEEDING LOG -->
+<div class="panel full">
+  <div class="ph"><span class="ph-left">Feeding Log</span></div>
+  <div class="pb">
+    <div class="feed-add-row">
+      <select id="feed_resonance" style="flex:0 0 130px">
+        <option value="">— Resonance —</option>
+        <option value="phleg">Phlegmatic</option>
+        <option value="sang">Sanguine</option>
+        <option value="chol">Choleric</option>
+        <option value="melan">Melancholic</option>
+        <option value="empty">Empty (Thin)</option>
+        <option value="">Animal / Unknown</option>
+      </select>
+      <input type="number" id="feed_hunger" placeholder="Hunger lost" min="1" max="5" style="width:90px;flex-shrink:0">
+      <input type="text" id="feed_target" placeholder="Who / what was fed on..." style="flex:1;min-width:150px">
+      <input type="text" id="feed_notes" placeholder="Notes (dyscrasia, complications...)" style="flex:1;min-width:150px">
+      <button class="btn green" onclick="addFeedEntry()">Log</button>
+    </div>
+    <div class="feed-log" id="feed_log">
+      <div class="xp-empty" id="feed_empty">No feeding entries yet.</div>
+    </div>
+  </div>
+</div>
+
+<!-- DOWNTIME TRACKER -->
+<div class="panel full">
+  <div class="ph">
+    <span class="ph-left">Downtime</span>
+    <button class="add-btn" style="margin-left:auto" onclick="addDowntimeSession()">+ New Session</button>
+  </div>
+  <div class="pb">
+    <div id="downtime_list">
+      <div class="xp-empty" id="downtime_empty">No downtime sessions yet. Click + New Session.</div>
+    </div>
+  </div>
+</div>
+
+<!-- COTERIE -->
+<div class="panel full">
+  <div class="ph">
+    <span class="ph-left">Coterie</span>
+    <button class="add-btn" style="margin-left:auto" onclick="openCoterieModal()">+ Add Member</button>
+  </div>
+  <div class="pb">
+    <div class="fr" style="margin-bottom:10px">
+      <span class="fl">Coterie Type</span>
+      <select class="fi" id="f_coterie_type">
+        <option value="">— Select —</option>
+        <option>Hunting Party</option><option>Nomads</option><option>Saboteurs</option>
+        <option>Cerberus</option><option>Champions</option><option>Day Watch</option>
+        <option>Freehold</option><option>Investigators</option><option>Lair</option>
+        <option>Messengers</option><option>Power Brokers</option><option>Regency</option>
+        <option>Sworn</option><option>War Party</option>
+      </select>
+    </div>
+    <div class="fr" style="margin-bottom:12px">
+      <span class="fl">Shared Resources</span>
+      <input class="fi" id="f_coterie_resources" placeholder="Shared haven, contacts, assets...">
+    </div>
+    <div id="coterie_list">
+      <div class="xp-empty" id="coterie_empty">No members added yet.</div>
+    </div>
+  </div>
+</div>
+
+<!-- RELATIONSHIPS / NPC MAP -->
+<div class="panel full">
+  <div class="ph">
+    <span class="ph-left">Relationships & NPCs</span>
+    <button class="add-btn" style="margin-left:auto" onclick="openNPCModal()">+ Add NPC</button>
+  </div>
+  <div class="pb">
+    <div id="npc_list">
+      <div class="xp-empty" id="npc_empty">No NPCs tracked yet. Add people who matter to your character.</div>
+    </div>
+  </div>
+</div>
+
 <div class="footer">✦ &nbsp; Vampire: The Masquerade V5 &nbsp;·&nbsp; Player Sheet &nbsp;·&nbsp; Blank Template &nbsp; ✦</div>
 </div><!-- end .page -->
 
@@ -714,7 +1038,7 @@ const VTM = {
     bonding:{label:"Bonding",icon:"🔗",items:[{name:"Long Bond",cost:"1",desc:"Blood bonds on you take longer to wane"},{name:"Bond Junkie",cost:"1",desc:"Lose one die on actions against your blood bond"},{name:"Bondslave",cost:"2",desc:"Blood bonds on you created on the first drink"}]}
   },
   clans:["Banu Haqim","Brujah","Gangrel","Hecata","Lasombra","Malkavian","The Ministry","Nosferatu","Ravnos","Salubri","Toreador","Tremere","Tzimisce","Ventrue","Caitiff","Thin-blood"],
-  predatorTypes:["Alleycat","Bagger","Blood Leech","Cleaver","Consensualist","Extortionist","Farmer","Osiris","Sandman","Siren"],
+  predatorTypes:["Alleycat","Bagger","Blood Leech","Cleaver","Consensualist","Extortionist","Farmer","Graverobber","Grim Reaper","Montero","Osiris","Pursuer","Roadside Killer","Sandman","Scene Queen","Siren","Trapdoor"],
   skills:{physical:["Athletics","Brawl","Craft","Drive","Firearms","Larceny","Melee","Stealth","Survival"],social:["Animal Ken","Etiquette","Insight","Intimidation","Leadership","Performance","Persuasion","Streetwise","Subterfuge"],mental:["Academics","Awareness","Finance","Investigation","Medicine","Occult","Politics","Science","Technology"]}
 };
 
@@ -726,11 +1050,16 @@ const SK_PRIV = 'vtm_blank_priv_v1';
 const SK_CFG = 'vtm_blank_cfg_v1';
 let cfg = {};
 let state = {
-  disciplines: [],   // [{key, name, icon, powers:[{name,level,desc,dice,rouses}]}]
-  merits: [],        // [{name, cost, desc, dots, customDesc}]
-  flaws: [],         // [{name, cost, desc, customDesc}]
-  specialties: [],   // [{skill, name, desc}]
-  rituals: []        // [{level, name, desc}]
+  disciplines: [],
+  merits: [],
+  flaws: [],
+  specialties: [],
+  rituals: [],
+  xpLog: [],
+  feedLog: [],      // [{id, resonance, hunger, target, notes, date}]
+  downtime: [],     // [{id, session, activities:[{type,desc}]}]
+  coterie: [],      // [{id, name, clan, player, bp, vinculum, notes}]
+  npcs: []          // [{id, name, type, faction, relation, secrets, notes, open}]
 };
 let autoSyncTimer = null;
 
@@ -1122,21 +1451,46 @@ function removeSpecialty(idx) {
 }
 
 function renderSpecialties() {
+  // 1. Clear all existing inline tags from .dr rows
+  document.querySelectorAll('.dr .spec-tag').forEach(t => t.remove());
+
+  // 2. Inject inline tags next to matching skill/attr dots
+  state.specialties.forEach((s, i) => {
+    const row = document.querySelector(`.dr[data-skill="${s.skill}"]`);
+    if (row) {
+      const tag = document.createElement('span');
+      tag.className = 'spec-tag';
+      tag.title = s.desc || '+1 die when this specialty applies.';
+      tag.onmouseenter = (e) => showTT(e, s.skill + ': ' + s.name, 'Specialty', s.desc || '+1 die when this specialty applies.', '');
+      tag.onmouseleave = hideTT;
+      tag.innerHTML = `${s.name}<button class="spec-tag-x" onclick="removeSpecialty(${i})" title="Remove">✕</button>`;
+      row.appendChild(tag);
+    }
+  });
+
+  // 3. Update the reference list panel (pills) — kept as fallback for custom skills
   const list = document.getElementById('specialties_list');
   const empty = document.getElementById('specialties_empty');
   list.innerHTML = '';
+  const unplaced = state.specialties.filter(s => !document.querySelector(`.dr[data-skill="${s.skill}"]`));
   if (state.specialties.length === 0) { empty.style.display = 'block'; return; }
   empty.style.display = 'none';
-  state.specialties.forEach((s, i) => {
+  // Show pills only for specialties that couldn't be placed inline (custom skills)
+  unplaced.forEach((s, i) => {
+    const realIdx = state.specialties.indexOf(s);
     const pill = document.createElement('span');
     pill.className = 'spec-pill';
     pill.onmouseenter = (e) => showTT(e, s.skill + ': ' + s.name, 'Specialty', s.desc || '+1 die when this specialty applies.', '');
     pill.onmouseleave = hideTT;
     pill.innerHTML = `<span class="spec-pill-skill">${s.skill}:</span>
       <span class="spec-pill-name">${s.name}</span>
-      <button class="spec-pill-remove" onclick="removeSpecialty(${i})">✕</button>`;
+      <button class="spec-pill-remove" onclick="removeSpecialty(${realIdx})">✕</button>`;
     list.appendChild(pill);
   });
+  if (unplaced.length === 0) {
+    empty.style.display = 'block';
+    empty.textContent = 'All specialties shown inline on skill rows above.';
+  }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1246,7 +1600,14 @@ function updateLargeDots(id, val) {
   c.dataset.val = val;
   c.querySelectorAll('.ld').forEach((d,i) => { d.className = 'ld' + (i < val ? (t === 'hunger' ? ' hfilled' : ' filled') : ''); });
   if (id === 'humanity_dots') document.getElementById('humanity_val').textContent = val;
-  if (id === 'hunger_dots') document.getElementById('hunger_val').textContent = val;
+  if (id === 'hunger_dots') {
+    document.getElementById('hunger_val').textContent = val;
+    const warn = document.getElementById('frenzy_warning');
+    if (warn) warn.classList.toggle('show', val >= 4);
+    // At hunger 5 escalate message
+    if (warn && val === 5) warn.textContent = '💀 HUNGER 5 — FRENZY ON ANY PROVOCATION. Rouse check to resist feeding.';
+    else if (warn && val >= 4) warn.textContent = '⚠ FRENZY RISK — All provocation requires a Frenzy check';
+  }
 }
 function getLDVal(id) { const e = document.getElementById(id); return e ? parseInt(e.dataset.val) : 0; }
 
@@ -1280,12 +1641,387 @@ function resizeTrack(id, n) {
 }
 
 // ════════════════════════════════════════════════════════════
+// BLOOD POTENCY
+// ════════════════════════════════════════════════════════════
+const BP_TABLE = {
+  0: {surge:1, bane:1, power:'—',         mend:'1 Superficial', rouse:'None',    feeding:'No penalty'},
+  1: {surge:2, bane:2, power:'—',         mend:'1 Superficial', rouse:'Level 1', feeding:'No penalty'},
+  2: {surge:2, bane:2, power:'—',         mend:'1 Superficial', rouse:'Level 1', feeding:'No penalty'},
+  3: {surge:3, bane:2, power:'+1 die',    mend:'2 Superficial', rouse:'Level 1', feeding:'Prey Excl. 1'},
+  4: {surge:3, bane:3, power:'+1 die',    mend:'2 Superficial', rouse:'Level 2', feeding:'Prey Excl. 1'},
+  5: {surge:4, bane:3, power:'+2 dice',   mend:'3 Superficial', rouse:'Level 2', feeding:'Prey Excl. 2'},
+  6: {surge:4, bane:3, power:'+2 dice',   mend:'3 Superficial', rouse:'Level 3', feeding:'Prey Excl. 2'},
+  7: {surge:5, bane:4, power:'+3 dice',   mend:'1 Aggravated',  rouse:'Level 3', feeding:'Prey Excl. 3'},
+  8: {surge:5, bane:4, power:'+3 dice',   mend:'1 Aggravated',  rouse:'Level 4', feeding:'Prey Excl. 3'},
+  9: {surge:6, bane:5, power:'+4 dice',   mend:'2 Aggravated',  rouse:'Level 4', feeding:'Prey Excl. 4'},
+  10:{surge:6, bane:5, power:'+4 dice',   mend:'2 Aggravated',  rouse:'Level 5', feeding:'Prey Excl. 4'},
+};
+
+function initBPDots() {
+  const c = document.getElementById('bp_dots'); if (!c) return;
+  c.innerHTML = '';
+  for (let i = 1; i <= 10; i++) {
+    const d = document.createElement('div');
+    d.className = 'bp-dot';
+    d.dataset.i = i;
+    d.addEventListener('click', () => {
+      const cur = getLDVal('bp_dots');
+      updateBPDots(i === cur ? i-1 : i);
+      markUnsaved();
+    });
+    c.appendChild(d);
+    if (i === 5) { const spacer = document.createElement('div'); spacer.style.width='6px'; c.appendChild(spacer); }
+  }
+  updateBPDots(1);
+}
+
+function updateBPDots(val) {
+  const c = document.getElementById('bp_dots'); if (!c) return;
+  val = Math.max(0, Math.min(10, val));
+  c.dataset.val = val;
+  c.querySelectorAll('.bp-dot').forEach((d,i) => {
+    d.className = 'bp-dot' + (i < val ? ' filled' : '');
+  });
+  document.getElementById('bp_val').textContent = val;
+  // Update stat display
+  const row = BP_TABLE[val] || BP_TABLE[1];
+  document.getElementById('bp_surge').textContent = row.surge;
+  document.getElementById('bp_bane_sev').textContent = row.bane;
+  document.getElementById('bp_power_bonus').textContent = row.power;
+  document.getElementById('bp_mend').textContent = row.mend;
+  document.getElementById('bp_rouse').textContent = row.rouse;
+  document.getElementById('bp_feeding').textContent = row.feeding;
+}
+
+function onAgeChange() { markUnsaved(); }
+
+// ════════════════════════════════════════════════════════════
+// XP TRACKER
+// ════════════════════════════════════════════════════════════
+function addXPEntry() {
+  const type   = document.getElementById('xp_type').value;
+  const amount = parseInt(document.getElementById('xp_amount').value);
+  const cat    = document.getElementById('xp_cat').value;
+  const desc   = document.getElementById('xp_desc').value.trim();
+  if (!amount || amount < 1) { toast('Enter an XP amount', 'error'); return; }
+  if (!desc) { toast('Enter a description', 'error'); return; }
+  state.xpLog.unshift({
+    id: Date.now(),
+    type, amount, cat, desc,
+    date: new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short'})
+  });
+  document.getElementById('xp_amount').value = '';
+  document.getElementById('xp_desc').value = '';
+  renderXPLog(); markUnsaved();
+}
+
+function deleteXPEntry(id) {
+  state.xpLog = state.xpLog.filter(e => e.id !== id);
+  renderXPLog(); markUnsaved();
+}
+
+function renderXPLog() {
+  const log = document.getElementById('xp_log');
+  const empty = document.getElementById('xp_empty');
+  let totalGained = 0, totalSpent = 0;
+  state.xpLog.forEach(e => {
+    if (e.type === 'gain') totalGained += e.amount;
+    else totalSpent += e.amount;
+  });
+  const remaining = totalGained - totalSpent;
+  // Update displays
+  ['xp_total_big','xp_total_hdr'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=totalGained; });
+  ['xp_spent_big','xp_spent_hdr'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=totalSpent; });
+  ['xp_remain_big','xp_remain_hdr'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=remaining; });
+  // Render log rows
+  const entries = log.querySelectorAll('.xp-entry');
+  entries.forEach(e => e.remove());
+  if (state.xpLog.length === 0) { empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  state.xpLog.forEach(e => {
+    const div = document.createElement('div');
+    div.className = 'xp-entry';
+    const sign = e.type === 'gain' ? '+' : '−';
+    div.innerHTML = `
+      <span class="xp-entry-cost ${e.type}">${sign}${e.amount}</span>
+      <span class="xp-entry-cat">${e.cat}</span>
+      <span class="xp-entry-desc">${e.desc}</span>
+      <span class="xp-entry-date">${e.date||''}</span>
+      <button class="xp-entry-del" onclick="deleteXPEntry(${e.id})">✕</button>`;
+    log.appendChild(div);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// FEEDING LOG
+// ════════════════════════════════════════════════════════════
+const RES_LABELS = {phleg:'Phlegmatic',sang:'Sanguine',chol:'Choleric',melan:'Melancholic',empty:'Empty (Thin)',''  :'Animal / Unknown'};
+
+function addFeedEntry() {
+  const resonance = document.getElementById('feed_resonance').value;
+  const hunger    = parseInt(document.getElementById('feed_hunger').value) || 0;
+  const target    = document.getElementById('feed_target').value.trim();
+  const notes     = document.getElementById('feed_notes').value.trim();
+  if (!target) { toast('Enter who was fed on', 'error'); return; }
+  state.feedLog.unshift({ id:Date.now(), resonance, hunger, target, notes, date:new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short'}) });
+  document.getElementById('feed_target').value = '';
+  document.getElementById('feed_notes').value = '';
+  document.getElementById('feed_hunger').value = '';
+  renderFeedLog(); markUnsaved();
+}
+
+function deleteFeedEntry(id) { state.feedLog = state.feedLog.filter(e => e.id !== id); renderFeedLog(); markUnsaved(); }
+
+function renderFeedLog() {
+  const log = document.getElementById('feed_log');
+  const empty = document.getElementById('feed_empty');
+  log.querySelectorAll('.feed-entry').forEach(e => e.remove());
+  if (!state.feedLog.length) { empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  state.feedLog.forEach(e => {
+    const div = document.createElement('div'); div.className = 'feed-entry';
+    const resClass = e.resonance ? e.resonance : '';
+    const resLabel = RES_LABELS[e.resonance] ?? e.resonance ?? '—';
+    div.innerHTML = `<span class="feed-res ${resClass}">${resLabel}</span>
+      <span class="feed-amount">${e.hunger ? '-'+e.hunger+'🩸' : '—'}</span>
+      <span class="feed-target">${e.target}</span>
+      ${e.notes ? `<span class="feed-notes">${e.notes}</span>` : ''}
+      <span class="feed-date">${e.date||''}</span>
+      <button class="feed-del" onclick="deleteFeedEntry(${e.id})">✕</button>`;
+    log.appendChild(div);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// DOWNTIME TRACKER
+// ════════════════════════════════════════════════════════════
+const DT_TYPES = ['Hunt','Investigate','Influence','Recover','Study','Craft','Social','Other'];
+
+function addDowntimeSession() {
+  const session = prompt('Session name / number (e.g. "Session 4 — October downtime"):');
+  if (!session) return;
+  state.downtime.unshift({ id:Date.now(), session, activities:[] });
+  renderDowntime(); markUnsaved();
+}
+
+function addDowntimeActivity(sessionId) {
+  const sess = state.downtime.find(s => s.id === sessionId); if (!sess) return;
+  const type = document.getElementById('dt_type_'+sessionId)?.value || 'Other';
+  const desc = document.getElementById('dt_desc_'+sessionId)?.value?.trim();
+  if (!desc) { toast('Enter activity description','error'); return; }
+  sess.activities.push({ id:Date.now(), type, desc });
+  document.getElementById('dt_desc_'+sessionId).value = '';
+  renderDowntime(); markUnsaved();
+}
+
+function deleteDowntimeActivity(sessionId, actId) {
+  const sess = state.downtime.find(s => s.id === sessionId); if (!sess) return;
+  sess.activities = sess.activities.filter(a => a.id !== actId);
+  renderDowntime(); markUnsaved();
+}
+
+function deleteDowntimeSession(id) {
+  if (!confirm('Delete this downtime session?')) return;
+  state.downtime = state.downtime.filter(s => s.id !== id);
+  renderDowntime(); markUnsaved();
+}
+
+function renderDowntime() {
+  const list = document.getElementById('downtime_list');
+  const empty = document.getElementById('downtime_empty');
+  list.innerHTML = '';
+  if (!state.downtime.length) { list.appendChild(empty); empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  state.downtime.forEach(sess => {
+    const div = document.createElement('div'); div.className = 'dt-session';
+    const typeOpts = DT_TYPES.map(t => `<option>${t}</option>`).join('');
+    const acts = sess.activities.map(a => `
+      <div class="dt-activity">
+        <span class="dt-act-type">${a.type}</span>
+        <span class="dt-act-desc">${a.desc}</span>
+        <button class="dt-act-del" onclick="deleteDowntimeActivity(${sess.id},${a.id})">✕</button>
+      </div>`).join('') || '<div style="font-size:11px;color:var(--subtext);font-style:italic;padding:4px 0">No activities yet.</div>';
+    div.innerHTML = `
+      <div class="dt-session-hdr">
+        <span class="dt-session-title">✦ ${sess.session}</span>
+        <span style="font-size:10px;color:var(--subtext)">${sess.activities.length} activit${sess.activities.length===1?'y':'ies'}</span>
+        <button class="add-btn" style="font-size:7px;padding:2px 7px;margin-left:8px" onclick="deleteDowntimeSession(${sess.id})">Remove</button>
+      </div>
+      <div class="dt-session-body">
+        ${acts}
+        <div class="dt-add-row" style="margin-top:8px">
+          <select id="dt_type_${sess.id}" style="flex:0 0 110px">${typeOpts}</select>
+          <input id="dt_desc_${sess.id}" placeholder="What did you do..." style="flex:1;min-width:160px">
+          <button class="btn green" onclick="addDowntimeActivity(${sess.id})">Add</button>
+        </div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// COTERIE
+// ════════════════════════════════════════════════════════════
+function openCoterieModal() {
+  const html = `<div style="display:flex;flex-direction:column;gap:10px;">
+    <div><div class="itl" style="margin-top:0;margin-bottom:4px">Character Name</div>
+      <input id="cot_name" class="fi" style="width:100%" placeholder="Name..."></div>
+    <div class="grid-2" style="margin-bottom:0">
+      <div><div class="itl" style="margin-top:0;margin-bottom:4px">Clan</div>
+        <select id="cot_clan" class="fi" style="width:100%">
+          <option value="">— Select —</option>${VTM.clans.map(c=>`<option>${c}</option>`).join('')}
+        </select></div>
+      <div><div class="itl" style="margin-top:0;margin-bottom:4px">Player (optional)</div>
+        <input id="cot_player" class="fi" style="width:100%" placeholder="Player name..."></div>
+    </div>
+    <div class="grid-2" style="margin-bottom:0">
+      <div><div class="itl" style="margin-top:0;margin-bottom:4px">Blood Potency</div>
+        <input id="cot_bp" class="fi" type="number" min="0" max="10" style="width:100%" placeholder="1"></div>
+      <div><div class="itl" style="margin-top:0;margin-bottom:4px">Vinculum to you (0–3)</div>
+        <input id="cot_vin" class="fi" type="number" min="0" max="3" style="width:100%" placeholder="0"></div>
+    </div>
+    <div><div class="itl" style="margin-top:0;margin-bottom:4px">Notes</div>
+      <textarea id="cot_notes" class="fta" style="min-height:60px" placeholder="Disciplines, role in coterie, history..."></textarea></div>
+    <button class="btn green" onclick="addCoterieMember()">Add Member</button>
+  </div>`;
+  openModal('Add Coterie Member', html, false);
+}
+
+function addCoterieMember() {
+  const name = document.getElementById('cot_name')?.value?.trim();
+  if (!name) { toast('Enter a name','error'); return; }
+  state.coterie.push({
+    id: Date.now(),
+    name, clan: document.getElementById('cot_clan')?.value||'',
+    player: document.getElementById('cot_player')?.value?.trim()||'',
+    bp: parseInt(document.getElementById('cot_bp')?.value)||1,
+    vinculum: Math.min(3, parseInt(document.getElementById('cot_vin')?.value)||0),
+    notes: document.getElementById('cot_notes')?.value?.trim()||''
+  });
+  renderCoterie(); markUnsaved(); closeModal(); toast('Added: '+name);
+}
+
+function deleteCoterieMember(id) { state.coterie = state.coterie.filter(c => c.id !== id); renderCoterie(); markUnsaved(); }
+
+function setVinculum(memberId, val) {
+  const m = state.coterie.find(c => c.id === memberId); if (!m) return;
+  m.vinculum = m.vinculum === val ? val-1 : val;
+  renderCoterie(); markUnsaved();
+}
+
+function renderCoterie() {
+  const list = document.getElementById('coterie_list');
+  const empty = document.getElementById('coterie_empty');
+  list.innerHTML = '';
+  if (!state.coterie.length) { list.appendChild(empty); empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  state.coterie.forEach(m => {
+    const card = document.createElement('div'); card.className = 'coterie-card';
+    const vinDots = [1,2,3].map(i =>
+      `<div class="vin-dot${m.vinculum>=i?' filled':''}" onclick="setVinculum(${m.id},${i})" title="Vinculum ${i}"></div>`).join('');
+    card.innerHTML = `
+      <div class="coterie-card-hdr">
+        <span class="coterie-name">${m.name}</span>
+        <span class="coterie-clan">${m.clan||'—'}</span>
+        ${m.player ? `<span style="font-size:9px;color:var(--subtext);margin-left:6px">(${m.player})</span>` : ''}
+        <button class="coterie-del" onclick="deleteCoterieMember(${m.id})">✕</button>
+      </div>
+      <div class="coterie-body">
+        <div class="coterie-field"><div class="coterie-field-label">Blood Potency</div>${m.bp}</div>
+        <div class="coterie-field"><div class="coterie-field-label">Vinculum to You</div>
+          <div class="coterie-vinculum">${vinDots}</div></div>
+        ${m.notes ? `<div class="coterie-field" style="grid-column:1/-1"><div class="coterie-field-label">Notes</div>${m.notes}</div>` : ''}
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// NPC / RELATIONSHIP MAP
+// ════════════════════════════════════════════════════════════
+function openNPCModal() {
+  const html = `<div style="display:flex;flex-direction:column;gap:10px;">
+    <div class="grid-2" style="margin-bottom:0">
+      <div><div class="itl" style="margin-top:0;margin-bottom:4px">Name</div>
+        <input id="npc_name" class="fi" style="width:100%" placeholder="NPC name..."></div>
+      <div><div class="itl" style="margin-top:0;margin-bottom:4px">Relationship</div>
+        <select id="npc_type" class="fi" style="width:100%">
+          <option value="neutral">Neutral</option>
+          <option value="ally">Ally</option>
+          <option value="enemy">Enemy</option>
+          <option value="complicated">Complicated</option>
+          <option value="unknown">Unknown</option>
+        </select></div>
+    </div>
+    <div class="grid-2" style="margin-bottom:0">
+      <div><div class="itl" style="margin-top:0;margin-bottom:4px">Faction / Clan</div>
+        <input id="npc_faction" class="fi" style="width:100%" placeholder="e.g. Camarilla, Tremere..."></div>
+      <div><div class="itl" style="margin-top:0;margin-bottom:4px">Known Role</div>
+        <input id="npc_relation" class="fi" style="width:100%" placeholder="e.g. Sheriff, Harpy..."></div>
+    </div>
+    <div><div class="itl" style="margin-top:0;margin-bottom:4px">Notes</div>
+      <textarea id="npc_notes" class="fta" style="min-height:60px" placeholder="What you know about them..."></textarea></div>
+    <div><div class="itl" style="margin-top:0;margin-bottom:4px">Secrets / Suspicions <span style="color:var(--crimson-lt);font-size:9px">(private — never synced)</span></div>
+      <textarea id="npc_secrets" class="fta" style="min-height:50px" placeholder="What they might be hiding, your theories..."></textarea></div>
+    <button class="btn green" onclick="addNPC()">Add NPC</button>
+  </div>`;
+  openModal('Add NPC / Relationship', html, false);
+}
+
+function addNPC() {
+  const name = document.getElementById('npc_name')?.value?.trim();
+  if (!name) { toast('Enter a name','error'); return; }
+  state.npcs.push({
+    id: Date.now(), name,
+    type: document.getElementById('npc_type')?.value||'neutral',
+    faction: document.getElementById('npc_faction')?.value?.trim()||'',
+    relation: document.getElementById('npc_relation')?.value?.trim()||'',
+    notes: document.getElementById('npc_notes')?.value?.trim()||'',
+    secrets: document.getElementById('npc_secrets')?.value?.trim()||'',
+    open: false
+  });
+  renderNPCs(); markUnsaved(); closeModal(); toast('Added: '+name);
+}
+
+function deleteNPC(id) { state.npcs = state.npcs.filter(n => n.id !== id); renderNPCs(); markUnsaved(); }
+
+function toggleNPC(id) {
+  const n = state.npcs.find(n => n.id === id); if (!n) return;
+  n.open = !n.open; renderNPCs();
+}
+
+function renderNPCs() {
+  const list = document.getElementById('npc_list');
+  const empty = document.getElementById('npc_empty');
+  list.innerHTML = '';
+  if (!state.npcs.length) { list.appendChild(empty); empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  state.npcs.forEach(n => {
+    const card = document.createElement('div'); card.className = 'npc-card';
+    const typeLabel = {ally:'Ally',enemy:'Enemy',neutral:'Neutral',complicated:'Complicated',unknown:'Unknown'}[n.type]||n.type;
+    card.innerHTML = `
+      <div class="npc-card-hdr" onclick="toggleNPC(${n.id})">
+        <span class="npc-name">${n.name}</span>
+        ${n.faction ? `<span style="font-size:10px;color:var(--subtext)">${n.faction}</span>` : ''}
+        ${n.relation ? `<span style="font-size:10px;color:var(--subtext)">· ${n.relation}</span>` : ''}
+        <span class="npc-type ${n.type}">${typeLabel}</span>
+        <button class="npc-del" onclick="event.stopPropagation();deleteNPC(${n.id})">✕</button>
+      </div>
+      <div class="npc-body${n.open?' open':''}">
+        ${n.notes ? `<div style="font-size:12px;color:var(--text);margin-bottom:6px">${n.notes}</div>` : ''}
+        ${n.secrets ? `<div class="na-box" style="font-size:11px"><strong style="color:var(--crimson-lt)">Secrets:</strong> ${n.secrets}</div>` : ''}
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
 // SAVE / LOAD / SYNC
 // ════════════════════════════════════════════════════════════
 const TEXT_IDS = [
   'f_name','f_clan','f_gen','f_bp','f_sire','f_sect','f_chronicle','f_predator',
-  'f_concept','f_archetype','f_xp','f_humanity_text','f_stains','f_resonance',
-  'f_bane','f_compulsion',
+  'f_concept','f_archetype','f_xp','f_humanity_text','f_stains','f_resonance','f_dyscrasia',
+  'f_bane','f_compulsion','f_vamp_age','f_coterie_type','f_coterie_resources',
   'conv_1','conv_2','conv_3','touch_1','touch_2','touch_3',
   'f_ambition','f_desire','f_backstory',
   'notes_session','notes_npcs','notes_goals','notes_general'
@@ -1300,14 +2036,12 @@ const DOT_IDS = [
 function collectData() {
   const d = {
     text:{}, dots:{},
-    largeDots:{ humanity:getLDVal('humanity_dots'), hunger:getLDVal('hunger_dots') },
+    largeDots:{ humanity:getLDVal('humanity_dots'), hunger:getLDVal('hunger_dots'), bp:getLDVal('bp_dots') },
     boxes:{ health:getBoxStates('health_track'), wp:getBoxStates('wp_track') },
     trackSizes:{ health:parseInt(document.getElementById('health_count').value)||5, wp:parseInt(document.getElementById('wp_count').value)||5 },
-    disciplines: state.disciplines,
-    merits: state.merits,
-    flaws: state.flaws,
-    specialties: state.specialties,
-    rituals: state.rituals
+    disciplines: state.disciplines, merits: state.merits, flaws: state.flaws,
+    specialties: state.specialties, rituals: state.rituals, xpLog: state.xpLog,
+    feedLog: state.feedLog, downtime: state.downtime, coterie: state.coterie, npcs: state.npcs
   };
   TEXT_IDS.forEach(id => { const e = document.getElementById(id); if (e) d.text[id] = e.value; });
   DOT_IDS.forEach(id => { d.dots[id] = getDotVal(id); });
@@ -1321,6 +2055,7 @@ function applyData(d) {
   if (d.largeDots) {
     updateLargeDots('humanity_dots', d.largeDots.humanity ?? 7);
     updateLargeDots('hunger_dots', d.largeDots.hunger ?? 1);
+    updateBPDots(d.largeDots.bp ?? 1);
   }
   if (d.boxes) {
     if (d.boxes.health) setBoxStates('health_track', d.boxes.health);
@@ -1335,6 +2070,11 @@ function applyData(d) {
   if (d.flaws) { state.flaws = d.flaws; renderFlaws(); }
   if (d.specialties) { state.specialties = d.specialties; renderSpecialties(); }
   if (d.rituals) { state.rituals = d.rituals; renderRituals(); }
+  if (d.xpLog) { state.xpLog = d.xpLog; renderXPLog(); }
+  if (d.feedLog) { state.feedLog = d.feedLog; renderFeedLog(); }
+  if (d.downtime) { state.downtime = d.downtime; renderDowntime(); }
+  if (d.coterie) { state.coterie = d.coterie; renderCoterie(); }
+  if (d.npcs) { state.npcs = d.npcs; renderNPCs(); }
   updateHeader();
 }
 
@@ -1497,6 +2237,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   initBoxTrack('wp_track',5);
   initLargeDots('humanity_dots',10,7,'h');
   initLargeDots('hunger_dots',5,1,'hunger');
+  initBPDots();
+  renderXPLog();
+  renderFeedLog();
+  renderDowntime();
+  renderCoterie();
+  renderNPCs();
   loadLocal();
   if (cfg.token && cfg.gistId && !cfg.skipCloud) {
     try {
