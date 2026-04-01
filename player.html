@@ -456,27 +456,28 @@ select.fi::-ms-expand{display:none;}
 <div class="setup-overlay" id="setupOverlay">
   <div class="setup-box">
     <div class="setup-hdr">
-      <h2>GitHub Sync Setup</h2>
-      <p>One-time configuration — stored locally</p>
+      <h2>Session Sync Setup</h2>
+      <p>Ask your DM for the Group Sync Code — no GitHub account needed</p>
     </div>
     <div class="setup-body">
       <div class="sf">
-        <label>GitHub Personal Access Token</label>
-        <input type="password" id="setup_token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-        <div class="hint">Create at github.com → Settings → Developer settings → Personal access tokens. Enable <strong>gist</strong> scope only.</div>
+        <label>Group Sync Code (from your DM)</label>
+        <input type="password" id="setup_token" placeholder="Paste the code your DM gave you">
+        <div class="hint">Your DM has a shared code for the whole group. You do <strong>not</strong> need a GitHub account. Paste the code here once and your sheet will sync so your DM can see it during sessions.</div>
       </div>
       <div class="sf">
-        <label>Character Name (for share code)</label>
-        <input type="text" id="setup_charname" placeholder="Character Name">
+        <label>Character Name</label>
+        <input type="text" id="setup_charname" placeholder="Your character name">
       </div>
       <div class="sf">
-        <label>Existing Gist ID (leave blank to create new)</label>
-        <input type="text" id="setup_gistid" placeholder="Optional — paste existing Gist ID">
+        <label>Returning player? Paste your Sheet ID here</label>
+        <input type="text" id="setup_gistid" placeholder="Leave blank for a brand new character">
+        <div class="hint">Your DM can give you your Sheet ID if you want to continue from a previous sheet on a new device.</div>
       </div>
     </div>
     <div class="setup-footer">
       <button class="btn" onclick="skipSetup()">Use Local Only</button>
-      <button class="btn green" onclick="confirmSetup()">Connect</button>
+      <button class="btn green" onclick="confirmSetup()">Connect to Session</button>
     </div>
   </div>
 </div>
@@ -509,11 +510,11 @@ select.fi::-ms-expand{display:none;}
 <div class="save-bar">
   <span class="save-status" id="saveStatus">Ready</span>
   <button class="btn" onclick="saveAll()">Save (Ctrl+S)</button>
-  <button class="btn green" id="syncBtn" onclick="syncToGist()">☁ Sync</button>
+  <button class="btn green" id="syncBtn" onclick="syncToGist()">☁ Sync to DM</button>
   <button class="btn" onclick="exportJSON()">Export JSON</button>
   <button class="btn" onclick="document.getElementById('importFile').click()">Import JSON</button>
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
-  <span id="shareCodeEl" style="display:none" class="code-badge" onclick="copyCode()" title="Click to copy share code"></span>
+  <span id="shareCodeEl" style="display:none" class="code-badge" onclick="copyCode()" title="Your Sheet ID — click to copy. Give to DM if returning to campaign."></span>
   <button class="btn" onclick="showSetup()">⚙</button>
   <button class="btn danger" onclick="resetAll()">Reset</button>
 </div>
@@ -1005,9 +1006,9 @@ select.fi::-ms-expand{display:none;}
 
 <!-- PLAYER NOTES (visible to DM) -->
 <div class="panel full">
-  <div class="ph"><span class="ph-left">Player Notes &nbsp;<span style="font-size:8px;color:var(--green-lt);letter-spacing:1px">◈ Visible to DM when synced</span></span></div>
+  <div class="ph"><span class="ph-left">Player Notes &nbsp;<span style="font-size:8px;color:var(--green-lt);letter-spacing:1px">◈ Your DM can read these when you sync</span></span></div>
   <div class="pb">
-    <div class="shared-label">These notes sync to your DM when you upload</div>
+    <div class="shared-label">These notes are shared with your DM each time you hit ☁ Sync to DM</div>
     <div class="itl">Session Log</div>
     <textarea class="fta lg" id="notes_session" placeholder="Session notes, events, what happened..."></textarea>
     <div class="itl" style="margin-top:8px">NPC Relationships</div>
@@ -1027,7 +1028,7 @@ select.fi::-ms-expand{display:none;}
   </div>
 </div>
 
-<div class="footer">✦ &nbsp; Vampire: The Masquerade V5 &nbsp;·&nbsp; Player Sheet &nbsp;·&nbsp; Blank Template &nbsp; ✦</div>
+<div class="footer">✦ &nbsp; Vampire: The Masquerade V5 &nbsp;·&nbsp; Player Sheet &nbsp;·&nbsp; Player Sheet — Group Sync &nbsp; ✦</div>
 </div><!-- end .page -->
 
 <script>
@@ -2132,13 +2133,13 @@ function loadLocal() {
 
 // Auto-sync
 function scheduleAutoSync() {
-  if (!cfg.token || cfg.skipCloud) return;
+  if (!cfg.token || cfg.skipCloud) return; // No group code set
   clearTimeout(autoSyncTimer);
   autoSyncTimer = setTimeout(() => { syncToGist(true); }, 30000); // 30s after last change
 }
 
 async function syncToGist(silent) {
-  if (!cfg.token) { if (!silent) toast('No GitHub token. Click ⚙ Setup.', 'error'); return; }
+  if (!cfg.token) { if (!silent) toast('Ask your DM for the group sync code. Click ⚙', 'error'); return; }
   if (!silent) setStatus('Syncing...', 'syncing');
   const btn = document.getElementById('syncBtn'); btn.disabled = true;
   try {
@@ -2153,8 +2154,8 @@ async function syncToGist(silent) {
     if (!resp.ok) throw new Error('GitHub error ' + resp.status);
     const data = await resp.json();
     cfg.gistId = data.id; saveCfg(); updateShareCode();
-    if (!silent) { setStatus('Synced — '+new Date().toLocaleTimeString(),'saved'); toast('Synced to GitHub'); }
-    else setStatus('Auto-synced — '+new Date().toLocaleTimeString(),'saved');
+    if (!silent) { setStatus('Synced to DM — '+new Date().toLocaleTimeString(),'saved'); toast('Sheet synced — your DM can see it now'); }
+    else setStatus('Auto-synced to DM — '+new Date().toLocaleTimeString(),'saved');
   } catch(e) {
     setStatus('Sync failed: '+e.message,'error');
     if (!silent) toast('Sync failed: '+e.message,'error');
@@ -2183,20 +2184,22 @@ function importJSON(e) {
 function loadCfg() { try { cfg = JSON.parse(localStorage.getItem(SK_CFG)||'{}'); } catch(e) { cfg={}; } }
 function saveCfg() { localStorage.setItem(SK_CFG, JSON.stringify(cfg)); }
 function showSetup() {
-  document.getElementById('setup_token').value = cfg.token||'';
+  document.getElementById('setup_token').value = cfg.token ? '••••••••••••••••' : '';
   document.getElementById('setup_charname').value = cfg.charName||'';
   document.getElementById('setup_gistid').value = cfg.gistId||'';
   document.getElementById('setupOverlay').classList.add('open');
 }
 function skipSetup() { cfg.skipCloud=true; saveCfg(); document.getElementById('setupOverlay').classList.remove('open'); setStatus('Local only',''); }
 async function confirmSetup() {
-  const token = document.getElementById('setup_token').value.trim();
+  const rawToken = document.getElementById('setup_token').value.trim();
   const charName = document.getElementById('setup_charname').value.trim()||'Character';
   const gistId = document.getElementById('setup_gistid').value.trim();
-  if (!token) { toast('Enter a token','error'); return; }
+  // Only update token if they typed something new (not the masked placeholder)
+  const token = (rawToken && rawToken !== '••••••••••••••••') ? rawToken : cfg.token;
+  if (!token) { toast('Ask your DM for the group sync code first.','error'); return; }
   cfg = { token, charName, gistId:gistId||cfg.gistId||'', skipCloud:false };
   saveCfg(); document.getElementById('setupOverlay').classList.remove('open');
-  updateShareCode(); setStatus('GitHub connected','saved'); toast('Connected.');
+  updateShareCode(); setStatus('Connected to session','saved'); toast('Connected! Hit ☁ Sync to upload your sheet.');
 }
 
 function generateCode(name, gistId) {
@@ -2213,7 +2216,7 @@ function updateShareCode() {
 }
 function copyCode() {
   const el = document.getElementById('shareCodeEl');
-  navigator.clipboard.writeText(el.textContent).then(() => toast('Code copied: '+el.textContent));
+  navigator.clipboard.writeText(el.textContent).then(() => toast('Sheet ID copied — give this to your DM if returning to a campaign: '+el.textContent));
 }
 
 // ════════════════════════════════════════════════════════════
@@ -2286,7 +2289,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch(e) {}
   }
   updateShareCode();
-  if (!cfg.token && !cfg.skipCloud) setTimeout(showSetup, 500);
+  if (!cfg.token && !cfg.skipCloud) setTimeout(() => { showSetup(); }, 500);
 });
 
 document.addEventListener('input', markUnsaved);
