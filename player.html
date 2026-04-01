@@ -111,6 +111,25 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:1000;
 </head>
 <body>
 
+<datalist id="merit_options">
+  <option value="Allies"><option value="Beautiful"><option value="Bloodhound"><option value="Bond Resistance">
+  <option value="Cobbler"><option value="Contacts"><option value="Contagion"><option value="Coterie Merit">
+  <option value="Day Magic"><option value="Eat Food"><option value="Fame"><option value="Fleet">
+  <option value="Haven"><option value="Herd"><option value="High-Functioning Addict"><option value="Influence">
+  <option value="Iron Gullet"><option value="Linguistics"><option value="Mask"><option value="Mawla">
+  <option value="Mentor"><option value="Pain Tolerance"><option value="Repel the Unnatural"><option value="Resources">
+  <option value="Retainers"><option value="Short Bond"><option value="Status"><option value="Stunning">
+  <option value="Unbondable">
+</datalist>
+<datalist id="flaw_options">
+  <option value="Addiction"><option value="Coterie Flaw"><option value="Dark Secret"><option value="Despised">
+  <option value="Enemy"><option value="Farmer"><option value="Folkloric Bane"><option value="Folkloric Block">
+  <option value="Hopeless Addiction"><option value="Illiterate"><option value="Infamous Sire"><option value="Known Blankbody">
+  <option value="Methuselah's Thirst"><option value="Organovore"><option value="Prey Exclusion"><option value="Repulsive">
+  <option value="Shunned"><option value="Stake Bait"><option value="Stigmatic"><option value="Suspect">
+  <option value="Ugly">
+</datalist>
+
 <div class="setup-overlay" id="setupOverlay" style="display:none">
   <div class="setup-box">
     <div class="setup-header"><h2>GitHub Sync Setup</h2></div>
@@ -258,18 +277,19 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:1000;
     </div>
   </div>
   <div class="panel">
-    <div class="ph">Advantages & Flaws</div>
+    <div class="ph">Merits & Flaws</div>
     <div class="pb">
-      <div class="itl">Advantages</div>
-      <div class="adv-row"><span class="adv-name">Haven</span><div class="dots" id="adv_haven"></div></div>
-      <div class="adv-row"><span class="adv-name">Resources</span><div class="dots" id="adv_res"></div></div>
-      <div class="adv-row"><span class="adv-name">Contacts</span><div class="dots" id="adv_con"></div></div>
-      <div class="adv-row"><span class="adv-name">Mask</span><div class="dots" id="adv_mask"></div></div>
-      <div class="adv-row"><span class="adv-name">Custom...</span><div class="dots" id="adv_c1"></div></div>
-      <div class="itl">Flaws</div>
-      <div class="adv-row flaw-row"><span class="adv-name">Dark Secret</span><div class="dots" id="flaw_ds"></div></div>
-      <div class="adv-row flaw-row"><span class="adv-name">Infamous Sire</span><div class="dots" id="flaw_is"></div></div>
-      <div class="adv-row flaw-row"><span class="adv-name">Custom...</span><div class="dots" id="flaw_c1"></div></div>
+      <div class="itl" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Merits</span>
+        <span class="spec-add-btn" style="border:1px solid var(--green);color:var(--green-lt);" onclick="addMerit()">+ Add Merit</span>
+      </div>
+      <div id="merits_list"></div>
+      
+      <div class="itl" style="display:flex;justify-content:space-between;align-items:center;margin-top:15px;">
+        <span>Flaws</span>
+        <span class="spec-add-btn" style="border:1px solid var(--crimson);color:var(--crimson-lt);" onclick="addFlaw()">+ Add Flaw</span>
+      </div>
+      <div id="flaws_list"></div>
     </div>
   </div>
 </div>
@@ -387,6 +407,33 @@ function setBoxStates(id,states){
 }
 
 // ============================================================
+// DYNAMIC MERITS & FLAWS
+// ============================================================
+function addMerit(name='', val=1, specId=null) {
+  const id = specId || 'merit_' + Date.now() + Math.floor(Math.random()*1000);
+  const div = document.createElement('div'); div.className = 'adv-row';
+  div.innerHTML = `<input class="fi adv-name" list="merit_options" placeholder="Merit name..." value="${esc(name)}" oninput="markUnsaved()">
+                   <div class="dots" id="${id}"></div>
+                   <span class="spec-tag-rm" onclick="this.parentElement.remove(); markUnsaved()" style="margin-left:8px;font-size:12px">✕</span>`;
+  document.getElementById('merits_list').appendChild(div);
+  initDots(id, 5, val);
+  renderSpecs(id);
+  markUnsaved();
+}
+
+function addFlaw(name='', val=1, specId=null) {
+  const id = specId || 'flaw_' + Date.now() + Math.floor(Math.random()*1000);
+  const div = document.createElement('div'); div.className = 'adv-row flaw-row';
+  div.innerHTML = `<input class="fi adv-name" list="flaw_options" placeholder="Flaw name..." value="${esc(name)}" oninput="markUnsaved()" style="color:#c08080">
+                   <div class="dots" id="${id}"></div>
+                   <span class="spec-tag-rm" onclick="this.parentElement.remove(); markUnsaved()" style="margin-left:8px;font-size:12px">✕</span>`;
+  document.getElementById('flaws_list').appendChild(div);
+  initDots(id, 5, val);
+  renderSpecs(id);
+  markUnsaved();
+}
+
+// ============================================================
 // SPECIALIZATIONS LOGIC
 // ============================================================
 function openSpecModal(id){
@@ -426,9 +473,22 @@ function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').repla
 function collectData(){
   const d = { text:{}, dots:{}, largeDots:{humanity:parseInt(document.getElementById('humanity_dots').dataset.val),hunger:parseInt(document.getElementById('hunger_dots').dataset.val)},
     boxes:{health:JSON.parse(document.getElementById('health_track').dataset.states),wp:JSON.parse(document.getElementById('wp_track').dataset.states)},
-    specs: customSpecs };
+    specs: customSpecs, merits: [], flaws: [] };
+    
   ['f_name','f_clan','f_gen','f_sire','f_chronicle','f_predator','f_concept','f_player','notes_general'].forEach(id=>{ d.text[id]=document.getElementById(id).value; });
-  document.querySelectorAll('.dots').forEach(el=>{ d.dots[el.id] = parseInt(el.dataset.val); });
+  
+  document.querySelectorAll('.dots').forEach(el=>{ 
+    if(!el.id.startsWith('merit_') && !el.id.startsWith('flaw_')) d.dots[el.id] = parseInt(el.dataset.val); 
+  });
+  
+  d.merits = Array.from(document.getElementById('merits_list').children).map(row => {
+    return { id: row.querySelector('.dots').id, name: row.querySelector('input').value, val: parseInt(row.querySelector('.dots').dataset.val) };
+  }).filter(m => m.name.trim() !== '');
+  
+  d.flaws = Array.from(document.getElementById('flaws_list').children).map(row => {
+    return { id: row.querySelector('.dots').id, name: row.querySelector('input').value, val: parseInt(row.querySelector('.dots').dataset.val) };
+  }).filter(f => f.name.trim() !== '');
+
   return d;
 }
 
@@ -438,7 +498,18 @@ function applyData(d){
   if(d.dots) Object.entries(d.dots).forEach(([id,v])=>updateDots(id,v));
   if(d.largeDots){ updateLargeDots('humanity_dots',d.largeDots.humanity??7); updateLargeDots('hunger_dots',d.largeDots.hunger??1); }
   if(d.boxes){ if(d.boxes.health) setBoxStates('health_track',d.boxes.health); if(d.boxes.wp) setBoxStates('wp_track',d.boxes.wp); }
-  if(d.specs){ customSpecs = d.specs; Object.keys(customSpecs).forEach(id=>renderSpecs(id)); }
+  if(d.specs) customSpecs = d.specs;
+  
+  document.getElementById('merits_list').innerHTML = '';
+  if(d.merits) d.merits.forEach(m => addMerit(m.name, m.val, m.id));
+  document.getElementById('flaws_list').innerHTML = '';
+  if(d.flaws) d.flaws.forEach(f => addFlaw(f.name, f.val, f.id));
+  
+  // Re-render specs on fixed dots
+  Object.keys(customSpecs).forEach(id => {
+    if(!id.startsWith('merit_') && !id.startsWith('flaw_')) renderSpecs(id);
+  });
+  
   updateHeader();
 }
 
@@ -474,10 +545,7 @@ async function syncToGist(){
 
 function manualSync(){ hasUnsavedChanges = true; syncToGist(); }
 
-// Start Auto-Save Loop (Every 15 Seconds)
-setInterval(() => {
-  if(hasUnsavedChanges && !isSyncing) syncToGist();
-}, 15000);
+setInterval(() => { if(hasUnsavedChanges && !isSyncing) syncToGist(); }, 15000);
 
 // ============================================================
 // SETUP
@@ -501,14 +569,15 @@ function copyCode(){ navigator.clipboard.writeText(document.getElementById('shar
 document.addEventListener('DOMContentLoaded', async ()=>{
   loadCfg();
   
-  // Init all UI Elements
-  document.querySelectorAll('.dots').forEach(el => initDots(el.id, 5, 0));
+  // Init Fixed Elements
+  document.querySelectorAll('.dots').forEach(el => {
+    if(!el.id.startsWith('merit_') && !el.id.startsWith('flaw_')) initDots(el.id, 5, 0);
+  });
   initLargeDots('humanity_dots',10,7,'h'); initLargeDots('hunger_dots',5,1,'hunger');
   initBoxTrack('health_track',5); initBoxTrack('wp_track',5);
 
   if(!cfg.token && !cfg.skipCloud) setTimeout(showSetup, 500);
   else if(cfg.token && cfg.gistId) {
-    // Initial Load
     try{
       const resp=await fetch('https://api.github.com/gists/'+cfg.gistId,{headers:{'Authorization':'token '+cfg.token}});
       const data=await resp.json();
