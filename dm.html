@@ -426,7 +426,7 @@ select.fi option{background:#0e0b08;color:#d4c898;}
     </div>
     <div style="padding:16px">
       <div style="margin-bottom:12px">
-        <label style="display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:5px">GitHub Personal Access Token</label>
+        <label style="display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:5px">GitHub Token (Share this with your players as the Group Sync Code)</label>
         <input type="password" id="s_token" style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:7px 10px;outline:none" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
         <div style="font-size:11px;color:var(--subtext);font-style:italic;margin-top:4px">Needs <strong>gist</strong> scope. github.com → Settings → Developer settings → Personal access tokens.</div>
       </div>
@@ -437,7 +437,12 @@ select.fi option{background:#0e0b08;color:#d4c898;}
     </div>
     <div style="padding:10px 16px;border-top:1px solid var(--field-border);display:flex;justify-content:flex-end;gap:8px">
       <button class="btn" onclick="hideSetup()">Cancel</button>
+      <div style="margin-bottom:10px;padding:8px 10px;border:1px solid rgba(196,154,34,.3);background:rgba(196,154,34,.05);font-family:'EB Garamond',serif;font-size:12px;color:#8a7a5a;line-height:1.5">
+        <strong style="color:var(--gold-lt);font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px">HOW TO SHARE WITH PLAYERS:</strong><br>
+        After saving, click <strong style="color:var(--gold-lt)">Copy Group Code</strong> below and send it to your players via Discord, text, etc. They paste it into their player sheet when prompted. They do not need a GitHub account.
+      </div>
       <button class="btn green" onclick="confirmSetup()">Save</button>
+      <button class="btn" id="copyGroupCodeBtn" onclick="copyGroupCode()" style="margin-left:8px">Copy Group Code</button>
     </div>
   </div>
 </div>
@@ -498,9 +503,20 @@ function loadLocal(){
 }
 
 // ── SETUP / GIST ──
-function showSetup(){document.getElementById('s_token').value=cfg.token||'';document.getElementById('s_gist').value=cfg.gistId||'';document.getElementById('setupModal').style.display='flex'}
+function showSetup(){document.getElementById('s_token').value=cfg.token?'••••••••••••••••':'';document.getElementById('s_gist').value=cfg.gistId||'';document.getElementById('setupModal').style.display='flex'}
 function hideSetup(){document.getElementById('setupModal').style.display='none'}
-function confirmSetup(){cfg.token=document.getElementById('s_token').value.trim();cfg.gistId=document.getElementById('s_gist').value.trim();saveCfg();hideSetup();toast('Setup saved.')}
+function confirmSetup(){
+  const rawToken = document.getElementById('s_token').value.trim();
+  if(rawToken && rawToken !== '••••••••••••••••') cfg.token = rawToken;
+  cfg.gistId=document.getElementById('s_gist').value.trim();
+  saveCfg();hideSetup();
+  toast('Setup saved. Use Copy Group Code to share with players.');
+}
+
+function copyGroupCode(){
+  if(!cfg.token){ toast('Save your token first.','error'); return; }
+  navigator.clipboard.writeText(cfg.token).then(()=>toast('Group sync code copied — paste it into Discord/text and send to your players.'));
+}
 async function syncGist(){
   if(!cfg.token){toast('No token. Click ⚙ Setup.','error');return}
   setStatus('Syncing...',''); collectDM();
