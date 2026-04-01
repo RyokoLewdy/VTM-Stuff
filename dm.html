@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Blood and Iron — DM Dashboard</title>
+<title>DM Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -264,7 +264,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:1000;
 <!-- SIDEBAR -->
 <div class="sidebar">
   <div class="sb-header">
-    <div class="sb-title">Blood & Iron</div>
+    <div class="sb-title"></div>
     <div class="sb-sub">DM DASHBOARD</div>
   </div>
 
@@ -316,7 +316,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:1000;
   <div id="view_add" class="tab-content active">
     <div class="empty-state">
       <h2>Blood & Iron</h2>
-      <p>DM Dashboard for Vampire: The Masquerade V5</p>
+      <p>DM Dashboard</p>
       <br>
       <div class="add-char-panel" style="max-width:460px;margin:0 auto">
         <h3>Load Character Sheet</h3>
@@ -431,7 +431,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:1000;
     <div id="npc_list"></div>
   </div>
 
-  <div class="footer">✦ &nbsp; Blood & Iron &nbsp;·&nbsp; DM Dashboard &nbsp;·&nbsp; V5 Chronicle Tool &nbsp; ✦</div>
+  <div class="footer">✦ &nbsp; Made by Ryoko &nbsp;·&nbsp; DM Dashboard &nbsp;·&nbsp; I watch you shower &nbsp; ✦</div>
 </div>
 </div>
 
@@ -512,7 +512,7 @@ async function syncDMToGist(){
   collectDMData();
   try{
     const headers={'Authorization':'token '+cfg.token,'Content-Type':'application/json'};
-    const body={description:'VtM DM Dashboard — Blood and Iron',public:false,
+    const body={description:'VtM DM Dashboard',public:false,
       files:{'dm_data.json':{content:JSON.stringify(dmData,null,2)}}};
     let resp;
     if(cfg.dmGistId){
