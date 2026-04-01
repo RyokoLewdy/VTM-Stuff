@@ -251,7 +251,7 @@ select.fi option{background:#0e0b08;color:#d4c898;}
       <span id="pollSt" style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;color:var(--subtext)">Live: off</span>
       <button id="pollBtn" class="btn green sm" onclick="togglePoll()">▶ Live</button>
       <select id="pollSel" style="background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'Cinzel',serif;font-size:9px;padding:3px 6px;outline:none" onchange="if(pollOn)startPoll(+this.value)">
-        <option value="15">15s</option><option value="30" selected>30s</option><option value="60">1m</option><option value="120">2m</option>
+        <option value="5">5s</option><option value="10" selected>10s</option><option value="15">15s</option><option value="30">30s</option><option value="60">1m</option>
       </select>
       <button class="btn sm" onclick="refreshAll()">↻ Refresh</button>
     </div>
@@ -450,6 +450,17 @@ select.fi option{background:#0e0b08;color:#d4c898;}
 <script>
 const SK='vtm_dm3_v1', SK_CFG='vtm_dm3_cfg';
 let cfg={}, chars={}, activeChar=null;
+const activeTab={};
+const lastHash={};
+function dataHash(d){
+  if(!d)return'';
+  return JSON.stringify({ld:d.largeDots,boxes:d.boxes,stains:d.text?.f_stains,
+    res:d.text?.f_resonance,sn:d.text?.notes_session,ng:d.text?.notes_goals,
+    nn:d.text?.notes_npcs,gen:d.text?.notes_general,
+    xl:d.xpLog?.length,fl:d.feedLog?.length,
+    dp:d.disciplines?.map(x=>x.powers?.length),
+    mt:d.merits?.length,fw:d.flaws?.length});
+}
 const RES={phleg:'Phlegmatic',sang:'Sanguine',chol:'Choleric',melan:'Melancholic',empty:'Empty',''  :'Unknown'};
 const BPT={0:{surge:1,bane:1},1:{surge:2,bane:2},2:{surge:2,bane:2},3:{surge:3,bane:2},4:{surge:3,bane:3},5:{surge:4,bane:3},6:{surge:4,bane:3},7:{surge:5,bane:4},8:{surge:5,bane:4},9:{surge:6,bane:5},10:{surge:6,bane:5}};
 
@@ -571,15 +582,44 @@ async function loadByCode(){
     addCharTab(match.id,name); document.getElementById('codeInput').value=''; st.textContent=''; switchChar(match.id); toast('Loaded: '+name);
   }catch(e){st.textContent='Error: '+e.message}
 }
-async function refreshChar(id){
+async function refreshChar(id, silent){
   const c=chars[id]; if(!c||c.source!=='gist'||!cfg.token)return;
   try{
-    const r=await fetch('https://api.github.com/gists/'+c.gistId,{headers:{'Authorization':'token '+cfg.token}});
-    if(!r.ok)return; const gist=await r.json(); const file=gist.files['character_sheet.json'];
-    if(file){c.data=JSON.parse(file.content);if(activeChar===id)renderChar(id);toast('Refreshed: '+c.name);}
-  }catch(e){toast('Refresh failed','error')}
+    const r=await fetch('https://api.github.com/gists/'+c.gistId,{
+      headers:{'Authorization':'token '+cfg.token},
+      cache:'no-store'  // always bypass cache for fresh data
+    });
+    if(!r.ok)return;
+    const gist=await r.json();
+    const file=gist.files['character_sheet.json'];
+    if(!file)return;
+    const newData=JSON.parse(file.content);
+    const newHash=dataHash(newData);
+    const changed = newHash !== lastHash[id];
+    if(changed){
+      c.data=newData;
+      lastHash[id]=newHash;
+      if(activeChar===id){
+        renderChar(id); // tab restore happens inside renderChar now
+      }
+      // Update sidebar to show live indicator
+      const btn=document.getElementById('ct_'+id);
+      if(btn){
+        btn.style.borderLeft='2px solid var(--green-lt)';
+        setTimeout(()=>{if(btn)btn.style.borderLeft='';},2000);
+      }
+      if(!silent)toast('Updated: '+c.name);
+    }
+    // Always update the last-checked time
+    c.lastChecked=new Date().toLocaleTimeString();
+  }catch(e){if(!silent)toast('Refresh failed','error')}
 }
-async function refreshAll(){for(const id of Object.keys(chars))await refreshChar(id);setStatus('Refreshed — '+new Date().toLocaleTimeString(),'saved')}
+async function refreshAll(silent){
+  const ids=Object.keys(chars);
+  if(!ids.length)return;
+  await Promise.all(ids.map(id=>refreshChar(id,silent)));
+  setStatus('Live sync active — last check '+new Date().toLocaleTimeString(),'saved');
+}
 
 // ── NAV ──
 function addCharTab(id,name){
@@ -782,10 +822,17 @@ function bxH(states,n){return Array.from({length:n},(_,i)=>`<div class="box-d${s
 function conv(cv,ts,n){if(!cv&&!ts)return '';return `<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(122,94,24,.2)"><div style="font-size:9px;font-family:'Cinzel',serif;color:var(--gold);margin-bottom:2px">Conviction ${n}</div><div style="font-size:12px;margin-bottom:4px">${esc(cv||'')}</div><div style="font-size:9px;font-family:'Cinzel',serif;color:var(--crimson-lt);margin-bottom:2px">Touchstone ${n}</div><div style="font-size:12px;color:var(--subtext);font-style:italic">${esc(ts||'')}</div></div>`}
 function pn(label,text){return `<div class="pn-block"><div class="pn-label">${label}</div><div class="pn-text${!text?' pn-empty':''}">${text?esc(text):'No notes provided'}</div></div>`}
 function ap(title,names,keys,dots){return `<div class="panel"><div class="ph">${title}</div><div class="pb">${names.map((n,i)=>`<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[keys[i]]||0,5)}</div>`).join('')}</div></div>`}
-function sp(title,names,keys,dots,specs){return `<div class="panel"><div class="ph">${title}</div><div class="pb">${names.map((n,i)=>{const ss=specs.filter(s=>s.skill===n);return `<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[keys[i]]||0,5)}${ss.map(s=>`<span style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--gold);border:1px solid rgba(196,154,34,.35);padding:1px 5px;margin-left:3px">${esc(s.name)}</span>`).join('')}</div>`}).join('')}</div></div>`}
+function sp(title,names,keys,dots,specs){return `<div class="panel"><div class="ph">${title}</div><div class="pb">${names.map((n,i)=>{const ss=specs.filter(s=>s.skill===n);return `<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[keys[i]]||0,5)}${ss.map(s=>`<span style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--gold);border:1px solid rgba(196,154,34,.35);padding:1px 5px;margin-left:3px">${esc(s.name)}</span>`).join('')}</div>`}).join('')}</div></div>`;
+  // Restore active sub-tab without disrupting DM view
+  const savedTab = activeTab[id] || 'ov';
+  ['ov','st','di','lg','pn','dm'].forEach(t=>{
+    document.getElementById('vt_'+t+'_'+id)?.classList.toggle('active',t===savedTab);
+    document.getElementById('cv_'+t+'_'+id)?.classList.toggle('active',t===savedTab);
+  });}
 
 function cvt(id,tab){
   collectDM();
+  activeTab[id]=tab;  // remember which tab is open for this character
   ['ov','st','di','lg','pn','dm'].forEach(t=>{
     document.getElementById('vt_'+t+'_'+id)?.classList.toggle('active',t===tab);
     document.getElementById('cv_'+t+'_'+id)?.classList.toggle('active',t===tab);
@@ -938,11 +985,32 @@ function importAll(e){
 }
 
 // ── POLLING ──
-let pollTimer=null,pollOn=false,pollSecs=30,pollCount=0;
-function startPoll(s){stopPoll();pollSecs=s||30;pollOn=true;pollCount=pollSecs;updatePollUI();pollTimer=setInterval(async()=>{pollCount--;updatePollUI();if(pollCount<=0){pollCount=pollSecs;await refreshAll()}},1000)}
-function stopPoll(){clearInterval(pollTimer);pollTimer=null;pollOn=false;updatePollUI()}
-function togglePoll(){pollOn?stopPoll():startPoll(parseInt(document.getElementById('pollSel').value)||30)}
-function updatePollUI(){const btn=document.getElementById('pollBtn');const st=document.getElementById('pollSt');if(!btn)return;if(pollOn){btn.textContent='⏸ Stop';btn.className='btn danger sm';if(st)st.textContent='Live: '+pollCount+'s'}else{btn.textContent='▶ Live';btn.className='btn green sm';if(st)st.textContent='Live: off'}}
+let pollTimer=null,pollOn=false,pollSecs=10;
+function startPoll(s){
+  stopPoll();
+  pollSecs=s||10;
+  pollOn=true;
+  updatePollUI();
+  // Fire immediately on start, then on interval
+  refreshAll(true);
+  pollTimer=setInterval(()=>refreshAll(true), pollSecs*1000);
+}
+function stopPoll(){clearInterval(pollTimer);pollTimer=null;pollOn=false;updatePollUI();}
+function togglePoll(){pollOn?stopPoll():startPoll(parseInt(document.getElementById('pollSel').value)||10);}
+function updatePollUI(){
+  const btn=document.getElementById('pollBtn');
+  const st=document.getElementById('pollSt');
+  if(!btn)return;
+  if(pollOn){
+    btn.textContent='⏸ Stop Live';
+    btn.className='btn danger sm';
+    if(st)st.textContent='Live: every '+pollSecs+'s';
+  }else{
+    btn.textContent='▶ Live Sync';
+    btn.className='btn green sm';
+    if(st)st.textContent='Live: off';
+  }
+}
 
 // ── UI ──
 function setStatus(msg,type){const el=document.getElementById('saveStatus');if(el){el.textContent=msg;el.className='sv-status'+(type?' '+type:'')}}
