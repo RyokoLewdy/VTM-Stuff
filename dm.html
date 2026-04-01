@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blood and Iron — DM Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080604;--surface:#0f0c08;--panel:#161109;--border:#6a4e14;
+  --gold:#c49a22;--gold-lt:#e8c96a;--gold-dim:#7a5a10;
+  --crimson:#6a1010;--crimson-lt:#c02020;--crimson-br:#e03030;
+  --text:#ddd0b0;--subtext:#7a6a4a;
+  --field-bg:#0c0a06;--field-border:#2e2410;--input-text:#ccc090;
+  --green:#3a7a3a;--green-lt:#5aaa5a;
+  --dm-accent:#1a1060;--dm-border:#4040a0;--dm-lt:#8080e0;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:13px;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:1000;opacity:.3;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");}
+
+/* LAYOUT */
+.layout{display:flex;min-height:100vh;}
+.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.main{flex:1;padding:16px;overflow-x:hidden;min-width:0;}
+
+/* SIDEBAR */
+.sb-header{padding:16px 12px;border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,#1a1008,#0f0c08);}
+.sb-title{font-family:'Cinzel Decorative',serif;font-size:13px;color:var(--gold-lt);letter-spacing:2px;line-height:1.3;}
+.sb-sub{font-family:'Cinzel',serif;font-size:7px;letter-spacing:3px;color:var(--subtext);margin-top:3px;}
+.sb-section{padding:8px 0;}
+.sb-label{font-family:'Cinzel',serif;font-size:7px;letter-spacing:3px;color:var(--subtext);
+  text-transform:uppercase;padding:4px 12px 2px;}
+.sb-btn{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;
+  font-family:'EB Garamond',serif;font-size:12px;color:var(--text);transition:all .15s;
+  border:none;background:transparent;width:100%;text-align:left;}
+.sb-btn:hover{background:rgba(196,154,34,.08);color:var(--gold-lt);}
+.sb-btn.active{background:rgba(196,154,34,.12);color:var(--gold-lt);border-left:2px solid var(--gold);}
+.sb-btn.dm-tab{color:var(--dm-lt);}
+.sb-btn.dm-tab.active{background:rgba(64,64,160,.15);border-left:2px solid var(--dm-border);color:var(--dm-lt);}
+.sb-btn .tab-icon{font-size:10px;width:16px;text-align:center;flex-shrink:0;}
+.sb-btn .tab-name{flex:1;}
+.sb-btn .tab-close{font-size:10px;color:var(--subtext);padding:0 2px;opacity:0;}
+.sb-btn:hover .tab-close{opacity:1;}
+.sb-divider{height:1px;background:var(--border);margin:4px 0;opacity:.4;}
+.sb-add-area{padding:8px 12px;}
+
+/* MAIN HEADER */
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;
+  padding-bottom:10px;border-bottom:1px solid var(--border);}
+.mh-title{font-family:'Cinzel',serif;font-size:16px;color:var(--gold-lt);letter-spacing:3px;}
+.mh-sub{font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;letter-spacing:1px;margin-top:2px;}
+.mh-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+
+/* BUTTONS */
+.btn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;padding:5px 12px;background:transparent;
+  border:1px solid var(--gold-dim);color:var(--gold);cursor:pointer;transition:all .2s;text-transform:uppercase;white-space:nowrap;}
+.btn:hover{background:rgba(196,154,34,.1);border-color:var(--gold);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn.danger{border-color:var(--crimson);color:var(--crimson-lt);}
+.btn.danger:hover{background:rgba(106,16,16,.2);}
+.btn.dm{border-color:var(--dm-border);color:var(--dm-lt);}
+.btn.dm:hover{background:rgba(64,64,160,.15);}
+.btn.green{border-color:var(--green);color:var(--green-lt);}
+.btn.green:hover{background:rgba(58,122,58,.15);}
+
+/* PANELS */
+.panel{border:1px solid var(--border);background:var(--panel);overflow:hidden;margin-bottom:10px;}
+.ph{background:var(--crimson);padding:5px 10px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;
+  color:var(--gold-lt);text-transform:uppercase;border-bottom:1px solid var(--gold-dim);display:flex;align-items:center;gap:6px;}
+.ph::before{content:'✦';font-size:7px;color:var(--gold-dim);}
+.ph.dm-ph{background:var(--dm-accent);border-bottom:1px solid var(--dm-border);}
+.ph.dm-ph::before{content:'⊕';}
+.pb{padding:12px;}
+
+/* DM PANEL */
+.dm-panel{border:1px solid var(--dm-border);background:rgba(16,10,60,.3);margin-bottom:10px;overflow:hidden;}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+
+/* STAT DISPLAY */
+.stat-group{margin-bottom:10px;}
+.cat{font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;
+  margin-bottom:6px;border-bottom:1px solid rgba(196,154,34,.2);padding-bottom:2px;}
+.stat-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.stat-name{font-size:11px;color:var(--text);min-width:100px;flex-shrink:0;}
+.dots-d{display:flex;gap:4px;}
+.dot-d{width:10px;height:10px;border-radius:50%;border:1px solid var(--gold-dim);background:var(--field-bg);}
+.dot-d.f{background:var(--gold);border-color:var(--gold-lt);box-shadow:0 0 4px rgba(196,154,34,.3);}
+
+/* BOX DISPLAY */
+.boxes-d{display:flex;gap:4px;flex-wrap:wrap;}
+.box-d{width:22px;height:18px;border:1px solid var(--border);background:var(--field-bg);
+  display:flex;align-items:center;justify-content:center;font-size:10px;position:relative;}
+.box-d.sup::after{content:'/';position:absolute;color:var(--gold);font-size:13px;}
+.box-d.agg{background:rgba(106,16,16,.3);border-color:var(--crimson);}
+.box-d.agg::after{content:'X';position:absolute;font-size:11px;font-weight:bold;color:var(--crimson-lt);}
+
+/* LARGE DOTS DISPLAY */
+.ld-d{display:flex;gap:6px;flex-wrap:wrap;}
+.ldot-d{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--gold-dim);background:var(--field-bg);}
+.ldot-d.f{background:var(--gold);border-color:var(--gold-lt);}
+.ldot-d.hf{background:var(--crimson-lt);border-color:#d02020;}
+
+/* INFO GRID */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.info-cell{padding:4px 8px;border-bottom:1px solid rgba(106,78,20,.2);display:flex;gap:6px;align-items:baseline;}
+.info-cell:nth-child(odd){border-right:1px solid rgba(106,78,20,.2);}
+.ic-label{font-size:9px;color:var(--subtext);font-family:'Cinzel',serif;min-width:80px;flex-shrink:0;}
+.ic-val{font-size:12px;color:var(--text);}
+
+/* DISC DISPLAY */
+.disc-d{margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(106,78,20,.2);}
+.disc-d:last-child{border-bottom:none;margin-bottom:0;}
+.disc-dname{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt);margin-bottom:3px;}
+.disc-dpow{font-size:11px;color:var(--subtext);font-style:italic;}
+
+/* NOTES */
+.fta{width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);
+  font-family:'EB Garamond',serif;font-size:13px;padding:8px;outline:none;resize:vertical;
+  min-height:80px;transition:border-color .2s;line-height:1.55;}
+.fta:focus{border-color:var(--gold-dim);}
+.fta.dm-ta{border-color:var(--dm-border);background:rgba(16,10,60,.2);}
+.fta.dm-ta:focus{border-color:var(--dm-lt);}
+.fta.large{min-height:120px;}
+.fta.xl{min-height:180px;}
+.fta.xxl{min-height:240px;}
+.div{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:8px 0;}
+.itl{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--subtext);
+  text-transform:uppercase;margin-bottom:4px;margin-top:8px;}
+.itl.dm-itl{color:var(--dm-lt);}
+
+/* RELATIONSHIP TRACKER */
+.rel-item{display:grid;grid-template-columns:140px 100px 1fr auto;gap:8px;align-items:center;
+  padding:6px 8px;border-bottom:1px solid rgba(106,78,20,.15);transition:background .15s;}
+.rel-item:hover{background:rgba(196,154,34,.03);}
+.rel-item:last-child{border-bottom:none;}
+.rel-header{display:grid;grid-template-columns:140px 100px 1fr auto;gap:8px;padding:4px 8px;
+  font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);
+  border-bottom:1px solid var(--border);margin-bottom:2px;}
+.ri-input{background:transparent;border:none;border-bottom:1px solid var(--field-border);
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:12px;padding:1px 3px;outline:none;width:100%;}
+.ri-input:focus{border-bottom-color:var(--gold-dim);}
+.ri-select{background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);
+  font-family:'EB Garamond',serif;font-size:11px;padding:2px 4px;outline:none;width:100%;}
+.rm-btn{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:12px;padding:2px 4px;}
+.rm-btn:hover{color:var(--crimson-lt);}
+
+/* TIMELINE */
+.tl-item{display:grid;grid-template-columns:90px 100px 1fr auto;gap:8px;align-items:start;
+  padding:6px 8px;border-bottom:1px solid rgba(106,78,20,.15);}
+.tl-item:last-child{border-bottom:none;}
+.tl-header{display:grid;grid-template-columns:90px 100px 1fr auto;gap:8px;padding:4px 8px;
+  font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);
+  border-bottom:1px solid var(--border);margin-bottom:2px;}
+.tl-select{background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);
+  font-family:'EB Garamond',serif;font-size:11px;padding:2px 4px;outline:none;width:100%;}
+
+/* ADD CHARACTER PANEL */
+.add-char-panel{border:1px dashed var(--gold-dim);padding:16px;text-align:center;
+  background:rgba(196,154,34,.02);margin-bottom:10px;}
+.add-char-panel h3{font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;color:var(--gold);margin-bottom:10px;}
+.code-input{background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);
+  font-family:'Cinzel',serif;font-size:14px;letter-spacing:4px;padding:8px 14px;outline:none;
+  width:200px;text-align:center;text-transform:uppercase;margin-right:8px;transition:border-color .2s;}
+.code-input:focus{border-color:var(--gold-dim);}
+.code-input::placeholder{letter-spacing:2px;font-size:11px;color:var(--subtext);}
+
+/* STATUS BAR */
+.status-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;
+  padding:6px 10px;border:1px solid var(--field-border);background:var(--surface);flex-wrap:wrap;gap:8px;}
+.sv-status{font-size:10px;font-family:'Cinzel',serif;letter-spacing:1px;color:var(--subtext);}
+.sv-status.saved{color:var(--green-lt);}
+.sv-status.error{color:var(--crimson-lt);}
+
+/* VIEW TABS (within character) */
+.view-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:12px;}
+.vt{padding:6px 14px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;cursor:pointer;
+  color:var(--subtext);border:1px solid transparent;border-bottom:none;margin-bottom:-1px;
+  text-transform:uppercase;transition:all .2s;}
+.vt:hover{color:var(--gold);}
+.vt.active{color:var(--gold-lt);border-color:var(--border);border-bottom:1px solid var(--panel);
+  background:var(--panel);}
+.vt.dm-vt.active{color:var(--dm-lt);border-color:var(--dm-border);border-bottom:1px solid var(--panel);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* PLAYER NOTES DISPLAY */
+.player-note-block{background:rgba(196,154,34,.03);border:1px solid rgba(196,154,34,.15);
+  padding:10px;margin-bottom:8px;}
+.pn-label{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--gold);
+  text-transform:uppercase;margin-bottom:5px;}
+.pn-text{font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 20px;color:var(--subtext);}
+.empty-state h2{font-family:'Cinzel',serif;font-size:18px;color:var(--gold-dim);letter-spacing:4px;margin-bottom:12px;}
+.empty-state p{font-size:13px;line-height:1.6;max-width:400px;margin:0 auto;}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;z-index:9500;background:var(--panel);border:1px solid var(--border);
+  padding:10px 16px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;color:var(--gold-lt);
+  box-shadow:0 4px 20px rgba(0,0,0,.6);animation:toastIn .3s ease;}
+.toast.error{border-color:var(--crimson);color:var(--crimson-lt);}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* SETUP */
+.setup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9000;
+  display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.setup-box{background:var(--panel);border:1px solid var(--border);max-width:460px;width:90%;overflow:hidden;}
+.setup-hdr{background:var(--crimson);padding:12px 16px;border-bottom:1px solid var(--gold-dim);}
+.setup-hdr h2{font-family:'Cinzel Decorative',serif;font-size:15px;color:var(--gold-lt);letter-spacing:2px;}
+.setup-hdr p{font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;letter-spacing:1px;margin-top:3px;}
+.setup-body{padding:16px;}
+.sf{margin-bottom:12px;}
+.sf label{display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);
+  text-transform:uppercase;margin-bottom:5px;}
+.sf input{width:100%;background:var(--field-bg);border:1px solid var(--field-border);
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:7px 10px;outline:none;transition:border-color .2s;}
+.sf input:focus{border-color:var(--gold-dim);}
+.sf .hint{font-size:11px;color:var(--subtext);font-style:italic;margin-top:4px;line-height:1.4;}
+.setup-footer{padding:10px 16px;border-top:1px solid var(--field-border);display:flex;justify-content:flex-end;gap:8px;}
+
+.footer{text-align:center;padding:10px;font-family:'Cinzel',serif;font-size:8px;
+  letter-spacing:3px;color:var(--subtext);border-top:1px solid var(--border);margin-top:16px;}
+</style>
+</head>
+<body>
+
+<!-- SETUP MODAL -->
+<div class="setup-overlay" id="setupOverlay" style="display:none">
+  <div class="setup-box">
+    <div class="setup-hdr">
+      <h2>DM Setup</h2>
+      <p>GitHub token for saving DM notes and loading character sheets</p>
+    </div>
+    <div class="setup-body">
+      <div class="sf">
+        <label>GitHub Personal Access Token</label>
+        <input type="password" id="setup_token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+        <div class="hint">Needs <strong>gist</strong> scope. Create at github.com → Settings → Developer settings → Personal access tokens.</div>
+      </div>
+      <div class="sf">
+        <label>DM Gist ID (for saving DM notes)</label>
+        <input type="text" id="setup_dmgist" placeholder="Leave blank to create on first save">
+        <div class="hint">Your DM notes are saved to a separate private Gist from the player sheets.</div>
+      </div>
+    </div>
+    <div class="setup-footer">
+      <button class="btn" onclick="hideSetup()">Use Local Only</button>
+      <button class="btn green" onclick="confirmSetup()">Save Setup</button>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-header">
+    <div class="sb-title">Blood & Iron</div>
+    <div class="sb-sub">DM DASHBOARD</div>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-label">Characters</div>
+    <div id="charTabs"></div>
+    <div class="sb-add-area">
+      <button class="btn" style="width:100%;font-size:8px" onclick="showAddChar()">+ Add Character</button>
+    </div>
+  </div>
+
+  <div class="sb-divider"></div>
+
+  <div class="sb-section">
+    <div class="sb-label">Campaign</div>
+    <button class="sb-btn dm-tab" id="tab_campaign" onclick="showView('campaign')">
+      <span class="tab-icon">📜</span><span class="tab-name">Campaign Notes</span>
+    </button>
+    <button class="sb-btn dm-tab" id="tab_relations" onclick="showView('relations')">
+      <span class="tab-icon">🕸</span><span class="tab-name">Relationships</span>
+    </button>
+    <button class="sb-btn dm-tab" id="tab_timeline" onclick="showView('timeline')">
+      <span class="tab-icon">⏳</span><span class="tab-name">Timeline</span>
+    </button>
+    <button class="sb-btn dm-tab" id="tab_npcs" onclick="showView('npcs')">
+      <span class="tab-icon">🎭</span><span class="tab-name">NPCs</span>
+    </button>
+  </div>
+
+  <div style="margin-top:auto;padding:8px 12px;border-top:1px solid var(--border)">
+    <button class="btn" style="width:100%;font-size:8px;margin-bottom:6px" onclick="saveAllDM()">Save All (Ctrl+S)</button>
+    <button class="btn dm" style="width:100%;font-size:8px;margin-bottom:6px" onclick="syncDMToGist()">Sync to Cloud</button>
+    <button class="btn" style="width:100%;font-size:8px" onclick="showSetup()">⚙ Setup</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="status-bar">
+    <span class="sv-status" id="saveStatus">DM Dashboard</span>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="exportDMData()">Export DM Data</button>
+      <button class="btn" onclick="document.getElementById('importDM').click()">Import DM Data</button>
+      <input type="file" id="importDM" accept=".json" style="display:none" onchange="importDMData(event)">
+    </div>
+  </div>
+
+  <!-- ADD CHARACTER VIEW -->
+  <div id="view_add" class="tab-content active">
+    <div class="empty-state">
+      <h2>Blood & Iron</h2>
+      <p>DM Dashboard for Vampire: The Masquerade V5</p>
+      <br>
+      <div class="add-char-panel" style="max-width:460px;margin:0 auto">
+        <h3>Load Character Sheet</h3>
+        <p style="font-size:11px;color:var(--subtext);margin-bottom:12px;line-height:1.5">
+          Ask your player for their share code — it looks like <strong style="color:var(--gold-lt)">FORS-AB12CD</strong>.<br>
+          The first four letters are from their character name, followed by a six-character Gist ID fragment.
+        </p>
+        <div style="display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap">
+          <input class="code-input" id="charCodeInput" placeholder="XXXX-XXXXXX" maxlength="11"
+            onkeydown="if(event.key==='Enter')loadCharByCode()">
+          <button class="btn green" onclick="loadCharByCode()">Load Character</button>
+        </div>
+        <div id="loadStatus" style="margin-top:10px;font-size:11px;color:var(--subtext);font-family:'Cinzel',serif;letter-spacing:1px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARACTER VIEW (dynamic) -->
+  <div id="view_character" class="tab-content">
+    <div id="charViewContent"></div>
+  </div>
+
+  <!-- CAMPAIGN NOTES -->
+  <div id="view_campaign" class="tab-content">
+    <div class="mh">
+      <div><div class="mh-title">Campaign Notes</div><div class="mh-sub">DM Only — Not visible to players</div></div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="dm-panel">
+          <div class="ph dm-ph">Session Log</div>
+          <div class="pb">
+            <textarea class="fta dm-ta xxl" id="dm_sessions" placeholder="Session by session chronicle — what happened, decisions made, consequences..."></textarea>
+          </div>
+        </div>
+        <div class="dm-panel">
+          <div class="ph dm-ph">Plot Threads</div>
+          <div class="pb">
+            <textarea class="fta dm-ta xl" id="dm_plots" placeholder="Active plot threads, foreshadowing planted, mysteries in motion..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="dm-panel">
+          <div class="ph dm-ph">Secrets & Reveals</div>
+          <div class="pb">
+            <textarea class="fta dm-ta xl" id="dm_secrets" placeholder="What the players don't know yet. Who killed Edmund? What's in the library? Red Thread's true agenda..."></textarea>
+          </div>
+        </div>
+        <div class="dm-panel">
+          <div class="ph dm-ph">Faction Notes</div>
+          <div class="pb">
+            <textarea class="fta dm-ta xl" id="dm_factions" placeholder="Tremere hierarchy, Camarilla power structures, Red Thread connections, Sabbat presence, frontier power players..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RELATIONSHIPS -->
+  <div id="view_relations" class="tab-content">
+    <div class="mh">
+      <div><div class="mh-title">Relationship Tracker</div><div class="mh-sub">Party & NPC connections</div></div>
+      <div class="mh-actions">
+        <button class="btn" onclick="addRelationship()">+ Add Relationship</button>
+      </div>
+    </div>
+    <div class="dm-panel">
+      <div class="ph dm-ph">Party Relationships</div>
+      <div class="pb">
+        <div class="rel-header">
+          <span>Person / Character</span><span>Relationship Type</span><span>Notes</span><span></span>
+        </div>
+        <div id="rel_list"></div>
+      </div>
+    </div>
+    <div class="dm-panel" style="margin-top:10px">
+      <div class="ph dm-ph">Relationship Map Notes</div>
+      <div class="pb">
+        <textarea class="fta dm-ta xl" id="dm_relmap" placeholder="Broader notes on how factions, NPCs and characters connect. Who knows what. Who owes what..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div id="view_timeline" class="tab-content">
+    <div class="mh">
+      <div><div class="mh-title">Chronicle Timeline</div><div class="mh-sub">Events in order</div></div>
+      <div class="mh-actions">
+        <button class="btn" onclick="addTimelineEvent()">+ Add Event</button>
+      </div>
+    </div>
+    <div class="dm-panel">
+      <div class="ph dm-ph">Timeline</div>
+      <div class="pb">
+        <div class="tl-header">
+          <span>Date / Session</span><span>Type</span><span>Event</span><span></span>
+        </div>
+        <div id="tl_list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NPCs -->
+  <div id="view_npcs" class="tab-content">
+    <div class="mh">
+      <div><div class="mh-title">NPC Roster</div><div class="mh-sub">Named characters in the chronicle</div></div>
+      <div class="mh-actions">
+        <button class="btn" onclick="addNPC()">+ Add NPC</button>
+      </div>
+    </div>
+    <div id="npc_list"></div>
+  </div>
+
+  <div class="footer">✦ &nbsp; Blood & Iron &nbsp;·&nbsp; DM Dashboard &nbsp;·&nbsp; V5 Chronicle Tool &nbsp; ✦</div>
+</div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const SK_DM = 'vtm_dm_v1';
+const SK_CFG = 'vtm_dm_cfg_v1';
+let cfg = {};
+let loadedChars = {}; // gistId -> { data, charName, gistId }
+let activeChar = null;
+let activeView = 'add';
+let dmData = {
+  sessions:'', plots:'', secrets:'', factions:'', relmap:'',
+  relationships:[], timeline:[], npcs:[],
+  charNotes:{} // gistId -> { dmPrivate, playerNotes (cached) }
+};
+
+function loadCfg(){ try{ cfg=JSON.parse(localStorage.getItem(SK_CFG)||'{}'); }catch(e){ cfg={}; } }
+function saveCfg(){ localStorage.setItem(SK_CFG, JSON.stringify(cfg)); }
+function loadDMLocal(){
+  try{
+    const raw=localStorage.getItem(SK_DM);
+    if(raw){ const d=JSON.parse(raw); Object.assign(dmData,d); applyDMData(); }
+  }catch(e){ console.error(e); }
+}
+function collectDMData(){
+  dmData.sessions=v('dm_sessions'); dmData.plots=v('dm_plots');
+  dmData.secrets=v('dm_secrets'); dmData.factions=v('dm_factions');
+  dmData.relmap=v('dm_relmap');
+  // charNotes dmPrivate fields
+  Object.keys(loadedChars).forEach(gid=>{
+    if(!dmData.charNotes[gid]) dmData.charNotes[gid]={};
+    const el=document.getElementById('dm_private_'+gid);
+    if(el) dmData.charNotes[gid].dmPrivate=el.value;
+    const el2=document.getElementById('dm_char_notes_'+gid);
+    if(el2) dmData.charNotes[gid].dmCharNotes=el2.value;
+  });
+}
+function applyDMData(){
+  sv('dm_sessions',dmData.sessions||''); sv('dm_plots',dmData.plots||'');
+  sv('dm_secrets',dmData.secrets||''); sv('dm_factions',dmData.factions||'');
+  sv('dm_relmap',dmData.relmap||'');
+  renderRelationships(); renderTimeline(); renderNPCs();
+}
+function v(id){ const e=document.getElementById(id); return e?e.value:''; }
+function sv(id,val){ const e=document.getElementById(id); if(e) e.value=val||''; }
+function saveAllDM(){
+  collectDMData();
+  localStorage.setItem(SK_DM, JSON.stringify(dmData));
+  setStatus('Saved — '+new Date().toLocaleTimeString(),'saved');
+}
+
+// ============================================================
+// SETUP
+// ============================================================
+function showSetup(){
+  document.getElementById('setup_token').value=cfg.token||'';
+  document.getElementById('setup_dmgist').value=cfg.dmGistId||'';
+  document.getElementById('setupOverlay').style.display='flex';
+}
+function hideSetup(){ document.getElementById('setupOverlay').style.display='none'; }
+function confirmSetup(){
+  cfg.token=document.getElementById('setup_token').value.trim();
+  cfg.dmGistId=document.getElementById('setup_dmgist').value.trim();
+  saveCfg(); hideSetup();
+  setStatus('Setup saved','saved');
+  toast('Setup saved.');
+}
+
+// ============================================================
+// GIST SYNC
+// ============================================================
+async function syncDMToGist(){
+  if(!cfg.token){ toast('No GitHub token. Click Setup first.','error'); return; }
+  setStatus('Syncing...','');
+  collectDMData();
+  try{
+    const headers={'Authorization':'token '+cfg.token,'Content-Type':'application/json'};
+    const body={description:'VtM DM Dashboard — Blood and Iron',public:false,
+      files:{'dm_data.json':{content:JSON.stringify(dmData,null,2)}}};
+    let resp;
+    if(cfg.dmGistId){
+      resp=await fetch('https://api.github.com/gists/'+cfg.dmGistId,{method:'PATCH',headers,body:JSON.stringify(body)});
+    } else {
+      resp=await fetch('https://api.github.com/gists',{method:'POST',headers,body:JSON.stringify(body)});
+    }
+    if(!resp.ok) throw new Error('GitHub error '+resp.status);
+    const data=await resp.json();
+    cfg.dmGistId=data.id; saveCfg();
+    setStatus('Synced to GitHub — '+new Date().toLocaleTimeString(),'saved');
+    toast('DM data synced to GitHub.');
+  }catch(e){ setStatus('Sync failed','error'); toast('Sync failed: '+e.message,'error'); }
+}
+
+async function loadDMFromGist(){
+  if(!cfg.token||!cfg.dmGistId) return;
+  try{
+    const resp=await fetch('https://api.github.com/gists/'+cfg.dmGistId,{headers:{'Authorization':'token '+cfg.token}});
+    if(!resp.ok) return;
+    const data=await resp.json();
+    const file=data.files['dm_data.json'];
+    if(file){ Object.assign(dmData,JSON.parse(file.content)); applyDMData(); setStatus('DM data loaded from GitHub','saved'); }
+  }catch(e){ console.error(e); }
+}
+
+// ============================================================
+// LOAD CHARACTER BY CODE
+// ============================================================
+async function loadCharByCode(){
+  const raw=document.getElementById('charCodeInput').value.trim().toUpperCase();
+  const status=document.getElementById('loadStatus');
+  if(!raw||raw.length<6){ status.textContent='Enter a valid share code (e.g. FORS-AB12CD)'; return; }
+
+  // Extract gist fragment — the part after the dash
+  const parts=raw.split('-');
+  if(parts.length<2){ status.textContent='Invalid code format. Expected XXXX-XXXXXX'; return; }
+  const gistFrag=parts[1].toLowerCase();
+
+  status.textContent='Searching GitHub...';
+
+  // We need to find the full gist ID from the fragment
+  // Try loading it directly first if it looks like a full ID
+  if(!cfg.token){ toast('No GitHub token configured. Click ⚙ Setup to add one.','error'); status.textContent=''; return; }
+
+  try{
+    // List public gists matching the token to find the right one
+    const resp=await fetch('https://api.github.com/gists?per_page=100',{
+      headers:{'Authorization':'token '+cfg.token}
+    });
+    if(!resp.ok) throw new Error('GitHub error '+resp.status);
+    const gists=await resp.json();
+    // Find gist whose ID starts with the fragment
+    const match=gists.find(g=>g.id.toLowerCase().startsWith(gistFrag)||g.id.toLowerCase().includes(gistFrag));
+    if(!match){ status.textContent='No character found with that code. Make sure the player has synced.'; return; }
+
+    // Load full gist
+    const resp2=await fetch('https://api.github.com/gists/'+match.id,{headers:{'Authorization':'token '+cfg.token}});
+    const gist=await resp2.json();
+    const file=gist.files['character_sheet.json'];
+    if(!file){ status.textContent='Gist found but no character sheet file. Ask player to re-sync.'; return; }
+
+    const charData=JSON.parse(file.content);
+    const charName=charData.text?.f_name||gist.description||'Unknown';
+    loadedChars[match.id]={ data:charData, charName, gistId:match.id };
+    if(!dmData.charNotes[match.id]) dmData.charNotes[match.id]={};
+
+    addCharTab(match.id, charName);
+    document.getElementById('charCodeInput').value='';
+    status.textContent='';
+    switchToChar(match.id);
+    toast('Loaded: '+charName);
+  }catch(e){
+    status.textContent='Error: '+e.message;
+    toast('Load failed: '+e.message,'error');
+  }
+}
+
+async function refreshChar(gistId){
+  if(!cfg.token) return;
+  try{
+    const resp=await fetch('https://api.github.com/gists/'+gistId,{headers:{'Authorization':'token '+cfg.token}});
+    if(!resp.ok) return;
+    const gist=await resp.json();
+    const file=gist.files['character_sheet.json'];
+    if(file){
+      loadedChars[gistId].data=JSON.parse(file.content);
+      if(activeChar===gistId) renderCharView(gistId);
+      toast('Refreshed: '+loadedChars[gistId].charName);
+    }
+  }catch(e){ toast('Refresh failed: '+e.message,'error'); }
+}
+
+// ============================================================
+// SIDEBAR TABS
+// ============================================================
+function addCharTab(gistId, name){
+  const existing=document.getElementById('chartab_'+gistId);
+  if(existing) return;
+  const tabs=document.getElementById('charTabs');
+  const btn=document.createElement('button');
+  btn.className='sb-btn'; btn.id='chartab_'+gistId;
+  btn.innerHTML=`<span class="tab-icon">🧛</span><span class="tab-name">${name}</span><span class="tab-close" onclick="removeChar('${gistId}',event)">✕</span>`;
+  btn.onclick=(e)=>{ if(!e.target.classList.contains('tab-close')) switchToChar(gistId); };
+  tabs.appendChild(btn);
+}
+
+function removeChar(gistId, e){
+  e.stopPropagation();
+  delete loadedChars[gistId];
+  const btn=document.getElementById('chartab_'+gistId);
+  if(btn) btn.remove();
+  if(activeChar===gistId){
+    activeChar=null;
+    showView('add');
+  }
+}
+
+function showAddChar(){
+  showView('add');
+}
+
+function switchToChar(gistId){
+  activeChar=gistId;
+  // Update sidebar active
+  document.querySelectorAll('.sb-btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('chartab_'+gistId);
+  if(btn) btn.classList.add('active');
+  showView('character');
+  renderCharView(gistId);
+}
+
+function showView(name){
+  activeView=name;
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  const el=document.getElementById('view_'+name);
+  if(el) el.classList.add('active');
+  // Update sidebar
+  ['campaign','relations','timeline','npcs'].forEach(v=>{
+    const b=document.getElementById('tab_'+v);
+    if(b) b.classList.toggle('active', v===name);
+  });
+}
+
+// ============================================================
+// RENDER CHARACTER VIEW
+// ============================================================
+function renderCharView(gistId){
+  const char=loadedChars[gistId]; if(!char) return;
+  const d=char.data; const t=d.text||{}; const dots=d.dots||{};
+  const boxes=d.boxes||{}; const ld=d.largeDots||{};
+  const notes=dmData.charNotes[gistId]||{};
+  const container=document.getElementById('charViewContent');
+
+  container.innerHTML=`
+    <div class="mh">
+      <div>
+        <div class="mh-title">${t.f_name||'Character'}</div>
+        <div class="mh-sub">${t.f_clan||''} &nbsp;·&nbsp; ${t.f_sect||''} &nbsp;·&nbsp; ${t.f_chronicle||''}</div>
+      </div>
+      <div class="mh-actions">
+        <button class="btn green" onclick="refreshChar('${gistId}')">↻ Refresh</button>
+        <button class="btn danger" onclick="removeChar('${gistId}',{stopPropagation:()=>{}})">Remove</button>
+      </div>
+    </div>
+
+    <div class="view-tabs">
+      <div class="vt active" id="cvt_overview_${gistId}" onclick="switchCVT('${gistId}','overview')">Overview</div>
+      <div class="vt" id="cvt_stats_${gistId}" onclick="switchCVT('${gistId}','stats')">Stats</div>
+      <div class="vt" id="cvt_player_notes_${gistId}" onclick="switchCVT('${gistId}','player_notes')">Player Notes</div>
+      <div class="vt dm-vt" id="cvt_dm_notes_${gistId}" onclick="switchCVT('${gistId}','dm_notes')">⊕ DM Notes</div>
+    </div>
+
+    <!-- OVERVIEW TAB -->
+    <div class="tab-content active" id="cvt_content_overview_${gistId}">
+      <div class="grid-2">
+        <div class="panel">
+          <div class="ph">Identity</div>
+          <div class="pb">
+            <div class="info-grid">
+              ${infoCell('Name',t.f_name)}${infoCell('Clan',t.f_clan)}
+              ${infoCell('Generation',t.f_gen)}${infoCell('Blood Potency',t.f_bp)}
+              ${infoCell('Sire',t.f_sire)}${infoCell('Sect',t.f_sect)}
+              ${infoCell('Predator Type',t.f_predator)}${infoCell('Archetype',t.f_archetype)}
+              ${infoCell('Experience',t.f_xp)}${infoCell('Player',t.f_player)}
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph">Trackers</div>
+          <div class="pb">
+            <div class="itl">Humanity (${ld.humanity||6}/10)</div>
+            <div class="ld-d">${ldotsDHTML(ld.humanity||6,10,'h')}</div>
+            <div class="itl" style="margin-top:10px">Hunger (${ld.hunger||1}/5)</div>
+            <div class="ld-d">${ldotsDHTML(ld.hunger||1,5,'hunger')}</div>
+            <div class="itl" style="margin-top:10px">Health (${countBoxes(boxes.health,'agg')} Agg / ${countBoxes(boxes.health,'sup')} Sup)</div>
+            <div class="boxes-d">${boxesHTML(boxes.health||[],5)}</div>
+            <div class="itl" style="margin-top:8px">Willpower</div>
+            <div class="boxes-d">${boxesHTML(boxes.wp||[],5)}</div>
+            <div style="margin-top:8px" class="info-grid">
+              ${infoCell('Stains',t.f_stains||'0')}${infoCell('Chronicle',t.f_chronicle)}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph">Background</div>
+        <div class="pb" style="white-space:pre-wrap;font-size:13px;line-height:1.6;color:var(--text)">${esc(t.f_backstory||'')}</div>
+      </div>
+      <div class="grid-2">
+        <div class="panel">
+          <div class="ph">Ambition & Desire</div>
+          <div class="pb">
+            <div class="itl">Ambition</div>
+            <div style="font-size:13px;color:var(--text);margin-bottom:8px">${esc(t.f_ambition||'')}</div>
+            <div class="itl">Desire</div>
+            <div style="font-size:13px;color:var(--text)">${esc(t.f_desire||'')}</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph">Convictions & Touchstones</div>
+          <div class="pb">
+            ${convBlock(t.conv_1,t.touch_1,1)}
+            ${convBlock(t.conv_2,t.touch_2,2)}
+            ${convBlock(t.conv_3,t.touch_3,3)}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS TAB -->
+    <div class="tab-content" id="cvt_content_stats_${gistId}">
+      <div class="grid-3">
+        <div class="panel">
+          <div class="ph">Physical Attributes</div>
+          <div class="pb">
+            ${statRow('Strength',dots.attr_str||0)}
+            ${statRow('Dexterity',dots.attr_dex||0)}
+            ${statRow('Stamina',dots.attr_sta||0)}
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph">Social Attributes</div>
+          <div class="pb">
+            ${statRow('Charisma',dots.attr_cha||0)}
+            ${statRow('Manipulation',dots.attr_man||0)}
+            ${statRow('Composure',dots.attr_com||0)}
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph">Mental Attributes</div>
+          <div class="pb">
+            ${statRow('Intelligence',dots.attr_int||0)}
+            ${statRow('Wits',dots.attr_wit||0)}
+            ${statRow('Resolve',dots.attr_res||0)}
+          </div>
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="panel">
+          <div class="ph">Physical Skills</div>
+          <div class="pb">
+            ${['Athletics','Brawl','Craft','Drive','Firearms','Larceny','Melee','Stealth','Survival']
+              .map((n,i)=>statRow(n,dots['sk_'+['ath','bra','cra','dri','fir','lar','mel','ste','sur'][i]]||0)).join('')}
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph">Social Skills</div>
+          <div class="pb">
+            ${['Animal Ken','Etiquette','Insight','Intimidation','Leadership','Performance','Persuasion','Streetwise','Subterfuge']
+              .map((n,i)=>statRow(n,dots['sk_'+['ani','eti','ins','imi','lea','per','prs','str','sub'][i]]||0)).join('')}
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph">Mental Skills</div>
+          <div class="pb">
+            ${['Academics','Awareness','Finance','Investigation','Medicine','Occult','Politics','Science','Technology']
+              .map((n,i)=>statRow(n,dots['sk_'+['aca','awa','fin','inv','med','occ','pol','sci','tec'][i]]||0)).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="panel">
+          <div class="ph">Disciplines</div>
+          <div class="pb">
+            <div class="disc-d"><div class="disc-dname">Auspex</div>
+              ${dotsHTML(dots.disc_aus||0,5)}
+              <div class="disc-dpow">● Heightened Senses / ●● Sense the Unseen</div>
+              ${t.disc_aus_note?`<div style="font-size:11px;color:var(--subtext);margin-top:3px;font-style:italic">${esc(t.disc_aus_note)}</div>`:''}
+            </div>
+            <div class="disc-d"><div class="disc-dname">Blood Sorcery</div>
+              ${dotsHTML(dots.disc_bs||0,5)}
+              <div class="disc-dpow">● Corrosive Vitae / ●● Scour Secrets</div>
+              ${t.disc_bs_note?`<div style="font-size:11px;color:var(--subtext);margin-top:3px;font-style:italic">${esc(t.disc_bs_note)}</div>`:''}
+            </div>
+            <div class="disc-d"><div class="disc-dname">Dominate</div>
+              ${dotsHTML(dots.disc_dom||0,5)}
+              <div class="disc-dpow">● Cloud Memory</div>
+              ${t.disc_dom_note?`<div style="font-size:11px;color:var(--subtext);margin-top:3px;font-style:italic">${esc(t.disc_dom_note)}</div>`:''}
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph">Advantages & Flaws</div>
+          <div class="pb">
+            <div class="itl">Advantages</div>
+            ${advRow('Haven',dots.adv_haven||0)}
+            ${advRow('Resources',dots.adv_res||0)}
+            ${advRow('Contacts',dots.adv_con||0)}
+            ${advRow('Linguistics (Latin)',dots.adv_lin||0)}
+            ${advRow('Mask',dots.adv_mask||0)}
+            ${advRow('Cobbler',dots.adv_cob||0)}
+            ${t.adv_c1_name?advRow(t.adv_c1_name,dots.adv_c1||0):''}
+            <div class="itl" style="margin-top:6px">Flaws</div>
+            <div style="color:#c08080">${advRow('Dark Secret',dots.flaw_ds||0)}${advRow('Infamous Sire',dots.flaw_is||0)}${advRow('Enemy',dots.flaw_en||0)}</div>
+            ${t.flaw_c1_name?`<div style="color:#c08080">${advRow(t.flaw_c1_name,dots.flaw_c1||0)}</div>`:''}
+            <div class="div"></div>
+            <div style="font-size:11px;color:var(--subtext)">
+              <strong style="color:var(--crimson-lt)">Rituals:</strong><br>
+              ${[1,2,3].map(n=>t['rit_'+n+'_name']?`${t['rit_'+n+'_lvl']||'?'} ${t['rit_'+n+'_name']} — ${t['rit_'+n+'_desc']||''}`:''  ).filter(Boolean).join('<br>')||'None recorded'}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAYER NOTES TAB -->
+    <div class="tab-content" id="cvt_content_player_notes_${gistId}">
+      <div class="panel">
+        <div class="ph">Player Notes &nbsp;<span style="font-size:8px;color:var(--green-lt)">◈ Shared by player</span></div>
+        <div class="pb">
+          ${playerNoteBlock('Session Log',t.notes_session)}
+          ${playerNoteBlock('NPC Relationships',t.notes_npcs)}
+          ${playerNoteBlock('Goals & Plans',t.notes_goals)}
+          ${playerNoteBlock('General Notes',t.notes_general)}
+        </div>
+      </div>
+    </div>
+
+    <!-- DM NOTES TAB -->
+    <div class="tab-content" id="cvt_content_dm_notes_${gistId}">
+      <div class="grid-2">
+        <div class="dm-panel">
+          <div class="ph dm-ph">DM Private Notes — ${t.f_name||'Character'}</div>
+          <div class="pb">
+            <div class="itl dm-itl">Secrets & Hidden Info</div>
+            <textarea class="fta dm-ta large" id="dm_private_${gistId}" placeholder="What does the DM know about this character that they don't? Hidden loyalties, secrets, destiny...">${notes.dmPrivate||''}</textarea>
+            <div class="itl dm-itl" style="margin-top:8px">Session Specific Notes</div>
+            <textarea class="fta dm-ta large" id="dm_char_notes_${gistId}" placeholder="How to play against this character, what hooks to use, plot threads specific to them...">${notes.dmCharNotes||''}</textarea>
+            <div class="itl dm-itl" style="margin-top:8px">Threat Assessment</div>
+            <textarea class="fta dm-ta" id="dm_threat_${gistId}" placeholder="Power level, vulnerabilities, how dangerous they are to themselves and others...">${notes.dmThreat||''}</textarea>
+          </div>
+        </div>
+        <div class="dm-panel">
+          <div class="ph dm-ph">Character Arc Notes</div>
+          <div class="pb">
+            <div class="itl dm-itl">Planned Arc</div>
+            <textarea class="fta dm-ta large" id="dm_arc_${gistId}" placeholder="Where this character's story might go. What growth or tragedy awaits...">${notes.dmArc||''}</textarea>
+            <div class="itl dm-itl" style="margin-top:8px">Hooks & Leverage</div>
+            <textarea class="fta dm-ta large" id="dm_hooks_${gistId}" placeholder="What NPCs, secrets or plot threads can be used to engage this player...">${notes.dmHooks||''}</textarea>
+            <div class="itl dm-itl" style="margin-top:8px">Relationship to Sire's Death</div>
+            <textarea class="fta dm-ta" id="dm_sire_${gistId}" placeholder="What do you know about Edmund's destruction that she doesn't yet...">${notes.dmSire||''}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// RENDER HELPERS
+// ============================================================
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function infoCell(l,v){ return `<div class="info-cell"><span class="ic-label">${l}</span><span class="ic-val">${esc(v||'—')}</span></div>`; }
+function dotsHTML(val,max){ return `<div class="dots-d">${Array.from({length:max},(_,i)=>`<div class="dot-d${i<val?' f':''}"></div>`).join('')}</div>`; }
+function ldotsDHTML(val,max,type){ return Array.from({length:max},(_,i)=>`<div class="ldot-d${i<val?(type==='hunger'?' hf':' f'):''}"></div>`).join(''); }
+function boxesHTML(states,n){ return Array.from({length:n},(_,i)=>`<div class="box-d${states[i]===1?' sup':states[i]===2?' agg':''}"></div>`).join(''); }
+function countBoxes(states,type){ if(!states) return 0; const v=type==='agg'?2:1; return states.filter(s=>s===v).length; }
+function statRow(name,val){ return `<div class="stat-row"><span class="stat-name">${name}</span>${dotsHTML(val,5)}</div>`; }
+function advRow(name,val){ return `<div class="stat-row"><span class="stat-name">${esc(name)}</span>${dotsHTML(val,5)}</div>`; }
+function convBlock(cv,ts,n){ if(!cv&&!ts) return ''; return `<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(106,78,20,.2)"><div style="font-size:9px;font-family:'Cinzel',serif;color:var(--gold);margin-bottom:2px">Conviction ${n}</div><div style="font-size:12px;margin-bottom:4px">${esc(cv||'')}</div><div style="font-size:9px;font-family:'Cinzel',serif;color:var(--crimson-lt);margin-bottom:2px">Touchstone ${n}</div><div style="font-size:12px;color:var(--subtext);font-style:italic">${esc(ts||'')}</div></div>`; }
+function playerNoteBlock(label, text){ if(!text) return `<div class="player-note-block"><div class="pn-label">${label}</div><div class="pn-text" style="color:var(--subtext);font-style:italic">No notes provided</div></div>`; return `<div class="player-note-block"><div class="pn-label">${label}</div><div class="pn-text">${esc(text)}</div></div>`; }
+
+function switchCVT(gistId, tab){
+  ['overview','stats','player_notes','dm_notes'].forEach(t=>{
+    document.getElementById('cvt_'+t+'_'+gistId)?.classList.toggle('active',t===tab);
+    document.getElementById('cvt_content_'+t+'_'+gistId)?.classList.toggle('active',t===tab);
+  });
+  // Save any DM note changes before re-render
+  collectDMData();
+}
+
+// ============================================================
+// RELATIONSHIPS
+// ============================================================
+let relId=0;
+function addRelationship(data){
+  const id=data?.id||('r'+(++relId));
+  const list=document.getElementById('rel_list');
+  const row=document.createElement('div'); row.className='rel-item'; row.id='rel_'+id;
+  row.innerHTML=`
+    <input class="ri-input" placeholder="Name / Character" value="${esc(data?.name||'')}">
+    <select class="ri-select">
+      ${['Ally','Enemy','Neutral','Complicated','Owed favor','Owes favor','Romantic','Mentor','Rival','Unknown'].map(o=>`<option${data?.type===o?' selected':''}>${o}</option>`).join('')}
+    </select>
+    <input class="ri-input" placeholder="Notes..." value="${esc(data?.notes||'')}">
+    <button class="rm-btn" onclick="document.getElementById('rel_${id}').remove();markUnsaved()">✕</button>
+  `;
+  list.appendChild(row);
+}
+
+function renderRelationships(){
+  const list=document.getElementById('rel_list'); list.innerHTML='';
+  (dmData.relationships||[]).forEach(r=>addRelationship(r));
+  if(!list.children.length) addRelationship();
+}
+
+function collectRelationships(){
+  return Array.from(document.querySelectorAll('#rel_list .rel-item')).map(row=>{
+    const inputs=row.querySelectorAll('input,select');
+    return {id:row.id,name:inputs[0]?.value,type:inputs[1]?.value,notes:inputs[2]?.value};
+  });
+}
+
+// ============================================================
+// TIMELINE
+// ============================================================
+let tlId=0;
+function addTimelineEvent(data){
+  const id=data?.id||('tl'+(++tlId));
+  const list=document.getElementById('tl_list');
+  const row=document.createElement('div'); row.className='tl-item'; row.id='tl_'+id;
+  row.innerHTML=`
+    <input class="ri-input" placeholder="Session / Date" value="${esc(data?.date||'')}">
+    <select class="tl-select">
+      ${['Combat','Social','Discovery','Downtime','Travel','Supernatural','Political','Personal'].map(o=>`<option${data?.type===o?' selected':''}>${o}</option>`).join('')}
+    </select>
+    <input class="ri-input" placeholder="What happened..." value="${esc(data?.event||'')}">
+    <button class="rm-btn" onclick="document.getElementById('tl_${id}').remove();markUnsaved()">✕</button>
+  `;
+  list.appendChild(row);
+}
+
+function renderTimeline(){
+  const list=document.getElementById('tl_list'); list.innerHTML='';
+  (dmData.timeline||[]).forEach(t=>addTimelineEvent(t));
+  if(!list.children.length) addTimelineEvent();
+}
+
+function collectTimeline(){
+  return Array.from(document.querySelectorAll('#tl_list .tl-item')).map(row=>{
+    const inputs=row.querySelectorAll('input,select');
+    return {id:row.id,date:inputs[0]?.value,type:inputs[1]?.value,event:inputs[2]?.value};
+  });
+}
+
+// ============================================================
+// NPCS
+// ============================================================
+let npcId=0;
+function addNPC(data){
+  const id=data?.id||('npc'+(++npcId));
+  const list=document.getElementById('npc_list');
+  const panel=document.createElement('div'); panel.className='dm-panel'; panel.id='npc_'+id;
+  panel.innerHTML=`
+    <div class="ph dm-ph" style="justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span>NPC</span>
+        <input style="background:transparent;border:none;border-bottom:1px solid var(--dm-border);color:var(--gold-lt);
+          font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;outline:none;min-width:140px" 
+          placeholder="NPC Name..." value="${esc(data?.name||'')}">
+      </div>
+      <button class="rm-btn" onclick="document.getElementById('npc_${id}').remove();markUnsaved()" style="color:var(--subtext)">✕</button>
+    </div>
+    <div class="pb">
+      <div class="grid-3" style="margin-bottom:8px">
+        <div><div class="itl dm-itl">Faction / Clan</div><input class="ri-input" placeholder="e.g. Tremere, Red Thread..." value="${esc(data?.faction||'')}"></div>
+        <div><div class="itl dm-itl">Attitude to Party</div>
+          <select class="ri-select">
+            ${['Friendly','Neutral','Hostile','Unknown','Complicated'].map(o=>`<option${data?.attitude===o?' selected':''}>${o}</option>`).join('')}
+          </select>
+        </div>
+        <div><div class="itl dm-itl">Status / Alive?</div>
+          <select class="ri-select">
+            ${['Active','Dead','Missing','Unknown'].map(o=>`<option${data?.status===o?' selected':''}>${o}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div><div class="itl dm-itl">Description & Role</div>
+          <textarea class="fta dm-ta" placeholder="Who are they, what do they want, what do they know..." style="min-height:70px">${esc(data?.desc||'')}</textarea>
+        </div>
+        <div><div class="itl dm-itl">Secrets & Agenda</div>
+          <textarea class="fta dm-ta" placeholder="Hidden motivations, what they're not telling the party..." style="min-height:70px">${esc(data?.secrets||'')}</textarea>
+        </div>
+      </div>
+    </div>
+  `;
+  list.appendChild(panel);
+}
+
+function renderNPCs(){
+  const list=document.getElementById('npc_list'); list.innerHTML='';
+  (dmData.npcs||[]).forEach(n=>addNPC(n));
+}
+
+function collectNPCs(){
+  return Array.from(document.querySelectorAll('#npc_list .dm-panel')).map(panel=>{
+    const inputs=panel.querySelectorAll('input,select,textarea');
+    return {id:panel.id,name:inputs[0]?.value,faction:inputs[1]?.value,
+      attitude:inputs[2]?.value,status:inputs[3]?.value,desc:inputs[4]?.value,secrets:inputs[5]?.value};
+  });
+}
+
+// ============================================================
+// EXPORT / IMPORT
+// ============================================================
+function exportDMData(){
+  collectDMData();
+  dmData.relationships=collectRelationships();
+  dmData.timeline=collectTimeline();
+  dmData.npcs=collectNPCs();
+  const blob=new Blob([JSON.stringify(dmData,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='dm_dashboard_data.json'; a.click();
+}
+
+function importDMData(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{ try{ Object.assign(dmData,JSON.parse(ev.target.result)); applyDMData(); saveAllDM(); toast('DM data imported'); }catch(err){ toast('Invalid file','error'); } };
+  reader.readAsText(file); e.target.value='';
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function setStatus(msg,type){
+  const el=document.getElementById('saveStatus');
+  el.textContent=msg; el.className='sv-status'+(type?' '+type:'');
+}
+function markUnsaved(){ setStatus('Unsaved changes',''); }
+
+let toastTimer;
+function toast(msg,type){
+  const existing=document.querySelector('.toast'); if(existing) existing.remove();
+  const el=document.createElement('div');
+  el.className='toast'+(type==='error'?' error':''); el.textContent=msg;
+  document.body.appendChild(el);
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.remove(),4000);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded',async ()=>{
+  loadCfg();
+  loadDMLocal();
+  if(cfg.token && cfg.dmGistId) await loadDMFromGist();
+  if(!cfg.token) setTimeout(showSetup,600);
+});
+
+document.addEventListener('input',markUnsaved);
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){
+    e.preventDefault();
+    collectDMData();
+    dmData.relationships=collectRelationships();
+    dmData.timeline=collectTimeline();
+    dmData.npcs=collectNPCs();
+    saveAllDM();
+  }
+});
+</script>
+</body>
+</html>

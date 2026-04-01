@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fors Wall — Player Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e0b08;--surface:#16120d;--panel:#1c1710;--border:#7a5c18;
+  --gold:#c49a22;--gold-lt:#e8c96a;--gold-dim:#8a6a10;
+  --crimson:#7a1515;--crimson-lt:#c02020;
+  --text:#e0d4b8;--subtext:#8a7a5a;
+  --field-bg:#100e0a;--field-border:#3a2e18;--input-text:#d4c898;
+  --green:#4a8a4a;--green-lt:#6abf6a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:13px;min-height:100vh;
+  background-image:radial-gradient(ellipse at 20% 20%,rgba(122,21,21,.06) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(196,154,34,.04) 0%,transparent 60%);}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:1000;opacity:.35;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");}
+.page{max-width:980px;margin:0 auto;padding:20px;}
+
+/* HEADER */
+.header{text-align:center;padding:24px 20px 18px;border:1px solid var(--border);
+  background:linear-gradient(180deg,#1f1408,#120f09);margin-bottom:10px;position:relative;overflow:hidden;}
+.header::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(196,154,34,.04) 0%,transparent 50%,rgba(122,21,21,.06) 100%);}
+.header h1{font-family:'Cinzel Decorative',serif;font-size:28px;color:var(--gold-lt);letter-spacing:5px;
+  text-shadow:0 0 40px rgba(196,154,34,.3),0 2px 4px rgba(0,0,0,.8);margin-bottom:4px;}
+.header-sub{font-family:'Cinzel',serif;font-size:8px;letter-spacing:5px;color:var(--subtext);margin-bottom:8px;}
+.header-div{width:180px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto;}
+
+/* SAVE BAR */
+.save-bar{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px 12px;
+  border:1px solid var(--field-border);background:var(--surface);flex-wrap:wrap;}
+.save-bar-left{display:flex;align-items:center;gap:10px;flex:1;flex-wrap:wrap;}
+.save-status{font-size:10px;font-family:'Cinzel',serif;letter-spacing:1px;transition:color .3s;color:var(--subtext);}
+.save-status.saved{color:var(--green-lt);}
+.save-status.error{color:var(--crimson-lt);}
+.save-status.syncing{color:var(--gold);}
+.btn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;padding:5px 14px;background:transparent;
+  border:1px solid var(--gold-dim);color:var(--gold);cursor:pointer;transition:all .2s;text-transform:uppercase;white-space:nowrap;}
+.btn:hover{background:rgba(196,154,34,.1);border-color:var(--gold);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn.danger{border-color:var(--crimson);color:var(--crimson-lt);}
+.btn.danger:hover{background:rgba(122,21,21,.2);}
+.btn.green{border-color:var(--green);color:var(--green-lt);}
+.btn.green:hover{background:rgba(74,138,74,.15);}
+.code-display{font-family:'Cinzel',serif;font-size:11px;color:var(--gold-lt);
+  padding:4px 10px;border:1px solid var(--gold-dim);background:rgba(196,154,34,.06);letter-spacing:3px;cursor:pointer;}
+.code-display:hover{background:rgba(196,154,34,.12);}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+.full{margin-bottom:10px;}
+
+/* PANEL */
+.panel{border:1px solid var(--border);background:var(--panel);overflow:hidden;}
+.ph{background:var(--crimson);padding:5px 10px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;
+  color:var(--gold-lt);text-transform:uppercase;border-bottom:1px solid var(--gold-dim);display:flex;align-items:center;gap:6px;}
+.ph::before{content:'✦';font-size:7px;color:var(--gold-dim);}
+.pb{padding:10px;}
+
+/* FIELDS */
+.fr{display:flex;align-items:baseline;gap:6px;margin-bottom:6px;border-bottom:1px solid rgba(122,94,24,.2);padding-bottom:5px;}
+.fr:last-child{margin-bottom:0;border-bottom:none;padding-bottom:0;}
+.fl{font-size:10px;color:var(--subtext);min-width:88px;font-family:'Cinzel',serif;letter-spacing:.5px;flex-shrink:0;}
+.fi{flex:1;background:transparent;border:none;border-bottom:1px solid var(--field-border);
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:1px 4px;outline:none;transition:border-color .2s;width:100%;}
+.fi:focus{border-bottom-color:var(--gold-dim);}
+.fta{width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);
+  font-family:'EB Garamond',serif;font-size:13px;padding:8px;outline:none;resize:vertical;min-height:80px;
+  transition:border-color .2s;line-height:1.55;}
+.fta:focus{border-color:var(--gold-dim);}
+.fta.large{min-height:130px;}
+.fta.xl{min-height:180px;}
+
+/* DOTS */
+.dr{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.dr:last-child{margin-bottom:0;}
+.dl{font-size:11px;color:var(--text);min-width:108px;flex-shrink:0;}
+.dots{display:flex;gap:5px;align-items:center;}
+.dot{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--gold-dim);
+  background:var(--field-bg);cursor:pointer;transition:all .15s;flex-shrink:0;}
+.dot.filled{background:var(--gold);border-color:var(--gold-lt);box-shadow:0 0 5px rgba(196,154,34,.4);}
+.dot:hover{border-color:var(--gold);}
+
+/* BOX TRACKER */
+.bt{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;}
+.tb{width:26px;height:20px;border:1px solid var(--border);background:var(--field-bg);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;position:relative;}
+.tb:hover{border-color:var(--gold-dim);}
+.tb.sup::after{content:'/';position:absolute;font-size:15px;color:var(--gold);}
+.tb.agg{background:rgba(122,21,21,.2);border-color:var(--crimson);}
+.tb.agg::after{content:'X';position:absolute;font-size:12px;font-weight:bold;color:var(--crimson-lt);}
+.track-leg{margin-top:5px;font-size:10px;color:var(--subtext);}
+
+/* LARGE DOTS */
+.ld-row{display:flex;gap:7px;margin-top:7px;}
+.ld{width:19px;height:19px;border-radius:50%;border:2px solid var(--gold-dim);
+  background:var(--field-bg);cursor:pointer;transition:all .15s;}
+.ld.filled{background:var(--gold);border-color:var(--gold-lt);box-shadow:0 0 8px rgba(196,154,34,.5);}
+.ld.hfilled{background:var(--crimson-lt);border-color:#e03030;box-shadow:0 0 8px rgba(192,32,32,.5);}
+.ld:hover{transform:scale(1.12);}
+
+/* MISC */
+.cat{font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;
+  margin-bottom:7px;margin-top:3px;border-bottom:1px solid rgba(196,154,34,.2);padding-bottom:3px;}
+.div{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:7px 0;}
+.itl{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--subtext);text-transform:uppercase;
+  margin-bottom:4px;margin-top:7px;}
+.cp{margin-bottom:9px;padding-bottom:9px;border-bottom:1px solid rgba(122,94,24,.2);}
+.cp:last-child{border-bottom:none;margin-bottom:0;}
+.cl{font-size:9px;font-family:'Cinzel',serif;letter-spacing:1px;margin-bottom:3px;}
+.cl.cv{color:var(--gold);} .cl.ts{color:var(--crimson-lt);}
+.na-box{font-size:11px;color:var(--subtext);font-style:italic;padding:6px;
+  border-left:2px solid var(--crimson);background:rgba(122,21,21,.05);line-height:1.55;}
+.disc-name{font-family:'Cinzel',serif;font-size:11px;color:var(--gold-lt);margin-bottom:3px;letter-spacing:1px;}
+.disc-pow{font-size:11px;color:var(--subtext);font-style:italic;margin-top:2px;}
+.adv-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.adv-name{flex:1;font-size:12px;color:var(--text);}
+.flaw-row .adv-name{color:#c08080;}
+
+/* SHARED NOTES INDICATOR */
+.shared-note-label{font-size:9px;font-family:'Cinzel',serif;letter-spacing:1px;color:var(--green);
+  margin-bottom:4px;display:flex;align-items:center;gap:6px;}
+.shared-note-label::before{content:'◈';font-size:8px;}
+
+/* SETUP MODAL */
+.setup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9000;
+  display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.setup-box{background:var(--panel);border:1px solid var(--border);max-width:480px;width:90%;padding:0;overflow:hidden;}
+.setup-header{background:var(--crimson);padding:12px 16px;border-bottom:1px solid var(--gold-dim);}
+.setup-header h2{font-family:'Cinzel Decorative',serif;font-size:16px;color:var(--gold-lt);letter-spacing:2px;}
+.setup-header p{font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;letter-spacing:1px;margin-top:3px;}
+.setup-body{padding:16px;}
+.setup-field{margin-bottom:12px;}
+.setup-field label{display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;
+  color:var(--gold);text-transform:uppercase;margin-bottom:5px;}
+.setup-field input{width:100%;background:var(--field-bg);border:1px solid var(--field-border);
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:7px 10px;outline:none;transition:border-color .2s;}
+.setup-field input:focus{border-color:var(--gold-dim);}
+.setup-field .hint{font-size:11px;color:var(--subtext);font-style:italic;margin-top:4px;line-height:1.4;}
+.setup-footer{padding:10px 16px;border-top:1px solid var(--field-border);display:flex;justify-content:flex-end;gap:8px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;z-index:9500;background:var(--panel);border:1px solid var(--border);
+  padding:10px 16px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;color:var(--gold-lt);
+  box-shadow:0 4px 20px rgba(0,0,0,.6);animation:toastIn .3s ease;max-width:300px;}
+.toast.error{border-color:var(--crimson);color:var(--crimson-lt);}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+.footer{text-align:center;padding:10px;font-family:'Cinzel',serif;font-size:8px;
+  letter-spacing:3px;color:var(--subtext);border-top:1px solid var(--border);margin-top:10px;}
+</style>
+</head>
+<body>
+
+<!-- SETUP MODAL -->
+<div class="setup-overlay" id="setupOverlay">
+  <div class="setup-box">
+    <div class="setup-header">
+      <h2>GitHub Sync Setup</h2>
+      <p>One-time configuration — stored locally in your browser</p>
+    </div>
+    <div class="setup-body">
+      <div class="setup-field">
+        <label>GitHub Personal Access Token</label>
+        <input type="password" id="setup_token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+        <div class="hint">Create at github.com → Settings → Developer settings → Personal access tokens → Tokens (classic). Enable the <strong>gist</strong> scope only.</div>
+      </div>
+      <div class="setup-field">
+        <label>Character Name (for your share code)</label>
+        <input type="text" id="setup_charname" placeholder="e.g. Fors Wall" value="Fors Wall">
+      </div>
+      <div class="setup-field">
+        <label>Existing Gist ID (optional — leave blank to create new)</label>
+        <input type="text" id="setup_gistid" placeholder="Leave blank to create a new Gist">
+        <div class="hint">If you have an existing Gist from a previous session, paste its ID here to continue editing it.</div>
+      </div>
+    </div>
+    <div class="setup-footer">
+      <button class="btn" onclick="skipSetup()">Use Local Only</button>
+      <button class="btn green" onclick="confirmSetup()">Connect & Continue</button>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+<!-- HEADER -->
+<div class="header">
+  <div style="color:var(--gold-dim);font-size:10px;letter-spacing:8px;margin-bottom:6px;font-family:'Cinzel',serif;">✦ VAMPIRE THE MASQUERADE ✦</div>
+  <h1 id="headerName">FORS WALL</h1>
+  <div class="header-sub">P L A Y E R &nbsp; C H A R A C T E R &nbsp; S H E E T</div>
+  <div class="header-div"></div>
+</div>
+
+<!-- SAVE BAR -->
+<div class="save-bar">
+  <div class="save-bar-left">
+    <span class="save-status" id="saveStatus">Ready</span>
+    <button class="btn" onclick="saveAll()">Save (Ctrl+S)</button>
+    <button class="btn green" id="syncBtn" onclick="syncToGist()">Sync to Cloud</button>
+    <button class="btn" onclick="exportJSON()">Export JSON</button>
+    <button class="btn" onclick="document.getElementById('importFile').click()">Import JSON</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <span id="shareCodeDisplay" style="display:none;" class="code-display" onclick="copyCode()" title="Click to copy share code"></span>
+    <button class="btn" onclick="showSetup()">⚙ Setup</button>
+    <button class="btn danger" onclick="resetAll()">Reset</button>
+  </div>
+</div>
+
+<!-- IDENTITY + CHRONICLE -->
+<div class="grid-2">
+  <div class="panel">
+    <div class="ph">Identity</div>
+    <div class="pb">
+      <div class="fr"><span class="fl">Name</span><input class="fi" id="f_name" value="Fors Wall" oninput="updateHeader()"></div>
+      <div class="fr"><span class="fl">Clan</span><input class="fi" id="f_clan" value="Tremere"></div>
+      <div class="fr"><span class="fl">Generation</span><input class="fi" id="f_gen" value="10th"></div>
+      <div class="fr"><span class="fl">Blood Potency</span><input class="fi" id="f_bp" value="2"></div>
+      <div class="fr"><span class="fl">Sire</span><input class="fi" id="f_sire" value="Edmund Ashford"></div>
+      <div class="fr"><span class="fl">Sect</span><input class="fi" id="f_sect" value="Camarilla"></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="ph">Chronicle</div>
+    <div class="pb">
+      <div class="fr"><span class="fl">Chronicle</span><input class="fi" id="f_chronicle" value="Blood and Iron"></div>
+      <div class="fr"><span class="fl">Predator Type</span><input class="fi" id="f_predator" value="Extortionist"></div>
+      <div class="fr"><span class="fl">Archetype</span><input class="fi" id="f_archetype" value="Survivor"></div>
+      <div class="fr"><span class="fl">Concept</span><input class="fi" id="f_concept" value="Displaced Victorian occultist"></div>
+      <div class="fr"><span class="fl">Experience</span><input class="fi" id="f_xp" value="0 / 35 spent"></div>
+      <div class="fr"><span class="fl">Player</span><input class="fi" id="f_player" value=""></div>
+    </div>
+  </div>
+</div>
+
+<!-- ATTRIBUTES -->
+<div class="panel full">
+  <div class="ph">Attributes</div>
+  <div class="pb">
+    <div class="grid-3" style="margin-bottom:0">
+      <div>
+        <div class="cat">Physical</div>
+        <div class="dr"><span class="dl">Strength</span><div class="dots" id="attr_str" data-max="5" data-val="1"></div></div>
+        <div class="dr"><span class="dl">Dexterity</span><div class="dots" id="attr_dex" data-max="5" data-val="2"></div></div>
+        <div class="dr"><span class="dl">Stamina</span><div class="dots" id="attr_sta" data-max="5" data-val="2"></div></div>
+      </div>
+      <div>
+        <div class="cat">Social</div>
+        <div class="dr"><span class="dl">Charisma</span><div class="dots" id="attr_cha" data-max="5" data-val="2"></div></div>
+        <div class="dr"><span class="dl">Manipulation</span><div class="dots" id="attr_man" data-max="5" data-val="3"></div></div>
+        <div class="dr"><span class="dl">Composure</span><div class="dots" id="attr_com" data-max="5" data-val="3"></div></div>
+      </div>
+      <div>
+        <div class="cat">Mental</div>
+        <div class="dr"><span class="dl">Intelligence</span><div class="dots" id="attr_int" data-max="5" data-val="4"></div></div>
+        <div class="dr"><span class="dl">Wits</span><div class="dots" id="attr_wit" data-max="5" data-val="3"></div></div>
+        <div class="dr"><span class="dl">Resolve</span><div class="dots" id="attr_res" data-max="5" data-val="2"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SKILLS -->
+<div class="panel full">
+  <div class="ph">Skills</div>
+  <div class="pb">
+    <div class="grid-3" style="margin-bottom:0">
+      <div>
+        <div class="cat">Physical</div>
+        <div class="dr"><span class="dl">Athletics</span><div class="dots" id="sk_ath" data-max="5" data-val="0"></div></div>
+        <div class="dr"><span class="dl">Brawl</span><div class="dots" id="sk_bra" data-max="5" data-val="0"></div></div>
+        <div class="dr"><span class="dl">Craft</span><div class="dots" id="sk_cra" data-max="5" data-val="0"></div></div>
+        <div class="dr"><span class="dl">Drive</span><div class="dots" id="sk_dri" data-max="5" data-val="0"></div></div>
+        <div class="dr"><span class="dl">Firearms</span><div class="dots" id="sk_fir" data-max="5" data-val="0"></div></div>
+        <div class="dr"><span class="dl">Larceny</span><div class="dots" id="sk_lar" data-max="5" data-val="0"></div></div>
+        <div class="dr"><span class="dl">Melee</span><div class="dots" id="sk_mel" data-max="5" data-val="0"></div></div>
+        <div class="dr"><span class="dl">Stealth</span><div class="dots" id="sk_ste" data-max="5" data-val="2"></div></div>
+        <div class="dr"><span class="dl">Survival</span><div class="dots" id="sk_sur" data-max="5" data-val="0"></div></div>
+      </div>
+      <div>
+        <div class="cat">Social</div>
+        <div class="dr"><span class="dl">Animal Ken</span><div class="dots" id="sk_ani" data-max="5" data-val="0"></div></div>
+        <div class="dr"><span class="dl">Etiquette</span><div class="dots" id="sk_eti" data-max="5" data-val="1"></div></div>
+        <div class="dr"><span class="dl">Insight</span><div class="dots" id="sk_ins" data-max="5" data-val="0"></div></div>
+        <div class="dr"><span class="dl">Intimidation</span><div class="dots" id="sk_imi" data-max="5" data-val="0"></div></div>
+        <div class="dr"><span class="dl">Leadership</span><div class="dots" id="sk_lea" data-max="5" data-val="0"></div></div>
+        <div class="dr"><span class="dl">Performance</span><div class="dots" id="sk_per" data-max="5" data-val="0"></div></div>
+        <div class="dr"><span class="dl">Persuasion</span><div class="dots" id="sk_prs" data-max="5" data-val="2"></div></div>
+        <div class="dr"><span class="dl">Streetwise</span><div class="dots" id="sk_str" data-max="5" data-val="1"></div></div>
+        <div class="dr"><span class="dl">Subterfuge</span><div class="dots" id="sk_sub" data-max="5" data-val="3"></div></div>
+      </div>
+      <div>
+        <div class="cat">Mental</div>
+        <div class="dr"><span class="dl">Academics</span><div class="dots" id="sk_aca" data-max="5" data-val="4"></div></div>
+        <div class="dr"><span class="dl">Awareness</span><div class="dots" id="sk_awa" data-max="5" data-val="0"></div></div>
+        <div class="dr"><span class="dl">Finance</span><div class="dots" id="sk_fin" data-max="5" data-val="0"></div></div>
+        <div class="dr"><span class="dl">Investigation</span><div class="dots" id="sk_inv" data-max="5" data-val="2"></div></div>
+        <div class="dr"><span class="dl">Medicine</span><div class="dots" id="sk_med" data-max="5" data-val="2"></div></div>
+        <div class="dr"><span class="dl">Occult</span><div class="dots" id="sk_occ" data-max="5" data-val="4"></div></div>
+        <div class="dr"><span class="dl">Politics</span><div class="dots" id="sk_pol" data-max="5" data-val="0"></div></div>
+        <div class="dr"><span class="dl">Science</span><div class="dots" id="sk_sci" data-max="5" data-val="0"></div></div>
+        <div class="dr"><span class="dl">Technology</span><div class="dots" id="sk_tec" data-max="5" data-val="0"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DISCIPLINES + ADVANTAGES -->
+<div class="grid-2">
+  <div class="panel">
+    <div class="ph">Disciplines & Specialties</div>
+    <div class="pb">
+      <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(122,94,24,.2)">
+        <div class="disc-name">Auspex</div>
+        <div class="dr"><div class="dots" id="disc_aus" data-max="5" data-val="2"></div></div>
+        <div class="disc-pow">● Heightened Senses &nbsp;/&nbsp; ●● Sense the Unseen</div>
+        <div class="fr" style="margin-top:5px"><span class="fl" style="min-width:50px;font-size:9px">Notes</span><input class="fi" id="disc_aus_note" placeholder="Notes..."></div>
+      </div>
+      <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(122,94,24,.2)">
+        <div class="disc-name">Blood Sorcery</div>
+        <div class="dr"><div class="dots" id="disc_bs" data-max="5" data-val="2"></div></div>
+        <div class="disc-pow">● Corrosive Vitae &nbsp;/&nbsp; ●● Scour Secrets</div>
+        <div class="fr" style="margin-top:5px"><span class="fl" style="min-width:50px;font-size:9px">Notes</span><input class="fi" id="disc_bs_note" placeholder="Notes..."></div>
+      </div>
+      <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(122,94,24,.2)">
+        <div class="disc-name">Dominate</div>
+        <div class="dr"><div class="dots" id="disc_dom" data-max="5" data-val="1"></div></div>
+        <div class="disc-pow">● Cloud Memory</div>
+        <div class="fr" style="margin-top:5px"><span class="fl" style="min-width:50px;font-size:9px">Notes</span><input class="fi" id="disc_dom_note" placeholder="Notes..."></div>
+      </div>
+      <div class="div"></div>
+      <div class="itl">Specialties</div>
+      <div class="fr"><span class="fl">Academics</span><input class="fi" id="spec_1" value="Occult Literature"></div>
+      <div class="fr"><span class="fl">Subterfuge</span><input class="fi" id="spec_2" value="Deflection"></div>
+      <div class="fr"><span class="fl">Additional</span><input class="fi" id="spec_3" value=""></div>
+      <div class="div"></div>
+      <div class="itl">Rituals</div>
+      <div class="fr"><span class="fl" style="min-width:30px">Lvl</span><input class="fi" id="rit_1_lvl" placeholder="●" style="max-width:30px;margin-right:4px"><input class="fi" id="rit_1_name" placeholder="Ritual name..."><input class="fi" id="rit_1_desc" placeholder="Effect..." style="font-size:11px"></div>
+      <div class="fr"><span class="fl" style="min-width:30px">Lvl</span><input class="fi" id="rit_2_lvl" placeholder="●" style="max-width:30px;margin-right:4px"><input class="fi" id="rit_2_name" placeholder="Ritual name..."><input class="fi" id="rit_2_desc" placeholder="Effect..." style="font-size:11px"></div>
+      <div class="fr"><span class="fl" style="min-width:30px">Lvl</span><input class="fi" id="rit_3_lvl" placeholder="●●" style="max-width:30px;margin-right:4px"><input class="fi" id="rit_3_name" placeholder="Ritual name..."><input class="fi" id="rit_3_desc" placeholder="Effect..." style="font-size:11px"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ph">Advantages & Flaws</div>
+    <div class="pb">
+      <div class="itl">Advantages</div>
+      <div class="adv-row"><span class="adv-name">Haven</span><div class="dots" id="adv_haven" data-max="5" data-val="1"></div></div>
+      <div class="adv-row"><span class="adv-name">Resources</span><div class="dots" id="adv_res" data-max="5" data-val="2"></div></div>
+      <div class="adv-row"><span class="adv-name">Contacts</span><div class="dots" id="adv_con" data-max="5" data-val="2"></div></div>
+      <div class="adv-row"><span class="adv-name">Linguistics (Latin)</span><div class="dots" id="adv_lin" data-max="5" data-val="1"></div></div>
+      <div class="adv-row"><span class="adv-name">Mask</span><div class="dots" id="adv_mask" data-max="5" data-val="2"></div></div>
+      <div class="adv-row"><span class="adv-name">Cobbler</span><div class="dots" id="adv_cob" data-max="5" data-val="1"></div></div>
+      <div class="adv-row"><span class="adv-name"><input class="fi" id="adv_c1_name" placeholder="Custom advantage..."></span><div class="dots" id="adv_c1" data-max="5" data-val="0"></div></div>
+      <div class="div"></div>
+      <div class="itl">Flaws</div>
+      <div class="adv-row flaw-row"><span class="adv-name">Dark Secret</span><div class="dots" id="flaw_ds" data-max="5" data-val="2"></div></div>
+      <div class="adv-row flaw-row"><span class="adv-name">Infamous Sire</span><div class="dots" id="flaw_is" data-max="5" data-val="1"></div></div>
+      <div class="adv-row flaw-row"><span class="adv-name">Enemy (Predator Type)</span><div class="dots" id="flaw_en" data-max="5" data-val="1"></div></div>
+      <div class="adv-row flaw-row"><span class="adv-name"><input class="fi" id="flaw_c1_name" placeholder="Custom flaw..."></span><div class="dots" id="flaw_c1" data-max="5" data-val="0"></div></div>
+      <div class="div"></div>
+      <div class="na-box" style="margin-bottom:5px"><strong style="color:var(--crimson-lt)">Deficient Blood</strong> — Tremere bane. Rituals require preparation; penalties when toolkit unavailable. Bane Severity 2.</div>
+      <div class="na-box"><strong style="color:var(--gold)">Perfectionism</strong> — Must excel or suffer −2 to all pools until she does.</div>
+    </div>
+  </div>
+</div>
+
+<!-- HEALTH + WILLPOWER -->
+<div class="grid-2">
+  <div class="panel">
+    <div class="ph">Health &nbsp;<span style="font-size:8px;color:var(--subtext)">(Stamina 2 + 3 = 5)</span></div>
+    <div class="pb">
+      <div class="bt" id="health_track"></div>
+      <div class="track-leg">Click: empty → / → X</div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="ph">Willpower &nbsp;<span style="font-size:8px;color:var(--subtext)">(Composure 3 + Resolve 2 = 5)</span></div>
+    <div class="pb">
+      <div class="bt" id="wp_track"></div>
+      <div class="track-leg">Click: empty → / → X</div>
+    </div>
+  </div>
+</div>
+
+<!-- HUMANITY + HUNGER -->
+<div class="grid-2">
+  <div class="panel">
+    <div class="ph">Humanity</div>
+    <div class="pb">
+      <div class="ld-row" id="humanity_dots"></div>
+      <div style="margin-top:5px;font-size:10px;color:var(--subtext)">Current: <span id="humanity_val">6</span>/10</div>
+      <div class="fr" style="margin-top:6px"><span class="fl">Stains</span><input class="fi" id="f_stains" value="0" style="max-width:40px"></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="ph">Hunger</div>
+    <div class="pb">
+      <div class="ld-row" id="hunger_dots"></div>
+      <div style="margin-top:5px;font-size:10px;color:var(--subtext)">Current: <span id="hunger_val">1</span>/5 — Hunger 4+ risks Frenzy</div>
+      <div class="na-box" style="margin-top:7px"><strong style="color:var(--gold)">Resonance:</strong> Phlegmatic (calm/lazy) → bonus to Auspex & Dominate</div>
+    </div>
+  </div>
+</div>
+
+<!-- CONVICTIONS + AMBITION -->
+<div class="grid-2">
+  <div class="panel">
+    <div class="ph">Convictions & Touchstones</div>
+    <div class="pb">
+      <div class="cp">
+        <div class="cl cv">Conviction I</div><input class="fi" id="conv_1" value="Never prey on the innocent" style="margin-bottom:4px">
+        <div class="cl ts">Touchstone I</div><input class="fi" id="touch_1" value="Xio Derecha — closest friend and moral anchor">
+      </div>
+      <div class="cp">
+        <div class="cl cv">Conviction II</div><input class="fi" id="conv_2" value="Honour debts, especially to the dead" style="margin-bottom:4px">
+        <div class="cl ts">Touchstone II</div><input class="fi" id="touch_2" value="Aulisa's memory — gave everything, asked nothing">
+      </div>
+      <div class="cp">
+        <div class="cl cv">Conviction III</div><input class="fi" id="conv_3" value="Never give power over yourself willingly" style="margin-bottom:4px">
+        <div class="cl ts">Touchstone III</div><input class="fi" id="touch_3" value="Edmund's journal — last piece of her sire">
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="ph">Ambition & Desire</div>
+    <div class="pb">
+      <div class="itl">Ambition <span style="color:var(--subtext);font-size:8px">(recovers Aggravated Willpower damage)</span></div>
+      <textarea class="fta" id="f_ambition">Identify and destroy whoever killed Edmund Ashford. Recover whatever in Aulisa's library made them a target.</textarea>
+      <div class="itl" style="margin-top:8px">Desire <span style="color:var(--subtext);font-size:8px">(recovers Superficial Willpower damage)</span></div>
+      <textarea class="fta" id="f_desire">Never work hard again — comfort, good food, freedom from obligation.</textarea>
+    </div>
+  </div>
+</div>
+
+<!-- BACKSTORY -->
+<div class="panel full">
+  <div class="ph">Background</div>
+  <div class="pb">
+    <textarea class="fta xl" id="f_backstory">Born in London to a military officer who abandoned his family for a new life abroad. Her mother died before Fors finished grammar school.
+
+Clawed through medical school and built a quiet career as a physician. Romance novels written in stolen hours became unexpectedly successful.
+
+A dying patient named Aulisa left her savings, a library, and a set of occult formulas that turned out to be very real.
+
+Edmund Ashford, a Tremere Regent of unconventional habits, found her two years later and Embraced her without permission from anyone. He sheltered her from Tremere politics and taught her what she needed to know — until he was destroyed, his chantry cold and his notes scattered as if someone had been searching for something specific.
+
+Fors took everything she could carry and ran. Three weeks later, the Red Thread made her an offer she had no real choice but to accept.</textarea>
+  </div>
+</div>
+
+<!-- PLAYER NOTES (visible to DM) -->
+<div class="panel full">
+  <div class="ph">Player Notes &nbsp;<span style="font-size:8px;color:var(--green-lt);letter-spacing:1px">◈ Visible to DM</span></div>
+  <div class="pb">
+    <div class="shared-note-label">These notes are included when you sync — your DM can read them</div>
+    <div class="itl">Session Log</div>
+    <textarea class="fta large" id="notes_session" placeholder="Session notes, events, what happened this week..."></textarea>
+    <div class="itl" style="margin-top:8px">NPC Relationships</div>
+    <textarea class="fta large" id="notes_npcs" placeholder="People Fors has met, relationships, how they feel about her..."></textarea>
+    <div class="itl" style="margin-top:8px">Goals & Plans</div>
+    <textarea class="fta" id="notes_goals" placeholder="Current goals, plans, things you want to pursue..."></textarea>
+    <div class="itl" style="margin-top:8px">General Notes</div>
+    <textarea class="fta large" id="notes_general" placeholder="Anything else worth recording..."></textarea>
+  </div>
+</div>
+
+<!-- PRIVATE PLAYER NOTES (NOT synced) -->
+<div class="panel full">
+  <div class="ph">Private Notes &nbsp;<span style="font-size:8px;color:var(--crimson-lt);letter-spacing:1px">✕ Not synced — local only</span></div>
+  <div class="pb">
+    <div style="font-size:10px;color:var(--subtext);font-style:italic;margin-bottom:6px">These notes are never uploaded. They stay on this device only.</div>
+    <textarea class="fta xl" id="notes_private" placeholder="Private thoughts, suspicions, things you don't want your DM to know yet..."></textarea>
+  </div>
+</div>
+
+<div class="footer">✦ &nbsp; Vampire: The Masquerade V5 &nbsp;·&nbsp; Player Sheet &nbsp;·&nbsp; Sync via GitHub Gist &nbsp; ✦</div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG & STATE
+// ============================================================
+const SK = 'vtm_player_v1';
+const SK_PRIV = 'vtm_player_private_v1';
+const SK_CFG = 'vtm_config_v1';
+let cfg = {};
+
+function loadCfg(){
+  try{ cfg = JSON.parse(localStorage.getItem(SK_CFG)||'{}'); }catch(e){ cfg={}; }
+}
+function saveCfg(){ localStorage.setItem(SK_CFG, JSON.stringify(cfg)); }
+
+// ============================================================
+// SETUP MODAL
+// ============================================================
+function showSetup(){
+  document.getElementById('setup_token').value = cfg.token||'';
+  document.getElementById('setup_charname').value = cfg.charName||'Fors Wall';
+  document.getElementById('setup_gistid').value = cfg.gistId||'';
+  document.getElementById('setupOverlay').style.display='flex';
+}
+function hideSetup(){ document.getElementById('setupOverlay').style.display='none'; }
+
+function skipSetup(){
+  cfg.skipCloud = true;
+  saveCfg();
+  hideSetup();
+  setStatus('Using local storage only','');
+}
+
+async function confirmSetup(){
+  const token = document.getElementById('setup_token').value.trim();
+  const charName = document.getElementById('setup_charname').value.trim()||'Character';
+  const gistId = document.getElementById('setup_gistid').value.trim();
+  if(!token){ toast('Please enter a GitHub token','error'); return; }
+  cfg = { token, charName, gistId: gistId||cfg.gistId||'', skipCloud:false };
+  saveCfg();
+  hideSetup();
+  updateShareCode();
+  setStatus('Connected to GitHub','saved');
+  toast('GitHub connected. Press "Sync to Cloud" to upload.');
+}
+
+// ============================================================
+// SHARE CODE
+// ============================================================
+function generateCode(name, gistId){
+  const prefix = name.replace(/[^a-zA-Z]/g,'').substring(0,4).toUpperCase().padEnd(4,'X');
+  const suffix = gistId ? gistId.substring(0,6).toUpperCase() : Math.random().toString(36).substring(2,8).toUpperCase();
+  return prefix + '-' + suffix;
+}
+
+function updateShareCode(){
+  const el = document.getElementById('shareCodeDisplay');
+  if(cfg.gistId && cfg.charName){
+    const code = generateCode(cfg.charName, cfg.gistId);
+    el.textContent = code;
+    el.style.display='inline-block';
+    el.title = 'Share code: ' + code + ' — Click to copy. Give this to your DM.';
+  } else {
+    el.style.display='none';
+  }
+}
+
+function copyCode(){
+  const el = document.getElementById('shareCodeDisplay');
+  if(!el.textContent) return;
+  navigator.clipboard.writeText(el.textContent).then(()=>toast('Share code copied: ' + el.textContent));
+}
+
+// ============================================================
+// DOTS
+// ============================================================
+function initDots(id, max, val){
+  const c = document.getElementById(id); if(!c) return;
+  c.innerHTML=''; c.dataset.max=max; c.dataset.val=val;
+  for(let i=1;i<=max;i++){
+    const d=document.createElement('div');
+    d.className='dot'+(i<=val?' filled':'');
+    d.addEventListener('click',()=>{
+      const cur=parseInt(c.dataset.val);
+      updateDots(id, i===cur ? i-1 : i);
+      markUnsaved();
+    });
+    c.appendChild(d);
+  }
+}
+function updateDots(id,val){
+  const c=document.getElementById(id); if(!c) return;
+  val=Math.max(0,Math.min(parseInt(c.dataset.max),val));
+  c.dataset.val=val;
+  c.querySelectorAll('.dot').forEach((d,i)=>{ d.className='dot'+(i<val?' filled':''); });
+}
+function getDotVal(id){ const e=document.getElementById(id); return e?parseInt(e.dataset.val):0; }
+
+function initLargeDots(id,max,val,type){
+  const c=document.getElementById(id); if(!c) return;
+  c.innerHTML=''; c.dataset.max=max; c.dataset.val=val; c.dataset.type=type||'h';
+  for(let i=1;i<=max;i++){
+    const d=document.createElement('div');
+    const t=c.dataset.type;
+    d.className='ld'+(i<=val?(t==='hunger'?' hfilled':' filled'):'');
+    d.addEventListener('click',()=>{
+      const cur=parseInt(c.dataset.val);
+      updateLargeDots(id, i===cur?i-1:i);
+      markUnsaved();
+    });
+    c.appendChild(d);
+  }
+}
+function updateLargeDots(id,val){
+  const c=document.getElementById(id); if(!c) return;
+  const t=c.dataset.type; val=Math.max(0,Math.min(parseInt(c.dataset.max),val));
+  c.dataset.val=val;
+  c.querySelectorAll('.ld').forEach((d,i)=>{ d.className='ld'+(i<val?(t==='hunger'?' hfilled':' filled'):''); });
+  if(id==='humanity_dots') document.getElementById('humanity_val').textContent=val;
+  if(id==='hunger_dots') document.getElementById('hunger_val').textContent=val;
+}
+function getLDVal(id){ const e=document.getElementById(id); return e?parseInt(e.dataset.val):0; }
+
+// BOX TRACKER
+function initBoxTrack(id,n,states){
+  const c=document.getElementById(id); if(!c) return;
+  c.innerHTML=''; states=states||new Array(n).fill(0);
+  c.dataset.states=JSON.stringify(states);
+  for(let i=0;i<n;i++){
+    const b=document.createElement('div'); b.className='tb';
+    applyBox(b,states[i]);
+    b.addEventListener('click',()=>{
+      const s=JSON.parse(c.dataset.states); s[i]=(s[i]+1)%3;
+      c.dataset.states=JSON.stringify(s); applyBox(b,s[i]); markUnsaved();
+    });
+    c.appendChild(b);
+  }
+}
+function applyBox(b,s){ b.className='tb'+(s===1?' sup':s===2?' agg':''); }
+function getBoxStates(id){ const e=document.getElementById(id); return e?JSON.parse(e.dataset.states||'[]'):[]; }
+function setBoxStates(id,states){
+  const c=document.getElementById(id); if(!c) return;
+  c.dataset.states=JSON.stringify(states);
+  c.querySelectorAll('.tb').forEach((b,i)=>applyBox(b,states[i]||0));
+}
+
+// ============================================================
+// COLLECT / APPLY DATA
+// ============================================================
+const TEXT_IDS = [
+  'f_name','f_clan','f_gen','f_bp','f_sire','f_sect',
+  'f_chronicle','f_predator','f_archetype','f_concept','f_xp','f_player',
+  'disc_aus_note','disc_bs_note','disc_dom_note',
+  'spec_1','spec_2','spec_3',
+  'rit_1_lvl','rit_1_name','rit_1_desc','rit_2_lvl','rit_2_name','rit_2_desc','rit_3_lvl','rit_3_name','rit_3_desc',
+  'adv_c1_name','flaw_c1_name',
+  'conv_1','conv_2','conv_3','touch_1','touch_2','touch_3',
+  'f_ambition','f_desire','f_backstory','f_stains',
+  'notes_session','notes_npcs','notes_goals','notes_general'
+];
+const DOT_IDS = [
+  'attr_str','attr_dex','attr_sta','attr_cha','attr_man','attr_com','attr_int','attr_wit','attr_res',
+  'sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel','sk_ste','sk_sur',
+  'sk_ani','sk_eti','sk_ins','sk_imi','sk_lea','sk_per','sk_prs','sk_str','sk_sub',
+  'sk_aca','sk_awa','sk_fin','sk_inv','sk_med','sk_occ','sk_pol','sk_sci','sk_tec',
+  'disc_aus','disc_bs','disc_dom',
+  'adv_haven','adv_res','adv_con','adv_lin','adv_mask','adv_cob','adv_c1',
+  'flaw_ds','flaw_is','flaw_en','flaw_c1'
+];
+
+function collectData(){
+  const d = { text:{}, dots:{}, largeDots:{humanity:getLDVal('humanity_dots'),hunger:getLDVal('hunger_dots')},
+    boxes:{health:getBoxStates('health_track'),wp:getBoxStates('wp_track')} };
+  TEXT_IDS.forEach(id=>{ const e=document.getElementById(id); if(e) d.text[id]=e.value; });
+  DOT_IDS.forEach(id=>{ d.dots[id]=getDotVal(id); });
+  return d;
+}
+
+function applyData(d){
+  if(!d) return;
+  if(d.text) Object.entries(d.text).forEach(([id,v])=>{ const e=document.getElementById(id); if(e) e.value=v; });
+  if(d.dots) Object.entries(d.dots).forEach(([id,v])=>updateDots(id,v));
+  if(d.largeDots){ updateLargeDots('humanity_dots',d.largeDots.humanity??6); updateLargeDots('hunger_dots',d.largeDots.hunger??1); }
+  if(d.boxes){ if(d.boxes.health) setBoxStates('health_track',d.boxes.health); if(d.boxes.wp) setBoxStates('wp_track',d.boxes.wp); }
+  updateHeader();
+}
+
+// ============================================================
+// SAVE / LOAD LOCAL
+// ============================================================
+function saveAll(){
+  const d=collectData();
+  localStorage.setItem(SK, JSON.stringify(d));
+  localStorage.setItem(SK_PRIV, document.getElementById('notes_private').value);
+  setStatus('Saved locally — '+new Date().toLocaleTimeString(),'saved');
+}
+
+function loadLocal(){
+  try{
+    const raw=localStorage.getItem(SK);
+    if(raw) applyData(JSON.parse(raw));
+    const priv=localStorage.getItem(SK_PRIV);
+    if(priv) document.getElementById('notes_private').value=priv;
+    setStatus('Loaded','saved');
+  }catch(e){ console.error(e); }
+}
+
+// ============================================================
+// GITHUB GIST SYNC
+// ============================================================
+async function syncToGist(){
+  if(!cfg.token){ toast('No GitHub token configured. Click ⚙ Setup first.','error'); return; }
+  setStatus('Syncing...','syncing');
+  const btn=document.getElementById('syncBtn');
+  btn.disabled=true;
+  try{
+    const d=collectData();
+    const content = JSON.stringify(d, null, 2);
+    let gistId=cfg.gistId;
+    const charName=cfg.charName||'Character';
+    const headers={'Authorization':'token '+cfg.token,'Content-Type':'application/json'};
+    const body={
+      description: 'VtM Character Sheet — ' + charName,
+      public: false,
+      files:{ 'character_sheet.json':{ content }, 'readme.txt':{ content:'VtM V5 Character Sheet for '+charName+'\nGenerated by Blood and Iron Sheet System.' } }
+    };
+
+    let resp, data;
+    if(gistId){
+      resp=await fetch('https://api.github.com/gists/'+gistId,{method:'PATCH',headers,body:JSON.stringify(body)});
+    } else {
+      resp=await fetch('https://api.github.com/gists',{method:'POST',headers,body:JSON.stringify(body)});
+    }
+    if(!resp.ok){ const err=await resp.json(); throw new Error(err.message||'GitHub API error '+resp.status); }
+    data=await resp.json();
+    cfg.gistId=data.id;
+    saveCfg();
+    updateShareCode();
+    setStatus('Synced to GitHub — '+new Date().toLocaleTimeString(),'saved');
+    toast('Synced! Share code: '+generateCode(charName,data.id));
+  }catch(e){
+    setStatus('Sync failed: '+e.message,'error');
+    toast('Sync failed: '+e.message,'error');
+  }
+  btn.disabled=false;
+}
+
+async function loadFromGist(){
+  if(!cfg.token||!cfg.gistId) return;
+  try{
+    const resp=await fetch('https://api.github.com/gists/'+cfg.gistId,{headers:{'Authorization':'token '+cfg.token}});
+    if(!resp.ok) return;
+    const data=await resp.json();
+    const file=data.files['character_sheet.json'];
+    if(file){ applyData(JSON.parse(file.content)); setStatus('Loaded from GitHub','saved'); }
+  }catch(e){ console.error('Load from Gist failed',e); }
+}
+
+// ============================================================
+// EXPORT / IMPORT JSON
+// ============================================================
+function exportJSON(){
+  const d=collectData();
+  const blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=(document.getElementById('f_name').value||'character').replace(/\s/g,'_')+'_sheet.json';
+  a.click();
+}
+
+function importJSON(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{ try{ applyData(JSON.parse(ev.target.result)); saveAll(); toast('Imported successfully'); }catch(err){ toast('Invalid JSON file','error'); } };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function setStatus(msg, type){
+  const el=document.getElementById('saveStatus');
+  el.textContent=msg; el.className='save-status'+(type?' '+type:'');
+}
+function markUnsaved(){ setStatus('Unsaved changes',''); }
+function updateHeader(){
+  const n=document.getElementById('f_name').value||'Character';
+  document.getElementById('headerName').textContent=n.toUpperCase();
+  document.title=n+' — Player Sheet';
+}
+
+let toastTimer;
+function toast(msg, type){
+  const existing=document.querySelector('.toast');
+  if(existing) existing.remove();
+  const el=document.createElement('div');
+  el.className='toast'+(type==='error'?' error':'');
+  el.textContent=msg;
+  document.body.appendChild(el);
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.remove(),4000);
+}
+
+function resetAll(){
+  if(!confirm('Reset all data to defaults? This cannot be undone.')) return;
+  localStorage.removeItem(SK); localStorage.removeItem(SK_PRIV);
+  location.reload();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded',async ()=>{
+  loadCfg();
+
+  // Init dots
+  initDots('attr_str',5,1);initDots('attr_dex',5,2);initDots('attr_sta',5,2);
+  initDots('attr_cha',5,2);initDots('attr_man',5,3);initDots('attr_com',5,3);
+  initDots('attr_int',5,4);initDots('attr_wit',5,3);initDots('attr_res',5,2);
+  ['sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel'].forEach(id=>initDots(id,5,0));
+  initDots('sk_ste',5,2);initDots('sk_sur',5,0);
+  ['sk_ani','sk_ins','sk_imi','sk_lea','sk_per'].forEach(id=>initDots(id,5,0));
+  initDots('sk_eti',5,1);initDots('sk_prs',5,2);initDots('sk_str',5,1);initDots('sk_sub',5,3);
+  initDots('sk_aca',5,4);['sk_awa','sk_fin'].forEach(id=>initDots(id,5,0));
+  initDots('sk_inv',5,2);initDots('sk_med',5,2);initDots('sk_occ',5,4);
+  ['sk_pol','sk_sci','sk_tec'].forEach(id=>initDots(id,5,0));
+  initDots('disc_aus',5,2);initDots('disc_bs',5,2);initDots('disc_dom',5,1);
+  initDots('adv_haven',5,1);initDots('adv_res',5,2);initDots('adv_con',5,2);
+  initDots('adv_lin',5,1);initDots('adv_mask',5,2);initDots('adv_cob',5,1);initDots('adv_c1',5,0);
+  initDots('flaw_ds',5,2);initDots('flaw_is',5,1);initDots('flaw_en',5,1);initDots('flaw_c1',5,0);
+  initBoxTrack('health_track',5);initBoxTrack('wp_track',5);
+  initLargeDots('humanity_dots',10,6,'h');initLargeDots('hunger_dots',5,1,'hunger');
+
+  // Load data
+  if(cfg.token && cfg.gistId && !cfg.skipCloud){
+    await loadFromGist();
+  } else {
+    loadLocal();
+  }
+  updateShareCode();
+
+  // Show setup if no config
+  if(!cfg.token && !cfg.skipCloud){
+    setTimeout(showSetup, 400);
+  }
+});
+
+document.addEventListener('input', markUnsaved);
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){ e.preventDefault(); saveAll(); }
+});
+</script>
+</body>
+</html>
