@@ -522,8 +522,11 @@ function dataHash(d){
     res:d.text?.f_resonance,sn:d.text?.notes_session,ng:d.text?.notes_goals,
     nn:d.text?.notes_npcs,gen:d.text?.notes_general,
     xl:d.xpLog?.length,fl:d.feedLog?.length,
-    dp:d.disciplines?.map(x=>x.powers?.length),
-    mt:d.merits?.length,fw:d.flaws?.length});
+    dots:d.dots,
+    specs:d.specialties?.map(s=>s.skill+s.name),
+    discs:d.disciplines?.map(x=>x.name+':'+(x.powers||[]).map(p=>p.name).join(',')),
+    merits:d.merits?.map(m=>m.name+(m.dots||0)),
+    flaws:d.flaws?.map(f=>f.name)});
 }
 const RES={phleg:'Phlegmatic',sang:'Sanguine',chol:'Choleric',melan:'Melancholic',empty:'Empty',''  :'Unknown'};
 const BPT={0:{surge:1,bane:1},1:{surge:2,bane:2},2:{surge:2,bane:2},3:{surge:3,bane:2},4:{surge:3,bane:3},5:{surge:4,bane:3},6:{surge:4,bane:3},7:{surge:5,bane:4},8:{surge:5,bane:4},9:{surge:6,bane:5},10:{surge:6,bane:5}};
@@ -816,20 +819,20 @@ function buildCharShell(id){
     <!-- STATS -->
     <div class="tab-content" id="cv_st_${id}">
       <div class="grid-3">
-        ${ap('Physical Attributes',['Strength','Dexterity','Stamina'],['attr_str','attr_dex','attr_sta'],dots)}
-        ${ap('Social Attributes',['Charisma','Manipulation','Composure'],['attr_cha','attr_man','attr_com'],dots)}
-        ${ap('Mental Attributes',['Intelligence','Wits','Resolve'],['attr_int','attr_wit','attr_res'],dots)}
+        <div class="panel"><div class="ph">Physical Attributes</div><div class="pb" id="cv_st_attr_phys_${id}">${['Strength','Dexterity','Stamina'].map((n,i)=>`<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[['attr_str','attr_dex','attr_sta'][i]]||0,5)}</div>`).join('')}</div></div>
+        <div class="panel"><div class="ph">Social Attributes</div><div class="pb" id="cv_st_attr_soc_${id}">${['Charisma','Manipulation','Composure'].map((n,i)=>`<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[['attr_cha','attr_man','attr_com'][i]]||0,5)}</div>`).join('')}</div></div>
+        <div class="panel"><div class="ph">Mental Attributes</div><div class="pb" id="cv_st_attr_men_${id}">${['Intelligence','Wits','Resolve'].map((n,i)=>`<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[['attr_int','attr_wit','attr_res'][i]]||0,5)}</div>`).join('')}</div></div>
       </div>
       <div class="grid-3">
-        ${sp('Physical Skills',['Athletics','Brawl','Craft','Drive','Firearms','Larceny','Melee','Stealth','Survival'],['sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel','sk_ste','sk_sur'],dots,specs)}
-        ${sp('Social Skills',['Animal Ken','Etiquette','Insight','Intimidation','Leadership','Performance','Persuasion','Streetwise','Subterfuge'],['sk_ani','sk_eti','sk_ins','sk_imi','sk_lea','sk_per','sk_prs','sk_str','sk_sub'],dots,specs)}
-        ${sp('Mental Skills',['Academics','Awareness','Finance','Investigation','Medicine','Occult','Politics','Science','Technology'],['sk_aca','sk_awa','sk_fin','sk_inv','sk_med','sk_occ','sk_pol','sk_sci','sk_tec'],dots,specs)}
+        <div class="panel"><div class="ph">Physical Skills</div><div class="pb" id="cv_st_sk_phys_${id}">${['Athletics','Brawl','Craft','Drive','Firearms','Larceny','Melee','Stealth','Survival'].map((n,i)=>{const ss=specs.filter(s=>s.skill===n);return `<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[['sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel','sk_ste','sk_sur'][i]]||0,5)}${ss.map(s=>`<span style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--gold);border:1px solid rgba(196,154,34,.35);padding:1px 5px;margin-left:3px">${esc(s.name)}</span>`).join('')}</div>`}).join('')}</div></div>
+        <div class="panel"><div class="ph">Social Skills</div><div class="pb" id="cv_st_sk_soc_${id}">${['Animal Ken','Etiquette','Insight','Intimidation','Leadership','Performance','Persuasion','Streetwise','Subterfuge'].map((n,i)=>{const ss=specs.filter(s=>s.skill===n);return `<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[['sk_ani','sk_eti','sk_ins','sk_imi','sk_lea','sk_per','sk_prs','sk_str','sk_sub'][i]]||0,5)}${ss.map(s=>`<span style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--gold);border:1px solid rgba(196,154,34,.35);padding:1px 5px;margin-left:3px">${esc(s.name)}</span>`).join('')}</div>`}).join('')}</div></div>
+        <div class="panel"><div class="ph">Mental Skills</div><div class="pb" id="cv_st_sk_men_${id}">${['Academics','Awareness','Finance','Investigation','Medicine','Occult','Politics','Science','Technology'].map((n,i)=>{const ss=specs.filter(s=>s.skill===n);return `<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[['sk_aca','sk_awa','sk_fin','sk_inv','sk_med','sk_occ','sk_pol','sk_sci','sk_tec'][i]]||0,5)}${ss.map(s=>`<span style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--gold);border:1px solid rgba(196,154,34,.35);padding:1px 5px;margin-left:3px">${esc(s.name)}</span>`).join('')}</div>`}).join('')}</div></div>
       </div>
       <div class="grid-2">
-        <div class="panel"><div class="ph">Advantages</div><div class="pb">
+        <div class="panel"><div class="ph">Advantages</div><div class="pb" id="cv_st_merits_${id}">
           ${merits.map(m=>`<div class="adv-d"><span class="adv-d-name">${esc(m.name)}</span>${dH(m.dots||0,5)}<span style="font-family:'Cinzel',serif;font-size:9px;color:var(--subtext)">${esc(m.cost)}</span></div>`).join('')||'<div class="empty-msg">None.</div>'}
         </div></div>
-        <div class="panel"><div class="ph">Flaws</div><div class="pb">
+        <div class="panel"><div class="ph">Flaws</div><div class="pb" id="cv_st_flaws_${id}">
           ${flaws.map(f=>`<div class="adv-d"><span class="adv-d-name" style="color:#c08080">${esc(f.name)}</span><span style="font-family:'Cinzel',serif;font-size:9px;color:var(--subtext)">${esc(f.cost)}</span></div>`).join('')||'<div class="empty-msg">None.</div>'}
           ${t.f_bane?`<div class="div"></div><div class="itl">Clan Bane</div><div style="font-size:12px;color:var(--subtext)">${esc(t.f_bane)}</div>`:''}
         </div></div>
@@ -839,7 +842,7 @@ function buildCharShell(id){
     <!-- DISCIPLINES -->
     <div class="tab-content" id="cv_di_${id}">
       <div class="grid-2">
-        <div class="panel"><div class="ph">Disciplines & Powers</div><div class="pb">
+        <div class="panel"><div class="ph">Disciplines & Powers</div><div class="pb" id="cv_di_discs_${id}">
           ${discs.length?discs.map(disc=>`<div class="disc-card-d">
             <div class="disc-card-d-hdr"><span style="font-size:14px">${esc(disc.icon||'')}</span>
               <span class="disc-card-d-name">${esc(disc.name)}</span>
@@ -965,6 +968,29 @@ function updateCharData(id){
 
   // Player notes
   set('pnotes_'+id, pn('Session Log',t.notes_session)+pn('NPC Relationships',t.notes_npcs)+pn('Goals & Plans',t.notes_goals)+pn('General Notes',t.notes_general));
+
+  // Attributes & Skills (live dot updates)
+  const ATTR_NAMES=['Strength','Dexterity','Stamina','Charisma','Manipulation','Composure','Intelligence','Wits','Resolve'];
+  const ATTR_KEYS=['attr_str','attr_dex','attr_sta','attr_cha','attr_man','attr_com','attr_int','attr_wit','attr_res'];
+  const SK_NAMES=['Athletics','Brawl','Craft','Drive','Firearms','Larceny','Melee','Stealth','Survival','Animal Ken','Etiquette','Insight','Intimidation','Leadership','Performance','Persuasion','Streetwise','Subterfuge','Academics','Awareness','Finance','Investigation','Medicine','Occult','Politics','Science','Technology'];
+  const SK_KEYS=['sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel','sk_ste','sk_sur','sk_ani','sk_eti','sk_ins','sk_imi','sk_lea','sk_per','sk_prs','sk_str','sk_sub','sk_aca','sk_awa','sk_fin','sk_inv','sk_med','sk_occ','sk_pol','sk_sci','sk_tec'];
+  const specs=d.specialties||[];
+  function dotRows(names,keys,offset){return names.map((n,i)=>{const ss=specs.filter(s=>s.skill===n);return '<div class="stat-row"><span class="stat-name">'+n+'</span>'+dH(dots[keys[i+offset]]||0,5)+ss.map(s=>'<span style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:1px;color:var(--gold);border:1px solid rgba(196,154,34,.35);padding:1px 5px;margin-left:3px">'+esc(s.name)+'</span>').join('')+'</div>'}).join('');}
+  set('cv_st_attr_phys_'+id, ATTR_NAMES.slice(0,3).map((n,i)=>'<div class="stat-row"><span class="stat-name">'+n+'</span>'+dH(dots[ATTR_KEYS[i]]||0,5)+'</div>').join(''));
+  set('cv_st_attr_soc_'+id,  ATTR_NAMES.slice(3,6).map((n,i)=>'<div class="stat-row"><span class="stat-name">'+n+'</span>'+dH(dots[ATTR_KEYS[i+3]]||0,5)+'</div>').join(''));
+  set('cv_st_attr_men_'+id,  ATTR_NAMES.slice(6).map((n,i)=>'<div class="stat-row"><span class="stat-name">'+n+'</span>'+dH(dots[ATTR_KEYS[i+6]]||0,5)+'</div>').join(''));
+  set('cv_st_sk_phys_'+id, dotRows(SK_NAMES.slice(0,9),SK_KEYS,0));
+  set('cv_st_sk_soc_'+id,  dotRows(SK_NAMES.slice(9,18),SK_KEYS,9));
+  set('cv_st_sk_men_'+id,  dotRows(SK_NAMES.slice(18),SK_KEYS,18));
+
+  // Merits & Flaws live update
+  const merits=d.merits||[],flaws=d.flaws||[];
+  set('cv_st_merits_'+id, merits.map(m=>'<div class="adv-d"><span class="adv-d-name">'+esc(m.name)+'</span>'+dH(m.dots||0,5)+'<span style="font-family:\'Cinzel\',serif;font-size:9px;color:var(--subtext)">'+esc(m.cost)+'</span></div>').join('')||'<div class="empty-msg">None.</div>');
+  set('cv_st_flaws_'+id, flaws.map(f=>'<div class="adv-d"><span class="adv-d-name" style="color:#c08080">'+esc(f.name)+'</span><span style="font-family:\'Cinzel\',serif;font-size:9px;color:var(--subtext)">'+esc(f.cost)+'</span></div>').join('')||'<div class="empty-msg">None.</div>');
+
+  // Disciplines live update
+  const discs=d.disciplines||[];
+  set('cv_di_discs_'+id, discs.length?discs.map(disc=>'<div class="disc-card-d"><div class="disc-card-d-hdr"><span style="font-size:14px">'+esc(disc.icon||'')+'</span><span class="disc-card-d-name">'+esc(disc.name)+'</span><span style="font-size:10px;color:var(--subtext)">'+( disc.powers?.length||0)+' power'+((disc.powers?.length!==1)?'s':'')+'</span></div><div class="disc-card-d-body">'+(disc.powers||[]).map(p=>'<div class="power-d"><span class="power-d-lvl">'+'●'.repeat(p.level)+'</span><span>'+esc(p.name)+'</span><span class="power-d-dice">'+esc(p.dice||'')+'</span></div>').join('')+'</div></div>').join(''):'<div class="empty-msg">No disciplines recorded.</div>');
 }
 // ── RENDER HELPERS ──
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
