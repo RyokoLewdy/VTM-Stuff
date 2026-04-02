@@ -261,23 +261,23 @@ select.fi option{background:#0e0b08;color:#d4c898;}
   <div id="view_load" class="tab-content active">
     <div class="empty-state">
       <h2>Load Character</h2>
-      <p style="font-size:13px;margin-bottom:24px;line-height:1.6">Import a player JSON export, or load via GitHub Gist share code.</p>
+      <p style="font-size:13px;margin-bottom:24px;line-height:1.6">Import a player JSON export, or load a synced character from the cloud using their Character ID.</p>
       <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;max-width:680px;margin:0 auto">
         <div class="dm-panel" style="flex:1;min-width:260px">
           <div class="ph dm-ph">Import JSON File</div>
           <div class="pb" style="text-align:center">
-            <p style="font-size:12px;color:var(--subtext);margin-bottom:12px;line-height:1.5">Player exports their sheet → sends you the file → import here. No GitHub required.</p>
+            <p style="font-size:12px;color:var(--subtext);margin-bottom:12px;line-height:1.5">Player exports their sheet → sends you the file → import here.</p>
             <button class="btn green" onclick="document.getElementById('charFile').click()">📂 Choose File</button>
             <input type="file" id="charFile" accept=".json" style="display:none" onchange="loadFromFile(event)">
             <div id="fileStatus" style="margin-top:8px;font-size:11px;color:var(--subtext);font-family:'Cinzel',serif"></div>
           </div>
         </div>
         <div class="dm-panel" style="flex:1;min-width:260px">
-          <div class="ph dm-ph">Load via Share Code</div>
+          <div class="ph dm-ph">Load via Character ID</div>
           <div class="pb" style="text-align:center">
-            <p style="font-size:12px;color:var(--subtext);margin-bottom:12px;line-height:1.5">Player syncs to GitHub Gist → gives you their share code like <strong style="color:var(--gold-lt);letter-spacing:2px">XXXX-XXXXXX</strong>.</p>
+            <p style="font-size:12px;color:var(--subtext);margin-bottom:12px;line-height:1.5">Player syncs their sheet → copies their <strong style="color:var(--gold-lt)">Character ID</strong> from the save bar → pastes it here. Sheet updates live via Firestore.</p>
             <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-              <input class="code-input" id="codeInput" placeholder="XXXX-XXXXXX" maxlength="11" onkeydown="if(event.key==='Enter')loadByCode()">
+              <input class="code-input" id="codeInput" placeholder="e.g. forseti_ab12cd34" style="min-width:200px" onkeydown="if(event.key==='Enter')loadByCode()">
               <button class="btn green" onclick="loadByCode()">Load</button>
             </div>
             <div id="codeStatus" style="margin-top:8px;font-size:11px;color:var(--subtext);font-family:'Cinzel',serif"></div>
@@ -422,33 +422,101 @@ select.fi option{background:#0e0b08;color:#d4c898;}
   <div style="background:var(--panel);border:1px solid var(--border);max-width:420px;width:90%">
     <div style="background:var(--crimson);padding:12px 16px;border-bottom:1px solid var(--gold-dim)">
       <div style="font-family:'Cinzel Decorative',serif;font-size:14px;color:var(--gold-lt);letter-spacing:2px">DM Setup</div>
-      <div style="font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;margin-top:3px">Optional GitHub Gist sync</div>
+      <div style="font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;margin-top:3px">Firestore cloud sync — no account needed</div>
     </div>
     <div style="padding:16px">
       <div style="margin-bottom:12px">
-        <label style="display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:5px">GitHub Token (Share this with your players as the Group Sync Code)</label>
-        <input type="password" id="s_token" style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:7px 10px;outline:none" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-        <div style="font-size:11px;color:var(--subtext);font-style:italic;margin-top:4px">Needs <strong>gist</strong> scope. github.com → Settings → Developer settings → Personal access tokens.</div>
+        <label style="display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:5px">Session ID (leave blank to generate a new one)</label>
+        <input type="text" id="s_dmid" style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:7px 10px;outline:none" placeholder="Leave blank for a new session ID">
+        <div style="font-size:11px;color:var(--subtext);font-style:italic;margin-top:4px">Your session ID lets you restore your DM notes on another device. Save it somewhere safe.</div>
       </div>
-      <div>
-        <label style="display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:5px">DM Gist ID (blank = create new on first sync)</label>
-        <input type="text" id="s_gist" style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:7px 10px;outline:none" placeholder="Optional existing Gist ID">
+      <div style="padding:8px 10px;border:1px solid rgba(196,154,34,.3);background:rgba(196,154,34,.05);font-family:'EB Garamond',serif;font-size:12px;color:#8a7a5a;line-height:1.5">
+        <strong style="color:var(--gold-lt);font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px">HOW PLAYERS CONNECT:</strong><br>
+        Players enter a character name in their sheet and hit ☁ Sync. They get a <strong style="color:var(--gold-lt)">Character ID</strong> — they give that to you, and you paste it into the Load Character box. Their sheet then updates live.
       </div>
     </div>
     <div style="padding:10px 16px;border-top:1px solid var(--field-border);display:flex;justify-content:flex-end;gap:8px">
       <button class="btn" onclick="hideSetup()">Cancel</button>
-      <div style="margin-bottom:10px;padding:8px 10px;border:1px solid rgba(196,154,34,.3);background:rgba(196,154,34,.05);font-family:'EB Garamond',serif;font-size:12px;color:#8a7a5a;line-height:1.5">
-        <strong style="color:var(--gold-lt);font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px">HOW TO SHARE WITH PLAYERS:</strong><br>
-        After saving, click <strong style="color:var(--gold-lt)">Copy Group Code</strong> below and send it to your players via Discord, text, etc. They paste it into their player sheet when prompted. They do not need a GitHub account.
-      </div>
       <button class="btn green" onclick="confirmSetup()">Save</button>
-      <button class="btn" id="copyGroupCodeBtn" onclick="copyGroupCode()" style="margin-left:8px">Copy Group Code</button>
+      <button class="btn" id="copyGroupCodeBtn" onclick="copyGroupCode()" style="margin-left:8px">Copy Session ID</button>
     </div>
   </div>
 </div>
 
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD4ZzE-wQ1PT9fkvm4JmJuoYvtsC5rhBkI",
+  authDomain: "vtmcampaignsync.firebaseapp.com",
+  projectId: "vtmcampaignsync",
+  storageBucket: "vtmcampaignsync.firebasestorage.app",
+  messagingSenderId: "891411401019",
+  appId: "1:891411401019:web:cced7ba60037ed7c614f1e"
+};
+const _app = initializeApp(firebaseConfig);
+const _db  = getFirestore(_app);
+const _auth = getAuth(_app);
+
+window._db          = _db;
+window._auth        = _auth;
+window._fsDoc       = doc;
+window._fsGetDoc    = getDoc;
+window._fsSetDoc    = setDoc;
+window._fsOnSnapshot = onSnapshot;
+window._fsDocs      = getDocs;
+window._fsCollection = collection;
+
+signInAnonymously(_auth).catch(e => console.warn('Anon auth failed:', e));
+</script>
+
 <script>
 const SK='vtm_dm3_v1', SK_CFG='vtm_dm3_cfg';
+
+// ── INSTANT SYNC via BroadcastChannel ──
+// Receives instant updates from player sheets open in the same browser.
+// No GitHub needed, no polling delay — sub-millisecond.
+const BC = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('vtm_sheet_sync') : null;
+if (BC) {
+  BC.onmessage = (event) => {
+    const msg = event.data;
+    if (!msg || msg.type !== 'sheet_update') return;
+    const { charId, data, charName } = msg;
+
+    if (!charId || !data) return;
+
+    // If this character isn't loaded yet, add them automatically
+    if (!chars[charId]) {
+      chars[charId] = { id: charId, name: charName || 'Player', data, source: 'broadcast', charId };
+      addCharTab(charId, charName || 'Player');
+      setStatus('New player connected: ' + (charName||'Player'), 'saved');
+    }
+
+    // Check if data actually changed before re-rendering
+    const newHash = dataHash(data);
+    if (newHash === lastHash[charId]) return; // nothing changed, skip
+
+    chars[charId].data = data;
+    lastHash[charId] = newHash;
+
+    // Flash the sidebar tab
+    const btn = document.getElementById('ct_' + charId);
+    if (btn) {
+      btn.style.borderLeft = '2px solid var(--green-lt)';
+      setTimeout(() => { if (btn) btn.style.borderLeft = ''; }, 2000);
+    }
+
+    // Re-render only if this character is currently visible
+    if (activeChar === charId) {
+      renderChar(charId); // tab restore is handled inside renderChar
+    }
+
+    setStatus('Live update: ' + (charName||'Player') + ' — ' + new Date().toLocaleTimeString(), 'saved');
+  };
+}
 let cfg={}, chars={}, activeChar=null;
 const activeTab={};
 const lastHash={};
@@ -502,7 +570,15 @@ function applyDM(){
   updateName(); renderPrepList('scenes'); renderPrepList('npcs');
   renderNPCs(); renderTL(); renderCombat();
 }
-function saveAll(){collectDM();localStorage.setItem(SK,JSON.stringify({dm,chars}));setStatus('Saved — '+new Date().toLocaleTimeString(),'saved')}
+function saveAll(){
+  collectDM();
+  localStorage.setItem(SK,JSON.stringify({dm,chars}));
+  setStatus('Saved — '+new Date().toLocaleTimeString(),'saved');
+  if(window._db && cfg.dmId){
+    const ref=window._fsDoc(window._db,'dm_data',cfg.dmId);
+    window._fsSetDoc(ref,{dm,_updatedAt:Date.now()}).catch(e=>console.warn('DM cloud save:',e));
+  }
+}
 function loadLocal(){
   try{
     const raw=localStorage.getItem(SK); if(!raw)return;
@@ -513,112 +589,124 @@ function loadLocal(){
   }catch(e){console.error(e)}
 }
 
-// ── SETUP / GIST ──
-function showSetup(){document.getElementById('s_token').value=cfg.token?'••••••••••••••••':'';document.getElementById('s_gist').value=cfg.gistId||'';document.getElementById('setupModal').style.display='flex'}
+// ── SETUP / FIRESTORE ──
+function showSetup(){
+  document.getElementById('s_dmid').value=cfg.dmId||'';
+  document.getElementById('setupModal').style.display='flex';
+}
 function hideSetup(){document.getElementById('setupModal').style.display='none'}
 function confirmSetup(){
-  const rawToken = document.getElementById('s_token').value.trim();
-  if(rawToken && rawToken !== '••••••••••••••••') cfg.token = rawToken;
-  cfg.gistId=document.getElementById('s_gist').value.trim();
+  let dmId=document.getElementById('s_dmid').value.trim();
+  if(!dmId){
+    // Generate a stable DM session ID
+    dmId='dm_'+Math.random().toString(36).substring(2,12);
+  }
+  cfg.dmId=dmId;
   saveCfg();hideSetup();
-  toast('Setup saved. Use Copy Group Code to share with players.');
+  toast('Session ID saved: '+dmId+' — share this with returning campaigns.');
 }
 
 function copyGroupCode(){
-  if(!cfg.token){ toast('Save your token first.','error'); return; }
-  navigator.clipboard.writeText(cfg.token).then(()=>toast('Group sync code copied — paste it into Discord/text and send to your players.'));
+  if(!cfg.dmId){ toast('No session ID yet. Click ⚙ Setup.','error'); return; }
+  navigator.clipboard.writeText(cfg.dmId).then(()=>toast('Session ID copied — you can use this to restore your DM data on another device.'));
 }
-async function syncGist(){
-  if(!cfg.token){toast('No token. Click ⚙ Setup.','error');return}
+
+async function syncFirestore(){
+  if(!window._db){toast('Firebase not ready.','error');return}
+  if(!cfg.dmId){toast('No session ID. Click ⚙ Setup.','error');return}
   setStatus('Syncing...',''); collectDM();
   try{
-    const h={'Authorization':'token '+cfg.token,'Content-Type':'application/json'};
-    const b={description:'VtM DM Dashboard',public:false,files:{'dm_data.json':{content:JSON.stringify({dm,chars},null,2)}}};
-    let r=cfg.gistId?await fetch('https://api.github.com/gists/'+cfg.gistId,{method:'PATCH',headers:h,body:JSON.stringify(b)}):await fetch('https://api.github.com/gists',{method:'POST',headers:h,body:JSON.stringify(b)});
-    if(!r.ok)throw new Error('GitHub '+r.status);
-    const data=await r.json(); cfg.gistId=data.id; saveCfg();
-    setStatus('Synced — '+new Date().toLocaleTimeString(),'saved'); toast('Synced to GitHub.');
+    const ref=window._fsDoc(window._db,'dm_data',cfg.dmId);
+    await window._fsSetDoc(ref,{dm,_updatedAt:Date.now()});
+    setStatus('Synced — '+new Date().toLocaleTimeString(),'saved');
+    toast('DM data synced to cloud.');
   }catch(e){setStatus('Sync failed','error');toast('Sync failed: '+e.message,'error')}
 }
+// Keep old button name working
+function syncGist(){return syncFirestore();}
 
 // ── LOAD CHARACTER ──
 function loadFromFile(e){
   const file=e.target.files[0]; if(!file)return;
   const status=document.getElementById('fileStatus');
-  new FileReader().onload=ev=>{
-    try{
-      const data=JSON.parse(ev.target.result);
-      const name=data.text?.f_name||file.name.replace('.json','')||'Unknown';
-      const id='f_'+Date.now();
-      chars[id]={data,name,source:'file'};
-      if(!dm.charNotes[id])dm.charNotes[id]={};
-      addCharTab(id,name); switchChar(id); status.textContent=''; toast('Loaded: '+name);
-    }catch(err){status.textContent='Invalid JSON file.'}
-  };
   const r=new FileReader(); r.onload=ev=>{
     try{const data=JSON.parse(ev.target.result);const name=data.text?.f_name||file.name.replace('.json','')||'Unknown';
     const id='f_'+Date.now();chars[id]={data,name,source:'file'};if(!dm.charNotes[id])dm.charNotes[id]={};
     addCharTab(id,name);switchChar(id);status.textContent='';toast('Loaded: '+name);}catch(err){status.textContent='Invalid JSON file.';}
   };r.readAsText(file);e.target.value='';
 }
+
 async function loadByCode(){
-  const raw=document.getElementById('codeInput').value.trim().toUpperCase();
+  const raw=document.getElementById('codeInput').value.trim();
   const st=document.getElementById('codeStatus');
-  if(!cfg.token){st.textContent='No GitHub token. Click ⚙ Setup.';return}
-  if(!raw||!raw.includes('-')){st.textContent='Enter a valid code (e.g. FORS-AB12CD)';return}
-  const frag=raw.split('-')[1].toLowerCase(); st.textContent='Searching...';
+  if(!raw){st.textContent='Enter a Character ID from the player sheet.';return}
+  if(!window._db){st.textContent='Firebase not ready yet — try again in a moment.';return}
+  st.textContent='Loading from cloud...';
   try{
-    const r=await fetch('https://api.github.com/gists?per_page=100',{headers:{'Authorization':'token '+cfg.token}});
-    if(!r.ok)throw new Error('GitHub '+r.status);
-    const gists=await r.json();
-    const match=gists.find(g=>g.id.toLowerCase().startsWith(frag)||g.id.toLowerCase().includes(frag));
-    if(!match){st.textContent='No character found. Ask player to sync first.';return}
-    const r2=await fetch('https://api.github.com/gists/'+match.id,{headers:{'Authorization':'token '+cfg.token}});
-    const gist=await r2.json(); const file=gist.files['character_sheet.json'];
-    if(!file){st.textContent='Gist found but no character sheet. Ask player to re-sync.';return}
-    const data=JSON.parse(file.content); const name=data.text?.f_name||'Unknown';
-    chars[match.id]={data,name,source:'gist',gistId:match.id};
-    if(!dm.charNotes[match.id])dm.charNotes[match.id]={};
-    addCharTab(match.id,name); document.getElementById('codeInput').value=''; st.textContent=''; switchChar(match.id); toast('Loaded: '+name);
+    const charId=raw;
+    const snap=await window._fsGetDoc(window._fsDoc(window._db,'characters',charId));
+    if(!snap.exists()){st.textContent='No character found with that ID. Ask the player to sync first.';return}
+    const data=snap.data();
+    const name=data.text?.f_name||data._charName||'Unknown';
+    chars[charId]={data,name,source:'firestore',charId};
+    if(!dm.charNotes[charId])dm.charNotes[charId]={};
+    // Subscribe to live updates for this character
+    subscribeChar(charId);
+    addCharTab(charId,name);
+    document.getElementById('codeInput').value='';
+    st.textContent='';
+    switchChar(charId);
+    toast('Loaded: '+name);
   }catch(e){st.textContent='Error: '+e.message}
 }
-async function refreshChar(id, silent){
-  const c=chars[id]; if(!c||c.source!=='gist'||!cfg.token)return;
-  try{
-    const r=await fetch('https://api.github.com/gists/'+c.gistId,{
-      headers:{'Authorization':'token '+cfg.token},
-      cache:'no-store'  // always bypass cache for fresh data
-    });
-    if(!r.ok)return;
-    const gist=await r.json();
-    const file=gist.files['character_sheet.json'];
-    if(!file)return;
-    const newData=JSON.parse(file.content);
+
+// Live Firestore listener per character (replaces polling)
+const _unsubs={};
+function subscribeChar(charId){
+  if(_unsubs[charId])return; // already subscribed
+  const ref=window._fsDoc(window._db,'characters',charId);
+  _unsubs[charId]=window._fsOnSnapshot(ref,(snap)=>{
+    if(!snap.exists())return;
+    const newData=snap.data();
     const newHash=dataHash(newData);
-    const changed = newHash !== lastHash[id];
-    if(changed){
-      c.data=newData;
-      lastHash[id]=newHash;
-      if(activeChar===id){
-        renderChar(id); // tab restore happens inside renderChar now
-      }
-      // Update sidebar to show live indicator
-      const btn=document.getElementById('ct_'+id);
-      if(btn){
-        btn.style.borderLeft='2px solid var(--green-lt)';
-        setTimeout(()=>{if(btn)btn.style.borderLeft='';},2000);
-      }
-      if(!silent)toast('Updated: '+c.name);
-    }
-    // Always update the last-checked time
-    c.lastChecked=new Date().toLocaleTimeString();
-  }catch(e){if(!silent)toast('Refresh failed','error')}
+    const changed=newHash!==lastHash[charId];
+    if(!changed)return;
+    if(!chars[charId])return;
+    chars[charId].data=newData;
+    lastHash[charId]=newHash;
+    chars[charId].lastChecked=new Date().toLocaleTimeString();
+    const btn=document.getElementById('ct_'+charId);
+    if(btn){btn.style.borderLeft='2px solid var(--green-lt)';setTimeout(()=>{if(btn)btn.style.borderLeft='';},2000);}
+    if(activeChar===charId)renderChar(charId);
+    setStatus('Live update: '+(chars[charId]?.name||charId)+' — '+new Date().toLocaleTimeString(),'saved');
+  },(err)=>console.warn('Snapshot error:',err));
+}
+function unsubscribeChar(id){if(_unsubs[id]){_unsubs[id]();delete _unsubs[id];}}
+
+async function refreshChar(id,silent){
+  const c=chars[id]; if(!c)return;
+  if(c.source==='firestore'){
+    // onSnapshot handles live updates; force a manual fetch if asked explicitly
+    if(silent)return;
+    try{
+      const snap=await window._fsGetDoc(window._fsDoc(window._db,'characters',c.charId||id));
+      if(!snap.exists())return;
+      const newData=snap.data();
+      const newHash=dataHash(newData);
+      if(newHash!==lastHash[id]){
+        c.data=newData;lastHash[id]=newHash;
+        if(activeChar===id)renderChar(id);
+        toast('Updated: '+c.name);
+      } else { toast('Already up to date.'); }
+      c.lastChecked=new Date().toLocaleTimeString();
+    }catch(e){if(!silent)toast('Refresh failed','error')}
+  }
 }
 async function refreshAll(silent){
-  const ids=Object.keys(chars);
-  if(!ids.length)return;
-  await Promise.all(ids.map(id=>refreshChar(id,silent)));
-  setStatus('Live sync active — last check '+new Date().toLocaleTimeString(),'saved');
+  const ids=Object.keys(chars).filter(id=>chars[id].source==='firestore');
+  if(!ids.length){if(!silent)setStatus('No cloud characters loaded.','');return;}
+  await Promise.all(ids.map(id=>refreshChar(id,true)));
+  if(!silent)setStatus('Checked '+ids.length+' sheet(s) — '+new Date().toLocaleTimeString(),'saved');
 }
 
 // ── NAV ──
@@ -630,7 +718,7 @@ function addCharTab(id,name){
   btn.onclick=e=>{if(!e.target.classList.contains('tc'))switchChar(id)};
   tabs.appendChild(btn);
 }
-function removeChar(id,e){if(e)e.stopPropagation();delete chars[id];document.getElementById('ct_'+id)?.remove();if(activeChar===id){activeChar=null;showView('load')}}
+function removeChar(id,e){if(e)e.stopPropagation();unsubscribeChar(id);delete chars[id];document.getElementById('ct_'+id)?.remove();if(activeChar===id){activeChar=null;showView('load')}}
 function switchChar(id){activeChar=id;document.querySelectorAll('.sb-btn').forEach(b=>b.classList.remove('active'));document.getElementById('ct_'+id)?.classList.add('active');showView('character');renderChar(id)}
 function showView(name){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
@@ -991,7 +1079,6 @@ function startPoll(s){
   pollSecs=s||10;
   pollOn=true;
   updatePollUI();
-  // Fire immediately on start, then on interval
   refreshAll(true);
   pollTimer=setInterval(()=>refreshAll(true), pollSecs*1000);
 }
@@ -1001,14 +1088,16 @@ function updatePollUI(){
   const btn=document.getElementById('pollBtn');
   const st=document.getElementById('pollSt');
   if(!btn)return;
+  const hasFS = !!window._db;
+  const hasBC = BC !== null;
   if(pollOn){
-    btn.textContent='⏸ Stop Live';
+    btn.textContent='⏸ Stop Poll';
     btn.className='btn danger sm';
-    if(st)st.textContent='Live: every '+pollSecs+'s';
+    if(st)st.textContent='Fallback poll: every '+pollSecs+'s';
   }else{
-    btn.textContent='▶ Live Sync';
+    btn.textContent='▶ Poll';
     btn.className='btn green sm';
-    if(st)st.textContent='Live: off';
+    if(st)st.textContent = hasFS ? 'Firestore live ✓' : (hasBC ? 'Same-browser: instant ✓' : 'No sync');
   }
 }
 
@@ -1021,13 +1110,27 @@ function toast(msg,type){document.querySelector('.toast')?.remove();const el=doc
 // ── INIT ──
 document.addEventListener('DOMContentLoaded',async()=>{
   loadCfg(); loadLocal();
-  if(cfg.token&&cfg.gistId){
+  if(window._db && cfg.dmId){
     try{
-      const r=await fetch('https://api.github.com/gists/'+cfg.gistId,{headers:{'Authorization':'token '+cfg.token}});
-      if(r.ok){const gist=await r.json();const file=gist.files['dm_data.json'];if(file){const d=JSON.parse(file.content);if(d.dm)Object.assign(dm,d.dm);if(d.chars){chars=d.chars;Object.entries(chars).forEach(([id,c])=>addCharTab(id,c.name))}applyDM()}}
-    }catch(e){}
+      await new Promise(r=>setTimeout(r,800)); // wait for anon auth
+      const snap=await window._fsGetDoc(window._fsDoc(window._db,'dm_data',cfg.dmId));
+      if(snap.exists()){
+        const d=snap.data();
+        if(d.dm)Object.assign(dm,d.dm);
+        applyDM();
+        setStatus('DM data loaded from cloud','saved');
+      }
+    }catch(e){console.warn('DM cloud load failed:',e);}
   }
-  if(!cfg.token)setTimeout(showSetup,800);
+  if(!cfg.dmId)setTimeout(showSetup,800);
+  setTimeout(updatePollUI,100);
+  if(BC)setStatus('Instant sync ready — open player sheets in the same browser for live updates','saved');
+  // Re-subscribe Firestore listeners for any firestore-source chars restored from localStorage
+  if(window._db){
+    Object.entries(chars).forEach(([id,c])=>{
+      if(c.source==='firestore')subscribeChar(c.charId||id);
+    });
+  }
 });
 document.addEventListener('input',markUnsaved);
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();collectDM();saveAll()}});
