@@ -819,14 +819,14 @@ function buildCharShell(id){
     <!-- STATS -->
     <div class="tab-content" id="cv_st_${id}">
       <div class="grid-3">
-        <div class="panel"><div class="ph">Physical Attributes</div><div class="pb" id="cv_st_attr_phys_${id}">${['Strength','Dexterity','Stamina'].map((n,i)=>`<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[['attr_str','attr_dex','attr_sta'][i]]||0,5)}</div>`).join('')}</div></div>
-        <div class="panel"><div class="ph">Social Attributes</div><div class="pb" id="cv_st_attr_soc_${id}">${['Charisma','Manipulation','Composure'].map((n,i)=>`<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[['attr_cha','attr_man','attr_com'][i]]||0,5)}</div>`).join('')}</div></div>
-        <div class="panel"><div class="ph">Mental Attributes</div><div class="pb" id="cv_st_attr_men_${id}">${['Intelligence','Wits','Resolve'].map((n,i)=>`<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[['attr_int','attr_wit','attr_res'][i]]||0,5)}</div>`).join('')}</div></div>
+        <div id="cv_st_attr_phys_${id}">${ap('Physical Attributes',['Strength','Dexterity','Stamina'],['attr_str','attr_dex','attr_sta'],dots)}</div>
+        <div id="cv_st_attr_soc_${id}">${ap('Social Attributes',['Charisma','Manipulation','Composure'],['attr_cha','attr_man','attr_com'],dots)}</div>
+        <div id="cv_st_attr_men_${id}">${ap('Mental Attributes',['Intelligence','Wits','Resolve'],['attr_int','attr_wit','attr_res'],dots)}</div>
       </div>
       <div class="grid-3">
-        <div class="panel"><div class="ph">Physical Skills</div><div class="pb" id="cv_st_sk_phys_${id}">${['Athletics','Brawl','Craft','Drive','Firearms','Larceny','Melee','Stealth','Survival'].map((n,i)=>{const ss=specs.filter(s=>s.skill===n);return `<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[['sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel','sk_ste','sk_sur'][i]]||0,5)}${ss.map(s=>`<span style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--gold);border:1px solid rgba(196,154,34,.35);padding:1px 5px;margin-left:3px">${esc(s.name)}</span>`).join('')}</div>`}).join('')}</div></div>
-        <div class="panel"><div class="ph">Social Skills</div><div class="pb" id="cv_st_sk_soc_${id}">${['Animal Ken','Etiquette','Insight','Intimidation','Leadership','Performance','Persuasion','Streetwise','Subterfuge'].map((n,i)=>{const ss=specs.filter(s=>s.skill===n);return `<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[['sk_ani','sk_eti','sk_ins','sk_imi','sk_lea','sk_per','sk_prs','sk_str','sk_sub'][i]]||0,5)}${ss.map(s=>`<span style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--gold);border:1px solid rgba(196,154,34,.35);padding:1px 5px;margin-left:3px">${esc(s.name)}</span>`).join('')}</div>`}).join('')}</div></div>
-        <div class="panel"><div class="ph">Mental Skills</div><div class="pb" id="cv_st_sk_men_${id}">${['Academics','Awareness','Finance','Investigation','Medicine','Occult','Politics','Science','Technology'].map((n,i)=>{const ss=specs.filter(s=>s.skill===n);return `<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[['sk_aca','sk_awa','sk_fin','sk_inv','sk_med','sk_occ','sk_pol','sk_sci','sk_tec'][i]]||0,5)}${ss.map(s=>`<span style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--gold);border:1px solid rgba(196,154,34,.35);padding:1px 5px;margin-left:3px">${esc(s.name)}</span>`).join('')}</div>`}).join('')}</div></div>
+        <div id="cv_st_sk_phys_${id}">${sp('Physical Skills',['Athletics','Brawl','Craft','Drive','Firearms','Larceny','Melee','Stealth','Survival'],['sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel','sk_ste','sk_sur'],dots,specs)}</div>
+        <div id="cv_st_sk_soc_${id}">${sp('Social Skills',['Animal Ken','Etiquette','Insight','Intimidation','Leadership','Performance','Persuasion','Streetwise','Subterfuge'],['sk_ani','sk_eti','sk_ins','sk_imi','sk_lea','sk_per','sk_prs','sk_str','sk_sub'],dots,specs)}</div>
+        <div id="cv_st_sk_men_${id}">${sp('Mental Skills',['Academics','Awareness','Finance','Investigation','Medicine','Occult','Politics','Science','Technology'],['sk_aca','sk_awa','sk_fin','sk_inv','sk_med','sk_occ','sk_pol','sk_sci','sk_tec'],dots,specs)}</div>
       </div>
       <div class="grid-2">
         <div class="panel"><div class="ph">Advantages</div><div class="pb" id="cv_st_merits_${id}">
@@ -969,19 +969,13 @@ function updateCharData(id){
   // Player notes
   set('pnotes_'+id, pn('Session Log',t.notes_session)+pn('NPC Relationships',t.notes_npcs)+pn('Goals & Plans',t.notes_goals)+pn('General Notes',t.notes_general));
 
-  // Attributes & Skills (live dot updates)
-  const ATTR_NAMES=['Strength','Dexterity','Stamina','Charisma','Manipulation','Composure','Intelligence','Wits','Resolve'];
-  const ATTR_KEYS=['attr_str','attr_dex','attr_sta','attr_cha','attr_man','attr_com','attr_int','attr_wit','attr_res'];
-  const SK_NAMES=['Athletics','Brawl','Craft','Drive','Firearms','Larceny','Melee','Stealth','Survival','Animal Ken','Etiquette','Insight','Intimidation','Leadership','Performance','Persuasion','Streetwise','Subterfuge','Academics','Awareness','Finance','Investigation','Medicine','Occult','Politics','Science','Technology'];
-  const SK_KEYS=['sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel','sk_ste','sk_sur','sk_ani','sk_eti','sk_ins','sk_imi','sk_lea','sk_per','sk_prs','sk_str','sk_sub','sk_aca','sk_awa','sk_fin','sk_inv','sk_med','sk_occ','sk_pol','sk_sci','sk_tec'];
-  const specs=d.specialties||[];
-  function dotRows(names,keys,offset){return names.map((n,i)=>{const ss=specs.filter(s=>s.skill===n);return '<div class="stat-row"><span class="stat-name">'+n+'</span>'+dH(dots[keys[i+offset]]||0,5)+ss.map(s=>'<span style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:1px;color:var(--gold);border:1px solid rgba(196,154,34,.35);padding:1px 5px;margin-left:3px">'+esc(s.name)+'</span>').join('')+'</div>'}).join('');}
-  set('cv_st_attr_phys_'+id, ATTR_NAMES.slice(0,3).map((n,i)=>'<div class="stat-row"><span class="stat-name">'+n+'</span>'+dH(dots[ATTR_KEYS[i]]||0,5)+'</div>').join(''));
-  set('cv_st_attr_soc_'+id,  ATTR_NAMES.slice(3,6).map((n,i)=>'<div class="stat-row"><span class="stat-name">'+n+'</span>'+dH(dots[ATTR_KEYS[i+3]]||0,5)+'</div>').join(''));
-  set('cv_st_attr_men_'+id,  ATTR_NAMES.slice(6).map((n,i)=>'<div class="stat-row"><span class="stat-name">'+n+'</span>'+dH(dots[ATTR_KEYS[i+6]]||0,5)+'</div>').join(''));
-  set('cv_st_sk_phys_'+id, dotRows(SK_NAMES.slice(0,9),SK_KEYS,0));
-  set('cv_st_sk_soc_'+id,  dotRows(SK_NAMES.slice(9,18),SK_KEYS,9));
-  set('cv_st_sk_men_'+id,  dotRows(SK_NAMES.slice(18),SK_KEYS,18));
+  // Attributes & Skills (live dot updates) — re-render whole panel via ap()/sp() helpers
+  set('cv_st_attr_phys_'+id, ap('Physical Attributes',['Strength','Dexterity','Stamina'],['attr_str','attr_dex','attr_sta'],dots));
+  set('cv_st_attr_soc_'+id,  ap('Social Attributes',['Charisma','Manipulation','Composure'],['attr_cha','attr_man','attr_com'],dots));
+  set('cv_st_attr_men_'+id,  ap('Mental Attributes',['Intelligence','Wits','Resolve'],['attr_int','attr_wit','attr_res'],dots));
+  set('cv_st_sk_phys_'+id, sp('Physical Skills',['Athletics','Brawl','Craft','Drive','Firearms','Larceny','Melee','Stealth','Survival'],['sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel','sk_ste','sk_sur'],dots,specs));
+  set('cv_st_sk_soc_'+id,  sp('Social Skills',['Animal Ken','Etiquette','Insight','Intimidation','Leadership','Performance','Persuasion','Streetwise','Subterfuge'],['sk_ani','sk_eti','sk_ins','sk_imi','sk_lea','sk_per','sk_prs','sk_str','sk_sub'],dots,specs));
+  set('cv_st_sk_men_'+id,  sp('Mental Skills',['Academics','Awareness','Finance','Investigation','Medicine','Occult','Politics','Science','Technology'],['sk_aca','sk_awa','sk_fin','sk_inv','sk_med','sk_occ','sk_pol','sk_sci','sk_tec'],dots,specs));
 
   // Merits & Flaws live update
   const merits=d.merits||[],flaws=d.flaws||[];
