@@ -275,9 +275,9 @@ select.fi option{background:#0e0b08;color:#d4c898;}
         <div class="dm-panel" style="flex:1;min-width:260px">
           <div class="ph dm-ph">Load via Character ID</div>
           <div class="pb" style="text-align:center">
-            <p style="font-size:12px;color:var(--subtext);margin-bottom:12px;line-height:1.5">Player syncs their sheet → copies their <strong style="color:var(--gold-lt)">Character ID</strong> from the save bar → pastes it here. Sheet updates live via Firestore.</p>
+            <p style="font-size:13px;color:var(--subtext);margin-bottom:12px;line-height:1.6">Player opens their sheet → ⚙ Setup → enters your Session ID + a username. Their Character ID = <em style="color:var(--gold)">sessionid_username</em>.</p>
             <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-              <input class="code-input" id="codeInput" placeholder="e.g. forseti_ab12cd34" style="min-width:200px" onkeydown="if(event.key==='Enter')loadByCode()">
+              <input class="code-input" id="codeInput" placeholder="e.g. dm_abc123_ryoko" style="min-width:220px;font-size:12px" onkeydown="if(event.key==='Enter')loadByCode()">
               <button class="btn green" onclick="loadByCode()">Load</button>
             </div>
             <div id="codeStatus" style="margin-top:8px;font-size:11px;color:var(--subtext);font-family:'Cinzel',serif"></div>
@@ -425,20 +425,25 @@ select.fi option{background:#0e0b08;color:#d4c898;}
       <div style="font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;margin-top:3px">Firestore cloud sync — no account needed</div>
     </div>
     <div style="padding:16px">
-      <div style="margin-bottom:12px">
-        <label style="display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:5px">Session ID (leave blank to generate a new one)</label>
-        <input type="text" id="s_dmid" style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:7px 10px;outline:none" placeholder="Leave blank for a new session ID">
-        <div style="font-size:11px;color:var(--subtext);font-style:italic;margin-top:4px">Your session ID lets you restore your DM notes on another device. Save it somewhere safe.</div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:5px">Session ID</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="s_dmid" style="flex:1;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:14px;padding:7px 10px;outline:none;letter-spacing:1px" placeholder="Leave blank to generate a new one">
+          <button class="btn sm" onclick="copyGroupCode()" title="Copy Session ID">📋 Copy</button>
+        </div>
+        <div style="font-size:11px;color:var(--subtext);font-style:italic;margin-top:5px">Share this with your players — they paste it in their sheet's ⚙ Setup. Leave blank to auto-generate.</div>
       </div>
-      <div style="padding:8px 10px;border:1px solid rgba(196,154,34,.3);background:rgba(196,154,34,.05);font-family:'EB Garamond',serif;font-size:12px;color:#8a7a5a;line-height:1.5">
-        <strong style="color:var(--gold-lt);font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px">HOW PLAYERS CONNECT:</strong><br>
-        Players enter a character name in their sheet and hit ☁ Sync. They get a <strong style="color:var(--gold-lt)">Character ID</strong> — they give that to you, and you paste it into the Load Character box. Their sheet then updates live.
+      <div style="padding:10px 12px;border:1px solid rgba(196,154,34,.25);background:rgba(196,154,34,.04);font-family:'EB Garamond',serif;font-size:13px;color:var(--subtext);line-height:1.6">
+        <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold-lt);margin-bottom:6px">HOW PLAYERS CONNECT</div>
+        1. Share your <strong style="color:var(--gold-lt)">Session ID</strong> with players<br>
+        2. Players open their sheet → ⚙ Setup → enter Session ID + a Username<br>
+        3. Their Character ID becomes <em style="color:var(--gold)">sessionid_username</em><br>
+        4. Use Load Character → enter that Character ID to see their sheet live
       </div>
     </div>
     <div style="padding:10px 16px;border-top:1px solid var(--field-border);display:flex;justify-content:flex-end;gap:8px">
       <button class="btn" onclick="hideSetup()">Cancel</button>
       <button class="btn green" onclick="confirmSetup()">Save</button>
-      <button class="btn" id="copyGroupCodeBtn" onclick="copyGroupCode()" style="margin-left:8px">Copy Session ID</button>
     </div>
   </div>
 </div>
@@ -764,6 +769,7 @@ function buildCharShell(id){
       </div>
       <div class="mh-actions">
         ${c.source==='firestore'?`<button class="btn green sm" onclick="refreshChar('${id}')">↻ Refresh</button>`:''}
+        <button class="btn sm" onclick="downloadCharJSON('${id}')" title="Download this character's sheet as JSON">⬇ JSON</button>
         <button class="btn danger sm" onclick="removeChar('${id}')">Remove</button>
       </div>
     </div>
@@ -1144,6 +1150,13 @@ function renderCombat(){
 }
 
 // ── EXPORT / IMPORT ──
+function downloadCharJSON(id){
+  const c=chars[id]; if(!c)return;
+  const blob=new Blob([JSON.stringify(c.data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=(c.name||'character').replace(/\s/g,'_').toLowerCase()+'_sheet.json';
+  a.click(); toast('Downloaded: '+c.name);
+}
 function exportAll(){collectDM();const blob=new Blob([JSON.stringify({dm,chars},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(dm.campaignName||'dm_dashboard').replace(/\s/g,'_')+'_data.json';a.click()}
 function importAll(e){
   const file=e.target.files[0];if(!file)return;
