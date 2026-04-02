@@ -456,23 +456,25 @@ select.fi::-ms-expand{display:none;}
 <div class="setup-overlay" id="setupOverlay">
   <div class="setup-box">
     <div class="setup-hdr">
-      <h2>Session Sync Setup</h2>
-      <p>Connect your sheet to the campaign cloud — no account needed</p>
+      <h2>Connect to Campaign</h2>
+      <p>Enter your session details — no account needed</p>
     </div>
     <div class="setup-body">
       <div class="sf">
-        <label>Character Name</label>
-        <input type="text" id="setup_charname" placeholder="Your character name">
+        <label>Session ID <span style="color:var(--crimson-lt);font-size:9px">(get this from your DM)</span></label>
+        <input type="text" id="setup_sessionid" placeholder="e.g. dm_abc123xyz" autocomplete="off" spellcheck="false">
+        <div class="hint">Your DM sees this in their ⚙ Setup panel. Everyone in the same campaign uses the same Session ID.</div>
       </div>
       <div class="sf">
-        <label>Returning player? Paste your Character ID here</label>
-        <input type="text" id="setup_charid" placeholder="Leave blank for a brand new character">
-        <div class="hint">Your DM can give you your Character ID if you're continuing from a previous sheet. Leave blank to create a fresh character.</div>
+        <label>Your Username <span style="color:var(--subtext);font-size:9px">(becomes your character ID)</span></label>
+        <input type="text" id="setup_username" placeholder="e.g. ryoko" autocomplete="off" spellcheck="false">
+        <div class="hint">Pick something simple and memorable — this is how your DM loads your sheet. Letters and numbers only, no spaces.</div>
       </div>
+      <div id="setup_status" style="min-height:18px;font-size:11px;font-family:'Cinzel',serif;letter-spacing:1px;color:var(--gold);margin-top:4px"></div>
     </div>
     <div class="setup-footer">
-      <button class="btn" onclick="skipSetup()">Use Local Only</button>
-      <button class="btn green" onclick="confirmSetup()">Connect to Session</button>
+      <button class="btn" onclick="skipSetup()">Local Only</button>
+      <button class="btn green" onclick="confirmSetup()">Connect</button>
     </div>
   </div>
 </div>
@@ -504,14 +506,14 @@ select.fi::-ms-expand{display:none;}
 <!-- SAVE BAR -->
 <div class="save-bar">
   <span class="save-status" id="saveStatus">Ready</span>
-  <button class="btn" onclick="saveAll()">Save (Ctrl+S)</button>
+  <button class="btn" onclick="saveAll()">💾 Save</button>
   <button class="btn green" id="syncBtn" onclick="syncToFirestore()">☁ Sync to DM</button>
-  <button class="btn" onclick="exportJSON()">Export JSON</button>
-  <button class="btn" onclick="document.getElementById('importFile').click()">Import JSON</button>
+  <button class="btn" onclick="exportJSON()">⬇ Download JSON</button>
+  <button class="btn" onclick="document.getElementById('importFile').click()">⬆ Import JSON</button>
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
-  <span id="shareCodeEl" style="display:none" class="code-badge" onclick="copyCode()" title="Your Sheet ID — click to copy. Give to DM if returning to campaign."></span>
-  <button class="btn" onclick="showSetup()">⚙</button>
-  <button class="btn danger" onclick="resetAll()">Reset</button>
+  <span id="shareCodeEl" style="display:none" class="code-badge" onclick="copyCode()" title="Your Character ID — click to copy. Give to your DM."></span>
+  <button class="btn" onclick="showSetup()" title="Session Setup">⚙ Setup</button>
+  <button class="btn danger" onclick="resetAll()" title="Reset all data">✕ Reset</button>
 </div>
 
 <!-- IDENTITY + CHRONICLE -->
@@ -849,7 +851,7 @@ select.fi::-ms-expand{display:none;}
           <div class="xp-ref-cat-title">Other</div>
           <div class="xp-ref-row"><span class="xp-ref-item">Merit (new dot)</span><span class="xp-ref-cost">3 per dot</span></div>
           <div class="xp-ref-row"><span class="xp-ref-item">Blood Potency</span><span class="xp-ref-cost">6 per dot</span></div>
-          <div class="xp-ref-row"><span class="xp-ref-item">Humanity (rouse)</span><span class="xp-ref-cost">3 per dot</span></div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Humanity</span><span class="xp-ref-cost">Roleplay only</span></div>
           <div class="xp-ref-row"><span class="xp-ref-item">Loresheets</span><span class="xp-ref-cost">1–5</span></div>
         </div>
       </div>
@@ -1063,13 +1065,13 @@ signInAnonymously(_auth).catch(e => console.warn('Anon auth failed:', e));
 const VTM = {
   disciplines: {
     animalism:{name:"Animalism",icon:"🐺",desc:"Interact with and control animals",powers:{1:[{name:"Bond Famulus",desc:"Bind a small animal as a permanent familiar. Share a mental link.",dice:"CHARISMA + ANIMALISM",rouses:1},{name:"Sense the Beast",desc:"Detect Hunger, fear, and predatory nature in others. Sense supernatural beings.",dice:"WITS / RESOLVE + ANIMALISM",rouses:0}],2:[{name:"Feral Whispers",desc:"Communicate with any animal, give simple commands, receive information.",dice:"MANIPULATION + ANIMALISM",rouses:0},{name:"Animal Succulence",desc:"Animal blood satisfies your Hunger as if from a human.",dice:"RESOLVE + ANIMALISM",rouses:0}],3:[{name:"Quell the Beast",desc:"Suppress predatory nature in mortal or vampire, preventing Frenzy.",dice:"CHARISMA + ANIMALISM",rouses:1},{name:"Unliving Hive",desc:"Control insects and vermin, directing swarms as extensions of your will.",dice:"STAMINA + ANIMALISM",rouses:1}],4:[{name:"Subsume the Spirit",desc:"Project your mind into an animal, controlling its body while yours lies dormant.",dice:"INTELLIGENCE + ANIMALISM",rouses:1},{name:"Animal Dominion",desc:"Command all animals in area simultaneously as a unified force.",dice:"CHARISMA + ANIMALISM",rouses:2}],5:[{name:"Drawing Out the Beast",desc:"Expel your own Beast into another, forcing immediate Frenzy.",dice:"MANIPULATION + ANIMALISM",rouses:2}]}},
-    auspex:{name:"Auspex",icon:"👁",desc:"Supernatural senses and premonitions",powers:{1:[{name:"Sense the Unseen",desc:"Sense supernatural activity, spirits, hidden beings. Detect Obfuscate users.",dice:"WITS / RESOLVE + AUSPEX",rouses:0}],2:[{name:"Obeah",desc:"Soothe psychological turmoil, calm someone's Beast or relieve trauma.",dice:"COMPOSURE + AUSPEX",rouses:1},{name:"Unerring Pursuit",desc:"Create a bond with a target to spy on them — sense their location, observe through their senses.",dice:"RESOLVE + AUSPEX",rouses:1}],3:[{name:"Fatal Flaw",desc:"Determine a target's greatest weakness — physical, psychological, or supernatural.",dice:"INTELLIGENCE + AUSPEX",rouses:1},{name:"Scry the Soul",desc:"See auras — revealing emotional state, supernatural nature, and secrets.",dice:"INTELLIGENCE + AUSPEX",rouses:1},{name:"Share the Senses",desc:"Sense through another person — see through their eyes, hear through their ears.",dice:"RESOLVE + AUSPEX",rouses:1}]}},
+    auspex:{name:"Auspex",icon:"👁",desc:"Supernatural senses and premonitions",powers:{1:[{name:"Heightened Senses",desc:"Amplify all five senses to supernatural levels. Add Auspex rating to Perception pools. May be blinded by sudden flashes or overwhelmed by strong stimuli.",dice:"PASSIVE",rouses:0},{name:"Sense the Unseen",desc:"Sense supernatural activity, spirits, hidden beings, and Obfuscate users. Contest with Wits/Resolve + Auspex vs. Wits + Stealth or Obfuscate.",dice:"WITS / RESOLVE + AUSPEX",rouses:0}],2:[{name:"Premonition",desc:"Receive flashes of insight, danger warnings, and visions. ST may provide clues. Also lets you pierce supernatural illusions.",dice:"RESOLVE / INTELLIGENCE + AUSPEX",rouses:0},{name:"Unerring Pursuit",desc:"Create a psychic bond with a target you have touched. Sense their direction, distance, and surface emotions.",dice:"RESOLVE + AUSPEX",rouses:1}],3:[{name:"Scry the Soul",desc:"Read a target's aura, revealing emotional state, diablerie, supernatural nature, and Humanity.",dice:"INTELLIGENCE + AUSPEX",rouses:1},{name:"Share the Senses",desc:"Project your consciousness into a willing or unwilling target, experiencing everything through their senses.",dice:"RESOLVE + AUSPEX",rouses:1},{name:"Fatal Flaw",desc:"Probe a target's weaknesses — physical, psychological, or supernatural vulnerabilities revealed.",dice:"INTELLIGENCE + AUSPEX",rouses:1}],4:[{name:"Telepathy",desc:"Read surface thoughts or project words into a target's mind. Contested with Intelligence + Auspex vs. Wits + Subterfuge.",dice:"INTELLIGENCE + AUSPEX",rouses:1}],5:[{name:"Clairvoyance",desc:"Project your senses to any location you can visualise. May observe remotely or attempt to interact with the spirit world.",dice:"INTELLIGENCE + AUSPEX",rouses:2}]}},
     blood_sorcery:{name:"Blood Sorcery",icon:"🩸",desc:"Use blood-related magic and rituals",powers:{1:[{name:"Corrosive Vitae",desc:"Your blood becomes caustic, dissolving material. Deals Aggravated damage to Kindred.",dice:"STRENGTH + BLOOD SORCERY",rouses:1},{name:"A Taste for Blood",desc:"Learn information about a target by tasting their blood — age, clan, emotional state.",dice:"INTELLIGENCE + BLOOD SORCERY",rouses:0}],2:[{name:"Extinguish Vitae",desc:"Disrupt another vampire's blood, forcing Rouse checks or causing Hunger.",dice:"INTELLIGENCE + BLOOD SORCERY",rouses:1},{name:"Scour Secrets",desc:"Taste a drop of blood to divine hidden truths — secrets, fears, locations of loved ones.",dice:"INTELLIGENCE + BLOOD SORCERY",rouses:1}],3:[{name:"Blood of Potency",desc:"Temporarily increase your Blood Potency, gaining elder benefits.",dice:"RESOLVE + BLOOD SORCERY",rouses:1},{name:"Theft of Vitae",desc:"Draw blood from a target at range, pulling it through the air into your mouth.",dice:"WITS + BLOOD SORCERY",rouses:1}],4:[{name:"Baal's Caress",desc:"Coat a weapon in vitae to deal Aggravated damage even to mortals.",dice:"WITS + BLOOD SORCERY",rouses:1}],5:[{name:"Cauldron of Blood",desc:"Boil the blood in a target's body, dealing massive Aggravated damage.",dice:"RESOLVE + BLOOD SORCERY",rouses:3}]}},
-    celerity:{name:"Celerity",icon:"⚡",desc:"Move with supernatural speed",powers:{1:[{name:"Cat's Grace",desc:"Perfect balance — never fall, always land on feet. Ignore difficult terrain.",dice:"PASSIVE",rouses:0}],2:[{name:"Fleetness",desc:"Add Celerity dots to Dexterity for one scene. Move with blinding speed.",dice:"PASSIVE",rouses:1}],3:[{name:"Blink",desc:"Move so fast you appear to teleport short distances.",dice:"DEXTERITY + CELERITY",rouses:1}],4:[{name:"Traversal",desc:"Run up walls and across water, briefly defying gravity.",dice:"DEXTERITY + CELERITY",rouses:1}],5:[{name:"Unerring Aim",desc:"Combined with ranged weapon — never miss regardless of cover.",dice:"COMPOSURE + CELERITY",rouses:2}]}},
+    celerity:{name:"Celerity",icon:"⚡",desc:"Move with supernatural speed",powers:{1:[{name:"Cat's Grace",desc:"Perfect balance — never fall, always land on feet. Ignore difficult terrain.",dice:"PASSIVE",rouses:0}],2:[{name:"Fleetness",desc:"Add Celerity dots to Dexterity for one scene. Move with blinding speed.",dice:"PASSIVE",rouses:1}],3:[{name:"Blink",desc:"Move so fast you appear to teleport short distances.",dice:"DEXTERITY + CELERITY",rouses:1}],4:[{name:"Traversal",desc:"Run up walls and across water, briefly defying gravity.",dice:"DEXTERITY + CELERITY",rouses:1}],5:[{name:"Lightning Strike",desc:"Strike faster than the eye can follow. Make an additional attack in a round with no multi-action penalty.",dice:"DEXTERITY + CELERITY",rouses:2}]}},
     dominate:{name:"Dominate",icon:"🧠",desc:"Control other's minds",powers:{1:[{name:"Cloud Memory",desc:"Erase a short stretch of memory — up to five minutes. Requires eye contact.",dice:"CHARISMA + DOMINATE",rouses:0},{name:"Compel",desc:"Issue a single word or short command the target must immediately obey.",dice:"CHARISMA + DOMINATE",rouses:0}],2:[{name:"Mesmerize",desc:"Implant a complex instruction or false memory in a target's mind.",dice:"MANIPULATION + DOMINATE",rouses:1},{name:"Domitor's Favor",desc:"Resist blood bonds placed on you. Your regnant's hold is weakened.",dice:"RESOLVE + DOMINATE",rouses:0}],3:[{name:"The Forgetful Mind",desc:"Completely rewrite a target's memories of an event.",dice:"MANIPULATION + DOMINATE",rouses:1},{name:"Submerged Directive",desc:"Plant a trigger — when a specific event occurs the target carries out your hidden command.",dice:"INTELLIGENCE + DOMINATE",rouses:1}],4:[{name:"Rationalize",desc:"A Dominated target will construct logical justifications for actions you compelled.",dice:"INTELLIGENCE + DOMINATE",rouses:1}],5:[{name:"Mass Manipulation",desc:"Dominate a crowd simultaneously without individual eye contact.",dice:"MANIPULATION + DOMINATE",rouses:2}]}},
     fortitude:{name:"Fortitude",icon:"🛡",desc:"Resist damage and influence",powers:{1:[{name:"Resilience",desc:"Harden your body — Superficial damage from physical attacks is halved.",dice:"PASSIVE",rouses:0}],2:[{name:"Unswayable Mind",desc:"Resist mental domination and supernatural social influence.",dice:"RESOLVE + FORTITUDE",rouses:0}],3:[{name:"Toughness",desc:"Downgrade Aggravated damage to Superficial. Survive injuries that should be lethal.",dice:"STAMINA + FORTITUDE",rouses:1}],4:[{name:"Defy Bane",desc:"Temporarily overcome your clan bane or a specific supernatural weakness.",dice:"COMPOSURE + FORTITUDE",rouses:2}],5:[{name:"Flesh of Marble",desc:"Become nearly indestructible for a scene — most damage cannot affect you.",dice:"STAMINA + FORTITUDE",rouses:3}]}},
     obfuscate:{name:"Obfuscate",icon:"👤",desc:"Remain undetected",powers:{1:[{name:"Cloak of Shadows",desc:"Remain perfectly still to become invisible, blending into the environment.",dice:"PASSIVE",rouses:0},{name:"Silence of Death",desc:"Move without making any sound — footsteps, rustling, breathing, all silenced.",dice:"PASSIVE",rouses:0}],2:[{name:"Unseen Passage",desc:"Move while remaining invisible — not just while stationary.",dice:"WITS + OBFUSCATE",rouses:1}],3:[{name:"Mask of a Thousand Faces",desc:"Alter your appearance to look like any person you've seen.",dice:"MANIPULATION + OBFUSCATE",rouses:1},{name:"Ghost in the Machine",desc:"Disappear from cameras, microphones, and digital recording devices.",dice:"INTELLIGENCE + OBFUSCATE",rouses:1}],4:[{name:"Conceal",desc:"Extend your Obfuscate to hide an object or another person.",dice:"WITS + OBFUSCATE",rouses:1}],5:[{name:"Phantasm",desc:"Create convincing illusions — visual and auditory hallucinations fooling all observers.",dice:"MANIPULATION + OBFUSCATE",rouses:2}]}},
-    oblivion:{name:"Oblivion",icon:"💀",desc:"Shadow powers and necromancy",powers:{1:[{name:"Stygian Shroud",desc:"Drain warmth and light from an area, creating unnatural cold and shadow.",dice:"COMPOSURE + OBLIVION",rouses:1},{name:"Ashes to Ashes",desc:"Accelerate decay of a dead body, turning it to dust rapidly.",dice:"INTELLIGENCE + OBLIVION",rouses:0}],2:[{name:"Where the Shroud Thins",desc:"Sense ghosts and the presence of death in an area.",dice:"COMPOSURE + OBLIVION",rouses:0}],3:[{name:"Shadow Cloak",desc:"Wrap yourself in living shadow, granting concealment and supernatural intimidation.",dice:"RESOLVE + OBLIVION",rouses:1},{name:"Touch of Oblivion",desc:"Your touch deals Aggravated damage by channeling the void.",dice:"STAMINA + OBLIVION",rouses:2}],4:[{name:"Necrotic Plague",desc:"Inflict supernatural decay on a target.",dice:"RESOLVE + OBLIVION",rouses:2}],5:[{name:"Tenebrous Avatar",desc:"Transform into a being of living shadow, gaining immunity to physical attacks.",dice:"RESOLVE + OBLIVION",rouses:3}]}},
+    oblivion:{name:"Oblivion",icon:"💀",desc:"Shadow powers and necromancy",powers:{1:[{name:"Stygian Shroud",desc:"Drain warmth and light from an area, creating unnatural cold and shadow.",dice:"COMPOSURE + OBLIVION",rouses:1},{name:"Oblivion's Sight",desc:"See in total darkness and perceive ghosts and the Shroud. Auras appear as ashen smears.",dice:"PASSIVE",rouses:0}],2:[{name:"Where the Shroud Thins",desc:"Sense ghosts and the presence of death in an area.",dice:"COMPOSURE + OBLIVION",rouses:0}],3:[{name:"Shadow Cloak",desc:"Wrap yourself in living shadow, granting concealment and supernatural intimidation.",dice:"RESOLVE + OBLIVION",rouses:1},{name:"Touch of Oblivion",desc:"Your touch deals Aggravated damage by channeling the void.",dice:"STAMINA + OBLIVION",rouses:2}],4:[{name:"Necrotic Plague",desc:"Inflict supernatural decay on a target.",dice:"RESOLVE + OBLIVION",rouses:2}],5:[{name:"Tenebrous Avatar",desc:"Transform into a being of living shadow, gaining immunity to physical attacks.",dice:"RESOLVE + OBLIVION",rouses:3}]}},
     potence:{name:"Potence",icon:"💪",desc:"Gain supernatural strength",powers:{1:[{name:"Lethal Body",desc:"Your unarmed attacks deal Aggravated damage to mortals.",dice:"PASSIVE",rouses:0}],2:[{name:"Soaring Leap",desc:"Jump incredible distances — clear buildings, leap across rooftops.",dice:"PASSIVE",rouses:0}],3:[{name:"Uncanny Strength",desc:"Add Potence dots to Strength for one scene.",dice:"PASSIVE",rouses:1}],4:[{name:"Brutal Feed",desc:"Rip through armor and supernatural resilience — ignore armor and Fortitude.",dice:"STRENGTH + POTENCE",rouses:1}],5:[{name:"Earthshock",desc:"Strike the ground to send a shockwave, knocking down everyone nearby.",dice:"STRENGTH + POTENCE",rouses:2}]}},
     presence:{name:"Presence",icon:"✨",desc:"Supernatural appearance and vibe",powers:{1:[{name:"Awe",desc:"Become the center of attention — everyone magnetically drawn to you.",dice:"CHARISMA + PRESENCE",rouses:0},{name:"Daunt",desc:"Project supernatural menace — mortals flee, vampires think twice.",dice:"CHARISMA + PRESENCE",rouses:0}],2:[{name:"Lingering Kiss",desc:"Your feeding causes ecstasy — targets crave being fed on again.",dice:"PASSIVE",rouses:0}],3:[{name:"Entrancement",desc:"A target becomes obsessively devoted to you, acting as a willing servant.",dice:"CHARISMA + PRESENCE",rouses:1}],4:[{name:"Summon",desc:"Call any being you've fed from to your location, regardless of distance.",dice:"MANIPULATION + PRESENCE",rouses:1}],5:[{name:"Majesty",desc:"No one can attack you or act against your wishes without spending Willpower.",dice:"CHARISMA + PRESENCE",rouses:3}]}},
     protean:{name:"Protean",icon:"🦇",desc:"Shape your body supernaturally",powers:{1:[{name:"Eyes of the Beast",desc:"See perfectly in total darkness.",dice:"PASSIVE",rouses:0},{name:"Weight of a Feather",desc:"Control your weight, becoming lighter or heavier at will.",dice:"PASSIVE",rouses:0}],2:[{name:"Feral Weapons",desc:"Grow claws that deal Aggravated damage.",dice:"PASSIVE",rouses:1}],3:[{name:"Earth Meld",desc:"Sink into earth to hide during daylight, merging with soil or stone.",dice:"STAMINA + PROTEAN",rouses:1}],4:[{name:"Shapechange",desc:"Transform into a specific animal — bat, wolf, or rat.",dice:"STAMINA + PROTEAN",rouses:1}],5:[{name:"Metamorphosis",desc:"Take any form — mist, creature, or humanoid shape of your choice.",dice:"STAMINA + PROTEAN",rouses:2}]}},
@@ -2232,24 +2234,40 @@ function importJSON(e) {
 // ════════════════════════════════════════════════════════════
 function loadCfg() { try { cfg = JSON.parse(localStorage.getItem(SK_CFG)||'{}'); } catch(e) { cfg={}; } }
 function saveCfg() { localStorage.setItem(SK_CFG, JSON.stringify(cfg)); }
+
 function showSetup() {
-  document.getElementById('setup_charname').value = cfg.charName||'';
-  document.getElementById('setup_charid').value = cfg.charId||'';
+  // Pre-fill from URL param ?session=xxx
+  const urlSession = new URLSearchParams(window.location.search).get('session');
+  document.getElementById('setup_sessionid').value = cfg.sessionId || urlSession || '';
+  document.getElementById('setup_username').value = cfg.username || '';
+  document.getElementById('setup_status').textContent = '';
   document.getElementById('setupOverlay').classList.add('open');
 }
-function skipSetup() { cfg.skipCloud=true; saveCfg(); document.getElementById('setupOverlay').classList.remove('open'); setStatus('Local only',''); }
-async function confirmSetup() {
-  const charName = document.getElementById('setup_charname').value.trim()||'Character';
-  let charId = document.getElementById('setup_charid').value.trim();
-  // Generate a new stable ID if the player doesn't have one yet
-  if (!charId) {
-    const prefix = charName.replace(/[^a-zA-Z0-9]/g,'').substring(0,6).toLowerCase();
-    charId = prefix + '_' + Math.random().toString(36).substring(2,10);
-  }
-  cfg = { charName, charId, skipCloud: false };
+
+function skipSetup() {
+  cfg.skipCloud = true;
   saveCfg();
   document.getElementById('setupOverlay').classList.remove('open');
-  // Try to load existing cloud data for this charId
+  setStatus('Local only — changes not synced', '');
+}
+
+async function confirmSetup() {
+  const sessionId = document.getElementById('setup_sessionid').value.trim();
+  const username  = document.getElementById('setup_username').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+  const statusEl  = document.getElementById('setup_status');
+
+  if (!sessionId) { statusEl.textContent = '✕ Enter a Session ID from your DM'; statusEl.style.color='var(--crimson-lt)'; return; }
+  if (!username)  { statusEl.textContent = '✕ Enter a username'; statusEl.style.color='var(--crimson-lt)'; return; }
+
+  const charId   = sessionId + '_' + username;
+  const charName = username.charAt(0).toUpperCase() + username.slice(1);
+
+  statusEl.textContent = 'Connecting…';
+  statusEl.style.color = 'var(--gold)';
+
+  cfg = { sessionId, username, charId, charName, skipCloud: false };
+  saveCfg();
+
   if (window._db) {
     try {
       const snap = await window._fsGetDoc(window._fsDoc(window._db, 'characters', charId));
@@ -2261,31 +2279,42 @@ async function confirmSetup() {
           if (el) el.value = pSnap.data().notes_private || '';
         }
         saveAll();
-        toast('Cloud sheet loaded — welcome back, ' + charName + '!');
+        statusEl.textContent = '✓ Welcome back, ' + charName + '!';
+        statusEl.style.color = 'var(--green-lt)';
+        setTimeout(() => document.getElementById('setupOverlay').classList.remove('open'), 900);
+        toast('Sheet loaded — ' + charName);
       } else {
-        toast('New character created. Hit ☁ Sync to upload your sheet.');
+        statusEl.textContent = '✓ New character — sync to upload your sheet';
+        statusEl.style.color = 'var(--green-lt)';
+        setTimeout(() => document.getElementById('setupOverlay').classList.remove('open'), 900);
+        toast('Connected as ' + charName + '. Fill in your sheet and hit ☁ Sync to DM.');
       }
-    } catch(e) { console.warn('Cloud load failed:', e); toast('Connected — hit ☁ Sync to upload.'); }
+    } catch(e) {
+      statusEl.textContent = '✕ Connection failed: ' + e.message;
+      statusEl.style.color = 'var(--crimson-lt)';
+      console.warn('Cloud connect failed:', e);
+    }
+  } else {
+    statusEl.textContent = '✕ Firebase not ready — try again in a moment';
+    statusEl.style.color = 'var(--crimson-lt)';
   }
+
   updateShareCode();
   setStatus('Connected — ' + charName, 'saved');
 }
 
-function generateCode(name, charId) {
-  const prefix = name.replace(/[^a-zA-Z]/g,'').substring(0,4).toUpperCase().padEnd(4,'X');
-  const suffix = charId ? charId.substring(0,8).toUpperCase() : '????????';
-  return prefix + '-' + suffix;
-}
 function updateShareCode() {
   const el = document.getElementById('shareCodeEl');
-  if (cfg.charId && cfg.charName) {
+  if (cfg.charId && cfg.username) {
     el.textContent = cfg.charId;
+    el.title = 'Your Character ID — give to DM. Click to copy.';
     el.style.display = 'inline-block';
   } else el.style.display = 'none';
 }
+
 function copyCode() {
   const el = document.getElementById('shareCodeEl');
-  navigator.clipboard.writeText(el.textContent).then(() => toast('Character ID copied — give this to your DM to load your sheet: ' + el.textContent));
+  navigator.clipboard.writeText(el.textContent).then(() => toast('Character ID copied: ' + el.textContent + ' — give this to your DM'));
 }
 
 // ════════════════════════════════════════════════════════════
@@ -2377,6 +2406,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch(e) { console.warn('Firestore load error:', e); }
   }
   updateShareCode();
+  // Auto-fill session from URL param, then show setup if not configured
+  const urlSession = new URLSearchParams(window.location.search).get('session');
+  if (urlSession && !cfg.sessionId) {
+    // Pre-seed the sessionId from URL so setup modal pre-fills it
+    cfg.sessionId = urlSession;
+  }
   if (!cfg.charId && !cfg.skipCloud) setTimeout(() => { showSetup(); }, 500);
 });
 
