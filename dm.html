@@ -485,19 +485,15 @@ if (BC) {
     const msg = event.data;
     if (!msg || msg.type !== 'sheet_update') return;
     const { charId, data, charName } = msg;
-
     if (!charId || !data) return;
 
-    // If this character isn't loaded yet, add them automatically
-    if (!chars[charId]) {
-      chars[charId] = { id: charId, name: charName || 'Player', data, source: 'broadcast', charId };
-      addCharTab(charId, charName || 'Player');
-      setStatus('New player connected: ' + (charName||'Player'), 'saved');
-    }
+    // Only update characters already loaded in the DM — don't auto-add new ones.
+    // New characters must be loaded explicitly via Character ID to avoid ghost tabs.
+    if (!chars[charId]) return;
 
     // Check if data actually changed before re-rendering
     const newHash = dataHash(data);
-    if (newHash === lastHash[charId]) return; // nothing changed, skip
+    if (newHash === lastHash[charId]) return;
 
     chars[charId].data = data;
     lastHash[charId] = newHash;
@@ -1110,27 +1106,40 @@ function toast(msg,type){document.querySelector('.toast')?.remove();const el=doc
 // ── INIT ──
 document.addEventListener('DOMContentLoaded',async()=>{
   loadCfg(); loadLocal();
-  if(window._db && cfg.dmId){
-    try{
-      await new Promise(r=>setTimeout(r,800)); // wait for anon auth
-      const snap=await window._fsGetDoc(window._fsDoc(window._db,'dm_data',cfg.dmId));
-      if(snap.exists()){
-        const d=snap.data();
-        if(d.dm)Object.assign(dm,d.dm);
-        applyDM();
-        setStatus('DM data loaded from cloud','saved');
-      }
-    }catch(e){console.warn('DM cloud load failed:',e);}
-  }
-  if(!cfg.dmId)setTimeout(showSetup,800);
-  setTimeout(updatePollUI,100);
-  if(BC)setStatus('Instant sync ready — open player sheets in the same browser for live updates','saved');
-  // Re-subscribe Firestore listeners for any firestore-source chars restored from localStorage
+
+  // Firebase SDK loads as an async ESM module — window._db may not be set yet.
+  // Poll until it's ready (max 4s) before trying any Firestore calls.
+  await new Promise(resolve=>{
+    if(window._db)return resolve();
+    let attempts=0;
+    const check=setInterval(()=>{
+      attempts++;
+      if(window._db||attempts>40){clearInterval(check);resolve();}
+    },100);
+  });
+
   if(window._db){
+    // Re-attach live listeners for all chars that were restored from localStorage
     Object.entries(chars).forEach(([id,c])=>{
       if(c.source==='firestore')subscribeChar(c.charId||id);
     });
+    // Load DM notes from cloud
+    if(cfg.dmId){
+      try{
+        const snap=await window._fsGetDoc(window._fsDoc(window._db,'dm_data',cfg.dmId));
+        if(snap.exists()){
+          const d=snap.data();
+          if(d.dm)Object.assign(dm,d.dm);
+          applyDM();
+          setStatus('DM data loaded from cloud','saved');
+        }
+      }catch(e){console.warn('DM cloud load failed:',e);}
+    }
+    setStatus('Live sync ready — Firestore connected','saved');
   }
+
+  if(!cfg.dmId)setTimeout(showSetup,800);
+  setTimeout(updatePollUI,100);
 });
 document.addEventListener('input',markUnsaved);
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();collectDM();saveAll()}});
