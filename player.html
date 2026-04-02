@@ -2172,7 +2172,7 @@ function scheduleAutoSync() {
   if (cfg.skipCloud) return;
   if (!cfg.charId) return; // no Firestore ID yet — wait for setup
   clearTimeout(autoSyncTimer);
-  autoSyncTimer = setTimeout(() => { syncToFirestore(true); }, 5000);
+  autoSyncTimer = setTimeout(() => { syncToFirestore(true); }, 1000); // 1s debounce
 }
 
 // ── Firestore sync ──
@@ -2187,15 +2187,21 @@ async function syncToFirestore(silent) {
     const priv = document.getElementById('notes_private')?.value || '';
     const charRef = window._fsDoc(window._db, 'characters', cfg.charId);
     const privRef = window._fsDoc(window._db, 'characters_private', cfg.charId);
-    await Promise.all([
-      window._fsSetDoc(charRef, { ...d, _charName: cfg.charName || 'Character', _updatedAt: Date.now() }),
-      window._fsSetDoc(privRef, { notes_private: priv, _updatedAt: Date.now() })
-    ]);
+    const payload = { ...d, _charName: cfg.charName || 'Character', _updatedAt: Date.now() };
+    if (silent) {
+      // Fire and forget — don't await, don't block the UI
+      window._fsSetDoc(charRef, payload).catch(e => console.warn('Auto-sync err:', e));
+    } else {
+      await Promise.all([
+        window._fsSetDoc(charRef, payload),
+        window._fsSetDoc(privRef, { notes_private: priv, _updatedAt: Date.now() })
+      ]);
+    }
     localStorage.setItem(SK, JSON.stringify(d));
     localStorage.setItem(SK_PRIV, priv);
     updateShareCode();
     if (!silent) { setStatus('Synced to DM — ' + new Date().toLocaleTimeString(), 'saved'); toast('Sheet synced — your DM can see it now'); }
-    else setStatus('Auto-synced to DM — ' + new Date().toLocaleTimeString(), 'saved');
+    else setStatus('Live — ' + new Date().toLocaleTimeString(), 'saved');
   } catch(e) {
     setStatus('Sync failed: ' + e.message, 'error');
     if (!silent) toast('Sync failed: ' + e.message, 'error');
