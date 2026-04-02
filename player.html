@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VtM V5 — Character Sheet</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 <script>
   // 🔴 PASTE YOUR FIREBASE CONFIG HERE 🔴
-const firebaseConfig = {
+  const firebaseConfig = {
   apiKey: "AIzaSyD4ZzE-wQ1PT9fkvm4JmJuoYvtsC5rhBkI",
   authDomain: "vtmcampaignsync.firebaseapp.com",
   projectId: "vtmcampaignsync",
@@ -21,12 +21,445 @@ const firebaseConfig = {
   const db = firebase.firestore();
 </script>
 <style>
-/* CSS Remains unchanged from your original file for brevity */
-:root{--bg:#0e0b08;--surface:#16120d;--panel:#1c1710;--border:#7a5c18;--gold:#c49a22;--gold-lt:#e8c96a;--gold-dim:#8a6a10;--crimson:#7a1515;--crimson-lt:#c02020;--crimson-br:#e03030;--text:#e0d4b8;--subtext:#8a7a5a;--field-bg:#100e0a;--field-border:#3a2e18;--input-text:#d4c898;--green:#3a7a3a;--green-lt:#5aaa5a;--blue:#1a3a7a;--blue-lt:#6080e0;}*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:13px;min-height:100vh;background-image:radial-gradient(ellipse at 20% 20%,rgba(122,21,21,.06) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(196,154,34,.04) 0%,transparent 60%);}body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;opacity:.35;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");}.page{max-width:1400px;margin:0 auto;padding:24px 32px;}.header{text-align:center;padding:24px 20px 18px;border:1px solid var(--border);background:linear-gradient(180deg,#1f1408,#120f09);margin-bottom:10px;position:relative;}.header::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(196,154,34,.04) 0%,transparent 50%,rgba(122,21,21,.06) 100%);pointer-events:none;}.header h1{font-family:'Cinzel Decorative',serif;font-size:28px;color:var(--gold-lt);letter-spacing:5px;text-shadow:0 0 40px rgba(196,154,34,.3),0 2px 4px rgba(0,0,0,.8);margin-bottom:4px;}.header-sub{font-family:'Cinzel',serif;font-size:8px;letter-spacing:5px;color:var(--subtext);margin-bottom:8px;}.header-div{width:180px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto;}.header-name-input{background:transparent;border:none;border-bottom:2px solid var(--gold-dim);color:var(--gold-lt);font-family:'Cinzel Decorative',serif;font-size:28px;letter-spacing:5px;text-align:center;outline:none;width:100%;max-width:700px;text-transform:uppercase;position:relative;z-index:1;}.header-name-input::placeholder{color:rgba(232,201,106,.3);}.header-name-input:focus{border-bottom-color:var(--gold);}.save-bar{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:7px 12px;border:1px solid var(--field-border);background:var(--surface);flex-wrap:wrap;}.save-status{font-size:10px;font-family:'Cinzel',serif;letter-spacing:1px;color:var(--subtext);transition:color .3s;flex:1;min-width:100px;}.save-status.saved{color:var(--green-lt);} .save-status.error{color:var(--crimson-lt);} .save-status.syncing{color:var(--gold);}.btn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;padding:5px 12px;background:transparent;border:1px solid var(--gold-dim);color:var(--gold);cursor:pointer;transition:all .2s;text-transform:uppercase;white-space:nowrap;}.btn:hover{background:rgba(196,154,34,.1);border-color:var(--gold);}.btn.green{border-color:var(--green);color:var(--green-lt);} .btn.green:hover{background:rgba(58,122,58,.15);}.btn.danger{border-color:var(--crimson);color:var(--crimson-lt);} .btn.danger:hover{background:rgba(122,21,21,.2);}.code-badge{font-family:'Cinzel',serif;font-size:11px;color:var(--gold-lt);padding:4px 10px;border:1px solid var(--gold-dim);background:rgba(196,154,34,.06);letter-spacing:3px;cursor:pointer;}.code-badge:hover{background:rgba(196,154,34,.12);}.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}.full{margin-bottom:10px;}.panel{border:1px solid var(--border);background:var(--panel);overflow:visible;}.ph{background:var(--crimson);padding:5px 10px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--gold-lt);text-transform:uppercase;border-bottom:1px solid var(--gold-dim);display:flex;align-items:center;justify-content:space-between;gap:6px;}.ph-left{display:flex;align-items:center;gap:6px;}.ph-left::before{content:'✦';font-size:7px;color:var(--gold-dim);}.pb{padding:10px;}.fr{display:flex;align-items:baseline;gap:6px;margin-bottom:6px;border-bottom:1px solid rgba(122,94,24,.2);padding-bottom:5px;}.fr:last-child{margin-bottom:0;border-bottom:none;padding-bottom:0;}.fl{font-size:10px;color:var(--subtext);min-width:88px;font-family:'Cinzel',serif;letter-spacing:.5px;flex-shrink:0;}.fi{flex:1;background:transparent;border:none;border-bottom:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:1px 4px;outline:none;transition:border-color .2s;width:100%;}.fi:focus{border-bottom-color:var(--gold-dim);}select.fi{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}select.fi option{background:#0e0b08;color:#d4c898;}select.fi:focus{border-bottom-color:var(--gold-dim);}select.fi::-ms-expand{display:none;}.fta{width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:8px;outline:none;resize:vertical;min-height:80px;transition:border-color .2s;line-height:1.55;}.fta:focus{border-color:var(--gold-dim);}.fta.lg{min-height:120px;} .fta.xl{min-height:160px;} .fta.xxl{min-height:220px;}.spec-tag{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;margin-left:6px;border:1px solid rgba(196,154,34,.35);background:rgba(196,154,34,.07);font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--gold);white-space:nowrap;cursor:help;vertical-align:middle;position:relative;}.spec-tag:hover{border-color:var(--gold);background:rgba(196,154,34,.14);}.spec-tag-x{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:9px;padding:0;margin-left:2px;line-height:1;transition:color .15s;}.spec-tag-x:hover{color:var(--crimson-lt);}.dr{display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap;}.dr:last-child{margin-bottom:0;}.dl{font-size:11px;color:var(--text);min-width:108px;flex-shrink:0;}.dots{display:flex;gap:4px;align-items:center;}.dot{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;transition:all .15s;flex-shrink:0;}.dot.filled{background:var(--gold);border-color:var(--gold-lt);box-shadow:0 0 5px rgba(196,154,34,.4);}.dot:hover{border-color:var(--gold);}.bt{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;}.tb{width:26px;height:20px;border:1px solid var(--border);background:var(--field-bg);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;position:relative;}.tb:hover{border-color:var(--gold-dim);}.tb.sup::after{content:'/';position:absolute;font-size:15px;color:var(--gold);}.tb.agg{background:rgba(122,21,21,.2);border-color:var(--crimson);}.tb.agg::after{content:'X';position:absolute;font-size:12px;font-weight:bold;color:var(--crimson-lt);}.track-leg{margin-top:4px;font-size:10px;color:var(--subtext);}.ld-row{display:flex;gap:7px;margin-top:7px;flex-wrap:wrap;}.ld{width:19px;height:19px;border-radius:50%;border:2px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;transition:all .15s;}.ld.filled{background:var(--gold);border-color:var(--gold-lt);box-shadow:0 0 8px rgba(196,154,34,.5);}.ld.hfilled{background:var(--crimson-lt);border-color:#e03030;box-shadow:0 0 8px rgba(192,32,32,.5);}.ld:hover{transform:scale(1.12);}.cat{font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:7px;margin-top:3px;border-bottom:1px solid rgba(196,154,34,.2);padding-bottom:3px;}.div{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:8px 0;}.itl{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--subtext);text-transform:uppercase;margin-bottom:4px;margin-top:8px;}.na-box{font-size:11px;color:var(--subtext);font-style:italic;padding:6px;border-left:2px solid var(--crimson);background:rgba(122,21,21,.05);line-height:1.55;}.cp{margin-bottom:9px;padding-bottom:9px;border-bottom:1px solid rgba(122,94,24,.2);}.cp:last-child{border-bottom:none;margin-bottom:0;}.cl{font-size:9px;font-family:'Cinzel',serif;letter-spacing:1px;margin-bottom:3px;}.cl.cv{color:var(--gold);} .cl.ts{color:var(--crimson-lt);}.shared-label{font-size:9px;font-family:'Cinzel',serif;letter-spacing:1px;color:var(--green);margin-bottom:4px;display:flex;align-items:center;gap:5px;}.shared-label::before{content:'◈';font-size:8px;}.footer{text-align:center;padding:10px;font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:var(--subtext);border-top:1px solid var(--border);margin-top:10px;}.bp-dots-row{display:flex;gap:7px;margin:8px 0 4px;flex-wrap:wrap;}.bp-dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;transition:all .15s;flex-shrink:0;}.bp-dot.filled{background:var(--crimson-lt);border-color:#e03030;box-shadow:0 0 8px rgba(192,32,32,.5);}.bp-dot:hover{transform:scale(1.12);}.bp-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}.bp-stat{background:rgba(122,21,21,.12);border:1px solid rgba(122,94,24,.3);padding:8px 10px;}.bp-stat-label{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--subtext);text-transform:uppercase;margin-bottom:3px;}.bp-stat-value{font-size:13px;color:var(--gold-lt);}.bp-stat-value b{font-family:'Cinzel',serif;font-size:15px;color:var(--crimson-lt);font-weight:400;}.xp-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;}.xp-box{background:rgba(122,94,24,.1);border:1px solid rgba(122,94,24,.3);padding:10px;text-align:center;}.xp-box-label{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--subtext);text-transform:uppercase;margin-bottom:4px;}.xp-box-val{font-family:'Cinzel Decorative',serif;font-size:22px;color:var(--gold-lt);}.xp-box-val.spent{color:var(--crimson-lt);}.xp-box-val.remaining{color:var(--green-lt);}.xp-add-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}.xp-add-row input,.xp-add-row select{background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:5px 8px;outline:none;transition:border-color .2s;}.xp-add-row input:focus,.xp-add-row select:focus{border-color:var(--gold-dim);}.xp-add-row select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}.xp-add-row select option{background:#0e0b08;color:#d4c898;}.xp-ref{margin-bottom:14px;}.xp-ref-title{font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;padding-bottom:3px;border-bottom:1px solid rgba(196,154,34,.2);}.xp-ref-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}.xp-ref-cat{background:rgba(122,94,24,.08);border:1px solid rgba(122,94,24,.25);padding:8px 10px;}.xp-ref-cat-title{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--crimson-lt);text-transform:uppercase;margin-bottom:5px;}.xp-ref-row{display:flex;justify-content:space-between;align-items:baseline;padding:2px 0;border-bottom:1px solid rgba(122,94,24,.1);font-size:11px;}.xp-ref-row:last-child{border-bottom:none;}.xp-ref-item{color:var(--text);}.xp-ref-cost{font-family:'Cinzel',serif;font-size:10px;color:var(--gold);white-space:nowrap;margin-left:8px;}.xp-entry{display:flex;align-items:center;gap:8px;padding:5px 8px;border-bottom:1px solid rgba(122,94,24,.15);font-size:12px;}.xp-entry:last-child{border-bottom:none;}.xp-entry-cost{font-family:'Cinzel',serif;font-size:11px;min-width:36px;text-align:right;flex-shrink:0;}.xp-entry-cost.gain{color:var(--green-lt);}.xp-entry-cost.spend{color:var(--crimson-lt);}.xp-entry-cat{font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);min-width:70px;flex-shrink:0;text-transform:uppercase;}.xp-entry-desc{flex:1;color:var(--text);}.xp-entry-date{font-size:10px;color:var(--subtext);white-space:nowrap;flex-shrink:0;}.xp-entry-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;padding:0 3px;opacity:0;transition:opacity .2s;}.xp-entry:hover .xp-entry-del{opacity:1;}.xp-entry-del:hover{color:var(--crimson-lt);}.xp-empty{font-size:11px;color:var(--subtext);font-style:italic;padding:8px 0;text-align:center;}.add-btn{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;padding:3px 10px;background:transparent;border:1px solid var(--gold-dim);color:var(--gold);cursor:pointer;transition:all .2s;text-transform:uppercase;}.add-btn:hover{background:rgba(196,154,34,.12);border-color:var(--gold);}.disc-card{border:1px solid rgba(122,94,24,.4);background:rgba(28,23,16,.8);margin-bottom:8px;position:relative;}.disc-card-header{background:rgba(122,21,21,.3);padding:6px 10px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(122,94,24,.3);cursor:default;}.disc-icon{font-size:16px;width:22px;text-align:center;flex-shrink:0;}.disc-card-name{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt);letter-spacing:2px;flex:1;}.disc-card-body{padding:8px 10px;}.disc-remove-btn{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:12px;padding:2px 4px;transition:color .2s;}.disc-remove-btn:hover{color:var(--crimson-lt);}.power-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;padding:3px 0;border-bottom:1px solid rgba(122,94,24,.15);position:relative;}.power-row:last-child{border-bottom:none;margin-bottom:0;}.power-lvl{font-size:9px;font-family:'Cinzel',serif;color:var(--crimson-lt);min-width:18px;flex-shrink:0;}.power-name{font-size:12px;color:var(--text);flex:1;cursor:help;position:relative;}.power-name:hover{color:var(--gold-lt);}.power-remove{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:10px;padding:0 3px;transition:color .2s;opacity:0;}.power-row:hover .power-remove{opacity:1;}.power-remove:hover{color:var(--crimson-lt);}.adv-card{display:flex;align-items:center;gap:8px;padding:5px 8px;margin-bottom:4px;border:1px solid rgba(122,94,24,.3);background:rgba(28,23,16,.6);position:relative;cursor:help;}.adv-card:hover{border-color:rgba(196,154,34,.4);}.adv-card-name{flex:1;font-size:12px;color:var(--text);}.adv-card-cost{font-size:9px;font-family:'Cinzel',serif;color:var(--subtext);min-width:24px;text-align:right;}.adv-card.flaw-card .adv-card-name{color:#c08080;}.adv-card-remove{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:10px;padding:0 3px;opacity:0;transition:all .2s;}.adv-card:hover .adv-card-remove{opacity:1;}.adv-card-remove:hover{color:var(--crimson-lt);}.spec-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;margin:2px;border:1px solid rgba(122,94,24,.4);background:rgba(196,154,34,.06);font-size:11px;cursor:help;position:relative;}.spec-pill:hover{border-color:var(--gold-dim);}.spec-pill-skill{color:var(--subtext);font-size:10px;font-family:'Cinzel',serif;}.spec-pill-name{color:var(--text);}.spec-pill-remove{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:10px;padding:0;opacity:0;transition:opacity .2s;}.spec-pill:hover .spec-pill-remove{opacity:1;}.spec-pill-remove:hover{color:var(--crimson-lt);}.spec-container{display:flex;flex-wrap:wrap;gap:0;margin-top:4px;}.ritual-card{display:flex;align-items:center;gap:8px;padding:5px 8px;margin-bottom:4px;border:1px solid rgba(122,94,24,.3);background:rgba(28,23,16,.6);cursor:help;position:relative;}.ritual-card:hover{border-color:rgba(196,154,34,.4);}.ritual-lvl{font-size:9px;font-family:'Cinzel',serif;color:var(--crimson-lt);min-width:20px;}.ritual-name{flex:1;font-size:12px;color:var(--text);}.ritual-card-remove{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:10px;padding:0 3px;opacity:0;transition:all .2s;}.ritual-card:hover .ritual-card-remove{opacity:1;}.ritual-card-remove:hover{color:var(--crimson-lt);}.frenzy-warning{display:none;margin-top:8px;padding:7px 12px;background:rgba(192,32,32,.18);border:1px solid var(--crimson-lt);font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--crimson-lt);text-transform:uppercase;animation:frenzyPulse 1.8s ease-in-out infinite;}.frenzy-warning.show{display:flex;align-items:center;gap:8px;}@keyframes frenzyPulse{0%,100%{opacity:1;box-shadow:0 0 0 rgba(192,32,32,0);}50%{opacity:.75;box-shadow:0 0 14px rgba(192,32,32,.4);}}.feed-entry{display:flex;align-items:center;gap:8px;padding:5px 8px;border-bottom:1px solid rgba(122,94,24,.15);font-size:12px;}.feed-entry:last-child{border-bottom:none;}.feed-res{font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;padding:2px 7px;border:1px solid rgba(122,94,24,.4);background:rgba(122,94,24,.1);color:var(--gold);min-width:80px;text-align:center;flex-shrink:0;}.feed-res.phleg{border-color:#5a7aaa;background:rgba(40,60,120,.2);color:#90b0e0;}.feed-res.sang{border-color:#7a3a5a;background:rgba(120,40,80,.2);color:#e080b0;}.feed-res.chol{border-color:#7a6a20;background:rgba(120,100,20,.2);color:#e0c060;}.feed-res.melan{border-color:#3a5a3a;background:rgba(40,80,40,.2);color:#80c080;}.feed-amount{font-family:'Cinzel',serif;font-size:10px;color:var(--crimson-lt);min-width:28px;text-align:center;flex-shrink:0;}.feed-target{flex:1;color:var(--text);}.feed-notes{font-size:11px;color:var(--subtext);font-style:italic;}.feed-date{font-size:10px;color:var(--subtext);white-space:nowrap;flex-shrink:0;}.feed-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;padding:0 3px;opacity:0;transition:opacity .2s;}.feed-entry:hover .feed-del{opacity:1;}.feed-del:hover{color:var(--crimson-lt);}.feed-log{max-height:220px;overflow-y:auto;}.feed-add-row{display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}.feed-add-row input,.feed-add-row select{background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:5px 8px;outline:none;transition:border-color .2s;}.feed-add-row select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}.feed-add-row select option{background:#0e0b08;color:#d4c898;}.dt-session{border:1px solid rgba(122,94,24,.3);margin-bottom:8px;background:rgba(16,12,8,.5);}.dt-session-hdr{display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(122,94,24,.1);border-bottom:1px solid rgba(122,94,24,.2);cursor:pointer;}.dt-session-title{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);flex:1;text-transform:uppercase;}.dt-session-body{padding:8px 10px;}.dt-activity{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid rgba(122,94,24,.1);}.dt-activity:last-child{border-bottom:none;}.dt-act-type{font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);min-width:80px;flex-shrink:0;text-transform:uppercase;padding-top:2px;}.dt-act-desc{flex:1;font-size:12px;color:var(--text);}.dt-act-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;padding:0 3px;opacity:0;transition:opacity .2s;}.dt-activity:hover .dt-act-del{opacity:1;}.dt-act-del:hover{color:var(--crimson-lt);}.dt-add-row{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap;}.dt-add-row input,.dt-add-row select{background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:5px 8px;outline:none;}.dt-add-row select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}.dt-add-row select option{background:#0e0b08;color:#d4c898;}.coterie-card{border:1px solid rgba(122,94,24,.35);background:rgba(16,12,8,.7);margin-bottom:8px;}.coterie-card-hdr{display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(122,21,21,.2);border-bottom:1px solid rgba(122,94,24,.25);}.coterie-name{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt);letter-spacing:2px;flex:1;}.coterie-clan{font-family:'Cinzel',serif;font-size:8px;color:var(--subtext);letter-spacing:1px;}.coterie-body{padding:8px 10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;}.coterie-field{font-size:11px;color:var(--text);}.coterie-field-label{font-family:'Cinzel',serif;font-size:8px;color:var(--subtext);letter-spacing:1px;margin-bottom:2px;text-transform:uppercase;}.coterie-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:12px;padding:0 3px;transition:color .2s;}.coterie-del:hover{color:var(--crimson-lt);}.coterie-vinculum{display:flex;gap:3px;align-items:center;}.vin-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;transition:all .12s;}.vin-dot.filled{background:var(--crimson-lt);border-color:#e03030;}.npc-card{border:1px solid rgba(122,94,24,.3);margin-bottom:6px;background:rgba(16,12,8,.6);}.npc-card-hdr{display:flex;align-items:center;gap:8px;padding:5px 10px;background:rgba(28,18,8,.8);border-bottom:1px solid rgba(122,94,24,.2);cursor:pointer;}.npc-name{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt);letter-spacing:1px;flex:1;}.npc-type{font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;padding:1px 6px;border:1px solid;flex-shrink:0;}.npc-type.ally{color:#5aaa5a;border-color:#3a7a3a;background:rgba(40,80,40,.15);}.npc-type.enemy{color:var(--crimson-lt);border-color:var(--crimson);background:rgba(122,21,21,.15);}.npc-type.neutral{color:var(--subtext);border-color:rgba(122,94,24,.4);background:rgba(122,94,24,.06);}.npc-type.complicated{color:#e0c060;border-color:#7a6a20;background:rgba(120,100,20,.12);}.npc-type.unknown{color:var(--subtext);border-color:rgba(80,80,80,.4);background:rgba(80,80,80,.06);}.npc-body{padding:8px 10px;display:none;}.npc-body.open{display:block;}.npc-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:12px;padding:0 3px;transition:color .2s;}.npc-del:hover{color:var(--crimson-lt);}#tooltip{position:fixed;z-index:9000;pointer-events:none;max-width:300px;padding:10px 14px;background:rgba(10,7,4,.97);border:1px solid var(--gold-dim);box-shadow:0 4px 24px rgba(0,0,0,.8);font-family:'EB Garamond',serif;font-size:12px;color:var(--text);line-height:1.5;display:none;}#tooltip .tt-title{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt);letter-spacing:2px;margin-bottom:4px;text-transform:uppercase;}#tooltip .tt-meta{font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;letter-spacing:1px;margin-bottom:5px;}#tooltip .tt-desc{color:var(--text);line-height:1.55;}#tooltip .tt-sys{margin-top:6px;font-size:11px;color:var(--crimson-lt);font-style:italic;border-top:1px solid rgba(122,94,24,.3);padding-top:5px;}.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:8000;display:none;align-items:flex-start;justify-content:center;backdrop-filter:blur(3px);overflow-y:auto;padding:20px;}.modal-overlay.open{display:flex;}.modal{background:var(--panel);border:1px solid var(--border);width:100%;max-width:620px;position:relative;animation:modalIn .2s ease;margin:auto;}@keyframes modalIn{from{opacity:0;transform:translateY(-12px);}to{opacity:1;transform:translateY(0);}}.modal-header{background:var(--crimson);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--gold-dim);}.modal-title{font-family:'Cinzel',serif;font-size:13px;color:var(--gold-lt);letter-spacing:2px;}.modal-close{background:transparent;border:1px solid var(--gold-dim);color:var(--gold);width:24px;height:24px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s;}.modal-close:hover{background:rgba(196,154,34,.15);}.modal-body{padding:14px;max-height:70vh;overflow-y:auto;}.modal-body select{background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:5px 22px 5px 8px;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;}.modal-body select option{background:#0e0b08;color:#d4c898;}.modal-footer{padding:8px 14px;border-top:1px solid var(--field-border);display:flex;justify-content:flex-end;gap:8px;}.disc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}.disc-sel-card{border:1px solid rgba(122,94,24,.4);background:rgba(28,23,16,.9);padding:14px;cursor:pointer;transition:all .2s;text-align:center;}.disc-sel-card:hover{border-color:var(--gold);background:rgba(196,154,34,.08);}.disc-sel-icon{font-size:28px;margin-bottom:6px;}.disc-sel-name{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt);letter-spacing:2px;margin-bottom:4px;}.disc-sel-desc{font-size:11px;color:var(--subtext);}.power-level-section{margin-bottom:14px;}.power-level-label{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--crimson-lt);text-transform:uppercase;margin-bottom:6px;padding-bottom:3px;border-bottom:1px solid rgba(122,21,21,.3);}.power-sel-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}.power-sel-card{border:1px solid rgba(122,94,24,.3);background:rgba(28,23,16,.8);padding:10px;cursor:pointer;transition:all .2s;}.power-sel-card:hover{border-color:var(--gold);background:rgba(196,154,34,.06);}.power-sel-card.already-added{border-color:var(--green);opacity:.6;cursor:not-allowed;}.power-sel-name{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt);letter-spacing:1px;margin-bottom:3px;}.power-sel-desc{font-size:11px;color:var(--subtext);margin-bottom:5px;line-height:1.4;}.power-sel-meta{font-size:10px;color:var(--crimson-lt);font-family:'Cinzel',serif;letter-spacing:1px;}.merit-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:12px;}.merit-tab{padding:5px 14px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;cursor:pointer;color:var(--subtext);border:1px solid transparent;border-bottom:none;margin-bottom:-1px;transition:all .2s;text-transform:uppercase;}.merit-tab:hover{color:var(--gold);}.merit-tab.active{color:var(--gold-lt);border-color:var(--border);border-bottom:1px solid var(--panel);background:var(--panel);}.merit-section{margin-bottom:16px;}.merit-cat-label{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px;}.merit-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}.merit-sel-card{border:1px solid rgba(122,94,24,.3);background:rgba(28,23,16,.8);padding:8px 10px;cursor:pointer;transition:all .2s;display:flex;align-items:flex-start;gap:8px;}.merit-sel-card:hover{border-color:var(--gold);background:rgba(196,154,34,.06);}.merit-sel-card.already-added{border-color:var(--green);opacity:.6;}.merit-sel-info{flex:1;}.merit-sel-name{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt);letter-spacing:1px;margin-bottom:2px;}.merit-sel-desc{font-size:11px;color:var(--subtext);line-height:1.4;}.merit-sel-cost{font-size:9px;font-family:'Cinzel',serif;background:var(--crimson);color:var(--gold-lt);padding:2px 5px;border-radius:2px;white-space:nowrap;flex-shrink:0;}.spec-form{display:flex;gap:8px;align-items:center;margin-bottom:8px;}.spec-form select,.spec-form input{background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:5px 8px;outline:none;transition:border-color .2s;}.spec-form select:focus,.spec-form input:focus{border-color:var(--gold-dim);}.spec-form select{flex:0 0 140px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}.spec-form select option,.fi option{background:#0e0b08;color:#d4c898;}.spec-form input{flex:1;}.custom-form{background:rgba(122,94,24,.08);border:1px solid rgba(122,94,24,.3);padding:10px;margin-bottom:10px;}.custom-form-title{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;}.custom-form input,.custom-form textarea{width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:6px 8px;outline:none;margin-bottom:6px;transition:border-color .2s;}.custom-form input:focus,.custom-form textarea:focus{border-color:var(--gold-dim);}.custom-form textarea{resize:vertical;min-height:60px;}.setup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}.setup-overlay.open{display:flex;}.setup-box{background:var(--panel);border:1px solid var(--border);max-width:480px;width:90%;overflow:hidden;}.setup-hdr{background:var(--crimson);padding:12px 16px;border-bottom:1px solid var(--gold-dim);}.setup-hdr h2{font-family:'Cinzel Decorative',serif;font-size:16px;color:var(--gold-lt);letter-spacing:2px;}.setup-hdr p{font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;letter-spacing:1px;margin-top:3px;}.setup-body{padding:16px;}.sf{margin-bottom:12px;}.sf label{display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:5px;}.sf input{width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:7px 10px;outline:none;transition:border-color .2s;}.sf input:focus{border-color:var(--gold-dim);}.sf .hint{font-size:11px;color:var(--subtext);font-style:italic;margin-top:4px;line-height:1.4;}.setup-footer{padding:10px 16px;border-top:1px solid var(--field-border);display:flex;justify-content:flex-end;gap:8px;}.toast{position:fixed;bottom:20px;right:20px;z-index:9800;background:var(--panel);border:1px solid var(--border);padding:10px 16px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;color:var(--gold-lt);box-shadow:0 4px 20px rgba(0,0,0,.6);animation:toastIn .3s ease;max-width:300px;}.toast.error{border-color:var(--crimson);color:var(--crimson-lt);}@keyframes toastIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+:root{
+  --bg:#0e0b08;--surface:#16120d;--panel:#1c1710;--border:#7a5c18;
+  --gold:#c49a22;--gold-lt:#e8c96a;--gold-dim:#8a6a10;
+  --crimson:#7a1515;--crimson-lt:#c02020;--crimson-br:#e03030;
+  --text:#e0d4b8;--subtext:#8a7a5a;
+  --field-bg:#100e0a;--field-border:#3a2e18;--input-text:#d4c898;
+  --green:#3a7a3a;--green-lt:#5aaa5a;
+  --blue:#1a3a7a;--blue-lt:#6080e0;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:13px;min-height:100vh;
+  background-image:radial-gradient(ellipse at 20% 20%,rgba(122,21,21,.06) 0%,transparent 60%),
+  radial-gradient(ellipse at 80% 80%,rgba(196,154,34,.04) 0%,transparent 60%);}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;opacity:.35;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");}
+.page{max-width:1400px;margin:0 auto;padding:24px 32px;}
+
+/* HEADER */
+.header{text-align:center;padding:24px 20px 18px;border:1px solid var(--border);
+  background:linear-gradient(180deg,#1f1408,#120f09);margin-bottom:10px;position:relative;}
+.header::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(196,154,34,.04) 0%,transparent 50%,rgba(122,21,21,.06) 100%);pointer-events:none;}
+.header h1{font-family:'Cinzel Decorative',serif;font-size:28px;color:var(--gold-lt);letter-spacing:5px;
+  text-shadow:0 0 40px rgba(196,154,34,.3),0 2px 4px rgba(0,0,0,.8);margin-bottom:4px;}
+.header-sub{font-family:'Cinzel',serif;font-size:8px;letter-spacing:5px;color:var(--subtext);margin-bottom:8px;}
+.header-div{width:180px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto;}
+.header-name-input{background:transparent;border:none;border-bottom:2px solid var(--gold-dim);color:var(--gold-lt);
+  font-family:'Cinzel Decorative',serif;font-size:28px;letter-spacing:5px;text-align:center;outline:none;
+  width:100%;max-width:700px;text-transform:uppercase;position:relative;z-index:1;}
+.header-name-input::placeholder{color:rgba(232,201,106,.3);}
+.header-name-input:focus{border-bottom-color:var(--gold);}
+
+/* SAVE BAR */
+.save-bar{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:7px 12px;
+  border:1px solid var(--field-border);background:var(--surface);flex-wrap:wrap;}
+.save-status{font-size:10px;font-family:'Cinzel',serif;letter-spacing:1px;color:var(--subtext);transition:color .3s;flex:1;min-width:100px;}
+.save-status.saved{color:var(--green-lt);} .save-status.error{color:var(--crimson-lt);} .save-status.syncing{color:var(--gold);}
+.btn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;padding:5px 12px;background:transparent;
+  border:1px solid var(--gold-dim);color:var(--gold);cursor:pointer;transition:all .2s;text-transform:uppercase;white-space:nowrap;}
+.btn:hover{background:rgba(196,154,34,.1);border-color:var(--gold);}
+.btn.green{border-color:var(--green);color:var(--green-lt);} .btn.green:hover{background:rgba(58,122,58,.15);}
+.btn.danger{border-color:var(--crimson);color:var(--crimson-lt);} .btn.danger:hover{background:rgba(122,21,21,.2);}
+.code-badge{font-family:'Cinzel',serif;font-size:11px;color:var(--gold-lt);
+  padding:4px 10px;border:1px solid var(--gold-dim);background:rgba(196,154,34,.06);letter-spacing:3px;cursor:pointer;}
+.code-badge:hover{background:rgba(196,154,34,.12);}
+
+/* LAYOUT */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+.full{margin-bottom:10px;}
+
+/* PANEL */
+.panel{border:1px solid var(--border);background:var(--panel);overflow:visible;}
+.ph{background:var(--crimson);padding:5px 10px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;
+  color:var(--gold-lt);text-transform:uppercase;border-bottom:1px solid var(--gold-dim);
+  display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.ph-left{display:flex;align-items:center;gap:6px;}
+.ph-left::before{content:'✦';font-size:7px;color:var(--gold-dim);}
+.pb{padding:10px;}
+
+/* FIELDS */
+.fr{display:flex;align-items:baseline;gap:6px;margin-bottom:6px;border-bottom:1px solid rgba(122,94,24,.2);padding-bottom:5px;}
+.fr:last-child{margin-bottom:0;border-bottom:none;padding-bottom:0;}
+.fl{font-size:10px;color:var(--subtext);min-width:88px;font-family:'Cinzel',serif;letter-spacing:.5px;flex-shrink:0;}
+.fi{flex:1;background:transparent;border:none;border-bottom:1px solid var(--field-border);
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:1px 4px;outline:none;transition:border-color .2s;width:100%;}
+.fi:focus{border-bottom-color:var(--gold-dim);}
+select.fi{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}
+select.fi option{background:#0e0b08;color:#d4c898;}
+select.fi:focus{border-bottom-color:var(--gold-dim);}
+select.fi::-ms-expand{display:none;}
+.fta{width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);
+  font-family:'EB Garamond',serif;font-size:13px;padding:8px;outline:none;resize:vertical;min-height:80px;
+  transition:border-color .2s;line-height:1.55;}
+.fta:focus{border-color:var(--gold-dim);}
+.fta.lg{min-height:120px;} .fta.xl{min-height:160px;} .fta.xxl{min-height:220px;}
+
+/* INLINE SPECIALTY TAGS on skill/attr rows */
+.spec-tag{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;margin-left:6px;
+  border:1px solid rgba(196,154,34,.35);background:rgba(196,154,34,.07);
+  font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--gold);
+  white-space:nowrap;cursor:help;vertical-align:middle;position:relative;}
+.spec-tag:hover{border-color:var(--gold);background:rgba(196,154,34,.14);}
+.spec-tag-x{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:9px;
+  padding:0;margin-left:2px;line-height:1;transition:color .15s;}
+.spec-tag-x:hover{color:var(--crimson-lt);}
+.dr{display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap;}
+.dr{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.dr:last-child{margin-bottom:0;}
+.dl{font-size:11px;color:var(--text);min-width:108px;flex-shrink:0;}
+.dots{display:flex;gap:4px;align-items:center;}
+.dot{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--gold-dim);
+  background:var(--field-bg);cursor:pointer;transition:all .15s;flex-shrink:0;}
+.dot.filled{background:var(--gold);border-color:var(--gold-lt);box-shadow:0 0 5px rgba(196,154,34,.4);}
+.dot:hover{border-color:var(--gold);}
+
+/* BOX TRACKER */
+.bt{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;}
+.tb{width:26px;height:20px;border:1px solid var(--border);background:var(--field-bg);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;position:relative;}
+.tb:hover{border-color:var(--gold-dim);}
+.tb.sup::after{content:'/';position:absolute;font-size:15px;color:var(--gold);}
+.tb.agg{background:rgba(122,21,21,.2);border-color:var(--crimson);}
+.tb.agg::after{content:'X';position:absolute;font-size:12px;font-weight:bold;color:var(--crimson-lt);}
+.track-leg{margin-top:4px;font-size:10px;color:var(--subtext);}
+
+/* LARGE DOTS */
+.ld-row{display:flex;gap:7px;margin-top:7px;flex-wrap:wrap;}
+.ld{width:19px;height:19px;border-radius:50%;border:2px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;transition:all .15s;}
+.ld.filled{background:var(--gold);border-color:var(--gold-lt);box-shadow:0 0 8px rgba(196,154,34,.5);}
+.ld.hfilled{background:var(--crimson-lt);border-color:#e03030;box-shadow:0 0 8px rgba(192,32,32,.5);}
+.ld:hover{transform:scale(1.12);}
+
+/* MISC */
+.cat{font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;
+  margin-bottom:7px;margin-top:3px;border-bottom:1px solid rgba(196,154,34,.2);padding-bottom:3px;}
+.div{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:8px 0;}
+.itl{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--subtext);text-transform:uppercase;margin-bottom:4px;margin-top:8px;}
+.na-box{font-size:11px;color:var(--subtext);font-style:italic;padding:6px;border-left:2px solid var(--crimson);background:rgba(122,21,21,.05);line-height:1.55;}
+.cp{margin-bottom:9px;padding-bottom:9px;border-bottom:1px solid rgba(122,94,24,.2);}
+.cp:last-child{border-bottom:none;margin-bottom:0;}
+.cl{font-size:9px;font-family:'Cinzel',serif;letter-spacing:1px;margin-bottom:3px;}
+.cl.cv{color:var(--gold);} .cl.ts{color:var(--crimson-lt);}
+.shared-label{font-size:9px;font-family:'Cinzel',serif;letter-spacing:1px;color:var(--green);margin-bottom:4px;display:flex;align-items:center;gap:5px;}
+.shared-label::before{content:'◈';font-size:8px;}
+.footer{text-align:center;padding:10px;font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:var(--subtext);border-top:1px solid var(--border);margin-top:10px;}
+
+/* BLOOD POTENCY PANEL */
+.bp-dots-row{display:flex;gap:7px;margin:8px 0 4px;flex-wrap:wrap;}
+.bp-dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;transition:all .15s;flex-shrink:0;}
+.bp-dot.filled{background:var(--crimson-lt);border-color:#e03030;box-shadow:0 0 8px rgba(192,32,32,.5);}
+.bp-dot:hover{transform:scale(1.12);}
+.bp-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.bp-stat{background:rgba(122,21,21,.12);border:1px solid rgba(122,94,24,.3);padding:8px 10px;}
+.bp-stat-label{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--subtext);text-transform:uppercase;margin-bottom:3px;}
+.bp-stat-value{font-size:13px;color:var(--gold-lt);}
+.bp-stat-value b{font-family:'Cinzel',serif;font-size:15px;color:var(--crimson-lt);font-weight:400;}
+
+/* XP TRACKER */
+.xp-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
+.xp-box{background:rgba(122,94,24,.1);border:1px solid rgba(122,94,24,.3);padding:10px;text-align:center;}
+.xp-box-label{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--subtext);text-transform:uppercase;margin-bottom:4px;}
+.xp-box-val{font-family:'Cinzel Decorative',serif;font-size:22px;color:var(--gold-lt);}
+.xp-box-val.spent{color:var(--crimson-lt);}
+.xp-box-val.remaining{color:var(--green-lt);}
+.xp-add-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+.xp-add-row input,.xp-add-row select{background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:5px 8px;outline:none;transition:border-color .2s;}
+.xp-add-row input:focus,.xp-add-row select:focus{border-color:var(--gold-dim);}
+.xp-add-row select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}
+.xp-add-row select option{background:#0e0b08;color:#d4c898;}
+.xp-ref{margin-bottom:14px;}
+.xp-ref-title{font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;padding-bottom:3px;border-bottom:1px solid rgba(196,154,34,.2);}
+.xp-ref-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.xp-ref-cat{background:rgba(122,94,24,.08);border:1px solid rgba(122,94,24,.25);padding:8px 10px;}
+.xp-ref-cat-title{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--crimson-lt);text-transform:uppercase;margin-bottom:5px;}
+.xp-ref-row{display:flex;justify-content:space-between;align-items:baseline;padding:2px 0;border-bottom:1px solid rgba(122,94,24,.1);font-size:11px;}
+.xp-ref-row:last-child{border-bottom:none;}
+.xp-ref-item{color:var(--text);}
+.xp-ref-cost{font-family:'Cinzel',serif;font-size:10px;color:var(--gold);white-space:nowrap;margin-left:8px;}
+.xp-entry{display:flex;align-items:center;gap:8px;padding:5px 8px;border-bottom:1px solid rgba(122,94,24,.15);font-size:12px;}
+.xp-entry:last-child{border-bottom:none;}
+.xp-entry-cost{font-family:'Cinzel',serif;font-size:11px;min-width:36px;text-align:right;flex-shrink:0;}
+.xp-entry-cost.gain{color:var(--green-lt);}
+.xp-entry-cost.spend{color:var(--crimson-lt);}
+.xp-entry-cat{font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);min-width:70px;flex-shrink:0;text-transform:uppercase;}
+.xp-entry-desc{flex:1;color:var(--text);}
+.xp-entry-date{font-size:10px;color:var(--subtext);white-space:nowrap;flex-shrink:0;}
+.xp-entry-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;padding:0 3px;opacity:0;transition:opacity .2s;}
+.xp-entry:hover .xp-entry-del{opacity:1;}
+.xp-entry-del:hover{color:var(--crimson-lt);}
+.xp-empty{font-size:11px;color:var(--subtext);font-style:italic;padding:8px 0;text-align:center;}
+
+/* ═══════════════════════════════
+   DYNAMIC CARDS — Disciplines / Merits / Flaws / Specialties
+   ═══════════════════════════════ */
+.add-btn{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;padding:3px 10px;
+  background:transparent;border:1px solid var(--gold-dim);color:var(--gold);cursor:pointer;
+  transition:all .2s;text-transform:uppercase;}
+.add-btn:hover{background:rgba(196,154,34,.12);border-color:var(--gold);}
+
+/* Discipline card */
+.disc-card{border:1px solid rgba(122,94,24,.4);background:rgba(28,23,16,.8);
+  margin-bottom:8px;position:relative;}
+.disc-card-header{background:rgba(122,21,21,.3);padding:6px 10px;display:flex;align-items:center;gap:8px;
+  border-bottom:1px solid rgba(122,94,24,.3);cursor:default;}
+.disc-icon{font-size:16px;width:22px;text-align:center;flex-shrink:0;}
+.disc-card-name{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt);letter-spacing:2px;flex:1;}
+.disc-card-body{padding:8px 10px;}
+.disc-remove-btn{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:12px;padding:2px 4px;transition:color .2s;}
+.disc-remove-btn:hover{color:var(--crimson-lt);}
+
+/* Power row within discipline card */
+.power-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;padding:3px 0;
+  border-bottom:1px solid rgba(122,94,24,.15);position:relative;}
+.power-row:last-child{border-bottom:none;margin-bottom:0;}
+.power-lvl{font-size:9px;font-family:'Cinzel',serif;color:var(--crimson-lt);min-width:18px;flex-shrink:0;}
+.power-name{font-size:12px;color:var(--text);flex:1;cursor:help;position:relative;}
+.power-name:hover{color:var(--gold-lt);}
+.power-remove{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:10px;padding:0 3px;transition:color .2s;opacity:0;}
+.power-row:hover .power-remove{opacity:1;}
+.power-remove:hover{color:var(--crimson-lt);}
+
+/* Merit / Flaw card */
+.adv-card{display:flex;align-items:center;gap:8px;padding:5px 8px;margin-bottom:4px;
+  border:1px solid rgba(122,94,24,.3);background:rgba(28,23,16,.6);position:relative;cursor:help;}
+.adv-card:hover{border-color:rgba(196,154,34,.4);}
+.adv-card-name{flex:1;font-size:12px;color:var(--text);}
+.adv-card-cost{font-size:9px;font-family:'Cinzel',serif;color:var(--subtext);min-width:24px;text-align:right;}
+.adv-card.flaw-card .adv-card-name{color:#c08080;}
+.adv-card-remove{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:10px;padding:0 3px;opacity:0;transition:all .2s;}
+.adv-card:hover .adv-card-remove{opacity:1;}
+.adv-card-remove:hover{color:var(--crimson-lt);}
+
+/* Specialty pill */
+.spec-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;margin:2px;
+  border:1px solid rgba(122,94,24,.4);background:rgba(196,154,34,.06);font-size:11px;cursor:help;position:relative;}
+.spec-pill:hover{border-color:var(--gold-dim);}
+.spec-pill-skill{color:var(--subtext);font-size:10px;font-family:'Cinzel',serif;}
+.spec-pill-name{color:var(--text);}
+.spec-pill-remove{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:10px;padding:0;opacity:0;transition:opacity .2s;}
+.spec-pill:hover .spec-pill-remove{opacity:1;}
+.spec-pill-remove:hover{color:var(--crimson-lt);}
+.spec-container{display:flex;flex-wrap:wrap;gap:0;margin-top:4px;}
+
+/* Ritual card */
+.ritual-card{display:flex;align-items:center;gap:8px;padding:5px 8px;margin-bottom:4px;
+  border:1px solid rgba(122,94,24,.3);background:rgba(28,23,16,.6);cursor:help;position:relative;}
+.ritual-card:hover{border-color:rgba(196,154,34,.4);}
+.ritual-lvl{font-size:9px;font-family:'Cinzel',serif;color:var(--crimson-lt);min-width:20px;}
+.ritual-name{flex:1;font-size:12px;color:var(--text);}
+.ritual-card-remove{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:10px;padding:0 3px;opacity:0;transition:all .2s;}
+.ritual-card:hover .ritual-card-remove{opacity:1;}
+.ritual-card-remove:hover{color:var(--crimson-lt);}
+
+/* ═══════════════════════════════
+   HUNGER FRENZY WARNING
+   ═══════════════════════════════ */
+.frenzy-warning{display:none;margin-top:8px;padding:7px 12px;background:rgba(192,32,32,.18);
+  border:1px solid var(--crimson-lt);font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;
+  color:var(--crimson-lt);text-transform:uppercase;animation:frenzyPulse 1.8s ease-in-out infinite;}
+.frenzy-warning.show{display:flex;align-items:center;gap:8px;}
+@keyframes frenzyPulse{0%,100%{opacity:1;box-shadow:0 0 0 rgba(192,32,32,0);}50%{opacity:.75;box-shadow:0 0 14px rgba(192,32,32,.4);}}
+
+/* ═══════════════════════════════
+   FEEDING LOG
+   ═══════════════════════════════ */
+.feed-entry{display:flex;align-items:center;gap:8px;padding:5px 8px;border-bottom:1px solid rgba(122,94,24,.15);font-size:12px;}
+.feed-entry:last-child{border-bottom:none;}
+.feed-res{font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;padding:2px 7px;border:1px solid rgba(122,94,24,.4);
+  background:rgba(122,94,24,.1);color:var(--gold);min-width:80px;text-align:center;flex-shrink:0;}
+.feed-res.phleg{border-color:#5a7aaa;background:rgba(40,60,120,.2);color:#90b0e0;}
+.feed-res.sang{border-color:#7a3a5a;background:rgba(120,40,80,.2);color:#e080b0;}
+.feed-res.chol{border-color:#7a6a20;background:rgba(120,100,20,.2);color:#e0c060;}
+.feed-res.melan{border-color:#3a5a3a;background:rgba(40,80,40,.2);color:#80c080;}
+.feed-amount{font-family:'Cinzel',serif;font-size:10px;color:var(--crimson-lt);min-width:28px;text-align:center;flex-shrink:0;}
+.feed-target{flex:1;color:var(--text);}
+.feed-notes{font-size:11px;color:var(--subtext);font-style:italic;}
+.feed-date{font-size:10px;color:var(--subtext);white-space:nowrap;flex-shrink:0;}
+.feed-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;padding:0 3px;opacity:0;transition:opacity .2s;}
+.feed-entry:hover .feed-del{opacity:1;}
+.feed-del:hover{color:var(--crimson-lt);}
+.feed-log{max-height:220px;overflow-y:auto;}
+.feed-add-row{display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+.feed-add-row input,.feed-add-row select{background:var(--field-bg);border:1px solid var(--field-border);
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:5px 8px;outline:none;transition:border-color .2s;}
+.feed-add-row select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}
+.feed-add-row select option{background:#0e0b08;color:#d4c898;}
+
+/* ═══════════════════════════════
+   DOWNTIME TRACKER
+   ═══════════════════════════════ */
+.dt-session{border:1px solid rgba(122,94,24,.3);margin-bottom:8px;background:rgba(16,12,8,.5);}
+.dt-session-hdr{display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(122,94,24,.1);
+  border-bottom:1px solid rgba(122,94,24,.2);cursor:pointer;}
+.dt-session-title{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);flex:1;text-transform:uppercase;}
+.dt-session-body{padding:8px 10px;}
+.dt-activity{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid rgba(122,94,24,.1);}
+.dt-activity:last-child{border-bottom:none;}
+.dt-act-type{font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);min-width:80px;flex-shrink:0;text-transform:uppercase;padding-top:2px;}
+.dt-act-desc{flex:1;font-size:12px;color:var(--text);}
+.dt-act-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;padding:0 3px;opacity:0;transition:opacity .2s;}
+.dt-activity:hover .dt-act-del{opacity:1;}
+.dt-act-del:hover{color:var(--crimson-lt);}
+.dt-add-row{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap;}
+.dt-add-row input,.dt-add-row select{background:var(--field-bg);border:1px solid var(--field-border);
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:5px 8px;outline:none;}
+.dt-add-row select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}
+.dt-add-row select option{background:#0e0b08;color:#d4c898;}
+
+/* ═══════════════════════════════
+   COTERIE PANEL
+   ═══════════════════════════════ */
+.coterie-card{border:1px solid rgba(122,94,24,.35);background:rgba(16,12,8,.7);margin-bottom:8px;}
+.coterie-card-hdr{display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(122,21,21,.2);border-bottom:1px solid rgba(122,94,24,.25);}
+.coterie-name{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt);letter-spacing:2px;flex:1;}
+.coterie-clan{font-family:'Cinzel',serif;font-size:8px;color:var(--subtext);letter-spacing:1px;}
+.coterie-body{padding:8px 10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.coterie-field{font-size:11px;color:var(--text);}
+.coterie-field-label{font-family:'Cinzel',serif;font-size:8px;color:var(--subtext);letter-spacing:1px;margin-bottom:2px;text-transform:uppercase;}
+.coterie-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:12px;padding:0 3px;transition:color .2s;}
+.coterie-del:hover{color:var(--crimson-lt);}
+.coterie-vinculum{display:flex;gap:3px;align-items:center;}
+.vin-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;transition:all .12s;}
+.vin-dot.filled{background:var(--crimson-lt);border-color:#e03030;}
+
+/* ═══════════════════════════════
+   RELATIONSHIP / NPC MAP
+   ═══════════════════════════════ */
+.npc-card{border:1px solid rgba(122,94,24,.3);margin-bottom:6px;background:rgba(16,12,8,.6);}
+.npc-card-hdr{display:flex;align-items:center;gap:8px;padding:5px 10px;background:rgba(28,18,8,.8);border-bottom:1px solid rgba(122,94,24,.2);cursor:pointer;}
+.npc-name{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt);letter-spacing:1px;flex:1;}
+.npc-type{font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;padding:1px 6px;border:1px solid;flex-shrink:0;}
+.npc-type.ally{color:#5aaa5a;border-color:#3a7a3a;background:rgba(40,80,40,.15);}
+.npc-type.enemy{color:var(--crimson-lt);border-color:var(--crimson);background:rgba(122,21,21,.15);}
+.npc-type.neutral{color:var(--subtext);border-color:rgba(122,94,24,.4);background:rgba(122,94,24,.06);}
+.npc-type.complicated{color:#e0c060;border-color:#7a6a20;background:rgba(120,100,20,.12);}
+.npc-type.unknown{color:var(--subtext);border-color:rgba(80,80,80,.4);background:rgba(80,80,80,.06);}
+.npc-body{padding:8px 10px;display:none;}
+.npc-body.open{display:block;}
+.npc-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:12px;padding:0 3px;transition:color .2s;}
+.npc-del:hover{color:var(--crimson-lt);}
+   ═══════════════════════════════ */
+#tooltip{
+  position:fixed;z-index:9000;pointer-events:none;max-width:300px;
+  padding:10px 14px;background:rgba(10,7,4,.97);border:1px solid var(--gold-dim);
+  box-shadow:0 4px 24px rgba(0,0,0,.8);font-family:'EB Garamond',serif;font-size:12px;
+  color:var(--text);line-height:1.5;display:none;
+}
+#tooltip .tt-title{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt);letter-spacing:2px;margin-bottom:4px;text-transform:uppercase;}
+#tooltip .tt-meta{font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;letter-spacing:1px;margin-bottom:5px;}
+#tooltip .tt-desc{color:var(--text);line-height:1.55;}
+#tooltip .tt-sys{margin-top:6px;font-size:11px;color:var(--crimson-lt);font-style:italic;border-top:1px solid rgba(122,94,24,.3);padding-top:5px;}
+
+/* ═══════════════════════════════
+   MODAL SYSTEM
+   ═══════════════════════════════ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:8000;
+  display:none;align-items:flex-start;justify-content:center;backdrop-filter:blur(3px);overflow-y:auto;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--panel);border:1px solid var(--border);width:100%;max-width:620px;
+  position:relative;animation:modalIn .2s ease;margin:auto;}
+@keyframes modalIn{from{opacity:0;transform:translateY(-12px);}to{opacity:1;transform:translateY(0);}}
+.modal-header{background:var(--crimson);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--gold-dim);}
+.modal-title{font-family:'Cinzel',serif;font-size:13px;color:var(--gold-lt);letter-spacing:2px;}
+.modal-close{background:transparent;border:1px solid var(--gold-dim);color:var(--gold);width:24px;height:24px;
+  cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.modal-close:hover{background:rgba(196,154,34,.15);}
+.modal-body{padding:14px;max-height:70vh;overflow-y:auto;}
+.modal-body select{background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:5px 22px 5px 8px;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;}
+.modal-body select option{background:#0e0b08;color:#d4c898;}
+.modal-footer{padding:8px 14px;border-top:1px solid var(--field-border);display:flex;justify-content:flex-end;gap:8px;}
+
+/* DISCIPLINE SELECTOR */
+.disc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.disc-sel-card{border:1px solid rgba(122,94,24,.4);background:rgba(28,23,16,.9);padding:14px;
+  cursor:pointer;transition:all .2s;text-align:center;}
+.disc-sel-card:hover{border-color:var(--gold);background:rgba(196,154,34,.08);}
+.disc-sel-icon{font-size:28px;margin-bottom:6px;}
+.disc-sel-name{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt);letter-spacing:2px;margin-bottom:4px;}
+.disc-sel-desc{font-size:11px;color:var(--subtext);}
+
+/* POWER SELECTOR */
+.power-level-section{margin-bottom:14px;}
+.power-level-label{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--crimson-lt);
+  text-transform:uppercase;margin-bottom:6px;padding-bottom:3px;border-bottom:1px solid rgba(122,21,21,.3);}
+.power-sel-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.power-sel-card{border:1px solid rgba(122,94,24,.3);background:rgba(28,23,16,.8);padding:10px;
+  cursor:pointer;transition:all .2s;}
+.power-sel-card:hover{border-color:var(--gold);background:rgba(196,154,34,.06);}
+.power-sel-card.already-added{border-color:var(--green);opacity:.6;cursor:not-allowed;}
+.power-sel-name{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt);letter-spacing:1px;margin-bottom:3px;}
+.power-sel-desc{font-size:11px;color:var(--subtext);margin-bottom:5px;line-height:1.4;}
+.power-sel-meta{font-size:10px;color:var(--crimson-lt);font-family:'Cinzel',serif;letter-spacing:1px;}
+
+/* MERIT / FLAW SELECTOR */
+.merit-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:12px;}
+.merit-tab{padding:5px 14px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;cursor:pointer;
+  color:var(--subtext);border:1px solid transparent;border-bottom:none;margin-bottom:-1px;transition:all .2s;text-transform:uppercase;}
+.merit-tab:hover{color:var(--gold);}
+.merit-tab.active{color:var(--gold-lt);border-color:var(--border);border-bottom:1px solid var(--panel);background:var(--panel);}
+.merit-section{margin-bottom:16px;}
+.merit-cat-label{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);
+  text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.merit-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.merit-sel-card{border:1px solid rgba(122,94,24,.3);background:rgba(28,23,16,.8);padding:8px 10px;
+  cursor:pointer;transition:all .2s;display:flex;align-items:flex-start;gap:8px;}
+.merit-sel-card:hover{border-color:var(--gold);background:rgba(196,154,34,.06);}
+.merit-sel-card.already-added{border-color:var(--green);opacity:.6;}
+.merit-sel-info{flex:1;}
+.merit-sel-name{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt);letter-spacing:1px;margin-bottom:2px;}
+.merit-sel-desc{font-size:11px;color:var(--subtext);line-height:1.4;}
+.merit-sel-cost{font-size:9px;font-family:'Cinzel',serif;background:var(--crimson);color:var(--gold-lt);
+  padding:2px 5px;border-radius:2px;white-space:nowrap;flex-shrink:0;}
+
+/* SPECIALTY FORM */
+.spec-form{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+.spec-form select,.spec-form input{background:var(--field-bg);border:1px solid var(--field-border);
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:5px 8px;outline:none;transition:border-color .2s;}
+.spec-form select:focus,.spec-form input:focus{border-color:var(--gold-dim);}
+.spec-form select{flex:0 0 140px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}
+.spec-form select option,.fi option{background:#0e0b08;color:#d4c898;}
+.spec-form input{flex:1;}
+
+/* CUSTOM INPUT FORM */
+.custom-form{background:rgba(122,94,24,.08);border:1px solid rgba(122,94,24,.3);padding:10px;margin-bottom:10px;}
+.custom-form-title{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;}
+.custom-form input,.custom-form textarea{width:100%;background:var(--field-bg);border:1px solid var(--field-border);
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:6px 8px;outline:none;
+  margin-bottom:6px;transition:border-color .2s;}
+.custom-form input:focus,.custom-form textarea:focus{border-color:var(--gold-dim);}
+.custom-form textarea{resize:vertical;min-height:60px;}
+
+/* SETUP */
+.setup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9500;
+  display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.setup-overlay.open{display:flex;}
+.setup-box{background:var(--panel);border:1px solid var(--border);max-width:480px;width:90%;overflow:hidden;}
+.setup-hdr{background:var(--crimson);padding:12px 16px;border-bottom:1px solid var(--gold-dim);}
+.setup-hdr h2{font-family:'Cinzel Decorative',serif;font-size:16px;color:var(--gold-lt);letter-spacing:2px;}
+.setup-hdr p{font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;letter-spacing:1px;margin-top:3px;}
+.setup-body{padding:16px;}
+.sf{margin-bottom:12px;}
+.sf label{display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:5px;}
+.sf input{width:100%;background:var(--field-bg);border:1px solid var(--field-border);
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:7px 10px;outline:none;transition:border-color .2s;}
+.sf input:focus{border-color:var(--gold-dim);}
+.sf .hint{font-size:11px;color:var(--subtext);font-style:italic;margin-top:4px;line-height:1.4;}
+.setup-footer{padding:10px 16px;border-top:1px solid var(--field-border);display:flex;justify-content:flex-end;gap:8px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;z-index:9800;background:var(--panel);border:1px solid var(--border);
+  padding:10px 16px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;color:var(--gold-lt);
+  box-shadow:0 4px 20px rgba(0,0,0,.6);animation:toastIn .3s ease;max-width:300px;}
+.toast.error{border-color:var(--crimson);color:var(--crimson-lt);}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 </style>
 </head>
 <body>
 
+<!-- TOOLTIP -->
 <div id="tooltip">
   <div class="tt-title" id="tt-title"></div>
   <div class="tt-meta" id="tt-meta"></div>
@@ -34,21 +467,27 @@ const firebaseConfig = {
   <div class="tt-sys" id="tt-sys" style="display:none"></div>
 </div>
 
+<!-- SETUP MODAL -->
 <div class="setup-overlay" id="setupOverlay">
   <div class="setup-box">
     <div class="setup-hdr">
       <h2>Session Sync Setup</h2>
-      <p>Ask your DM for the Campaign ID to sync via Firebase.</p>
+      <p>Ask your DM for the Group Sync Code — no GitHub account needed</p>
     </div>
     <div class="setup-body">
       <div class="sf">
-        <label>Campaign ID</label>
-        <input type="text" id="setup_campaign" placeholder="The secret code your DM gave you">
-        <div class="hint">Connects you to your DM's specific campaign. Ask them for this code.</div>
+        <label>Group Sync Code (from your DM)</label>
+        <input type="password" id="setup_token" placeholder="Paste the code your DM gave you">
+        <div class="hint">Your DM has a shared code for the whole group. You do <strong>not</strong> need a GitHub account. Paste the code here once and your sheet will sync so your DM can see it during sessions.</div>
       </div>
       <div class="sf">
         <label>Character Name</label>
         <input type="text" id="setup_charname" placeholder="Your character name">
+      </div>
+      <div class="sf">
+        <label>Returning player? Paste your Sheet ID here</label>
+        <input type="text" id="setup_gistid" placeholder="Leave blank for a brand new character">
+        <div class="hint">Your DM can give you your Sheet ID if you want to continue from a previous sheet on a new device.</div>
       </div>
     </div>
     <div class="setup-footer">
@@ -58,6 +497,7 @@ const firebaseConfig = {
   </div>
 </div>
 
+<!-- MAIN MODAL (disciplines / merits / flaws / specialties) -->
 <div class="modal-overlay" id="mainModal">
   <div class="modal">
     <div class="modal-header">
@@ -73,6 +513,7 @@ const firebaseConfig = {
 
 <div class="page">
 
+<!-- HEADER -->
 <div class="header">
   <div style="color:var(--gold-dim);font-size:10px;letter-spacing:8px;margin-bottom:6px;font-family:'Cinzel',serif;">✦ VAMPIRE THE MASQUERADE V5 ✦</div>
   <input class="header-name-input" id="f_name" placeholder="CHARACTER NAME" oninput="updateHeader()">
@@ -80,10 +521,11 @@ const firebaseConfig = {
   <div class="header-div"></div>
 </div>
 
+<!-- SAVE BAR -->
 <div class="save-bar">
   <span class="save-status" id="saveStatus">Ready</span>
   <button class="btn" onclick="saveAll()">Save (Ctrl+S)</button>
-  <button class="btn green" id="syncBtn" onclick="syncToCloud()">☁ Sync to Cloud</button>
+  <button class="btn green" id="syncBtn" onclick="syncToFirestore()()">☁ Sync to DM</button>
   <button class="btn" onclick="exportJSON()">Export JSON</button>
   <button class="btn" onclick="document.getElementById('importFile').click()">Import JSON</button>
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
@@ -92,6 +534,7 @@ const firebaseConfig = {
   <button class="btn danger" onclick="resetAll()">Reset</button>
 </div>
 
+<!-- IDENTITY + CHRONICLE -->
 <div class="grid-2">
   <div class="panel">
     <div class="ph"><span class="ph-left">Identity</span></div>
@@ -131,6 +574,7 @@ const firebaseConfig = {
   </div>
 </div>
 
+<!-- ATTRIBUTES -->
 <div class="panel full">
   <div class="ph"><span class="ph-left">Attributes</span></div>
   <div class="pb">
@@ -157,6 +601,7 @@ const firebaseConfig = {
   </div>
 </div>
 
+<!-- SKILLS -->
 <div class="panel full">
   <div class="ph"><span class="ph-left">Skills</span></div>
   <div class="pb">
@@ -201,7 +646,9 @@ const firebaseConfig = {
   </div>
 </div>
 
+<!-- DISCIPLINES + ADVANTAGES -->
 <div class="grid-2">
+  <!-- DISCIPLINES -->
   <div class="panel">
     <div class="ph">
       <span class="ph-left">Disciplines</span>
@@ -215,6 +662,7 @@ const firebaseConfig = {
     </div>
   </div>
 
+  <!-- ADVANTAGES + FLAWS -->
   <div class="panel">
     <div class="ph">
       <span class="ph-left">Advantages & Flaws</span>
@@ -242,6 +690,7 @@ const firebaseConfig = {
   </div>
 </div>
 
+<!-- SPECIALTIES + RITUALS -->
 <div class="grid-2">
   <div class="panel">
     <div class="ph">
@@ -265,6 +714,7 @@ const firebaseConfig = {
   </div>
 </div>
 
+<!-- HEALTH + WILLPOWER -->
 <div class="grid-2">
   <div class="panel">
     <div class="ph"><span class="ph-left">Health</span><span style="font-size:8px;color:var(--subtext);letter-spacing:1px">Stamina + 3</span></div>
@@ -294,9 +744,12 @@ const firebaseConfig = {
   </div>
 </div>
 
+<!-- THE BLOOD -->
 <div class="panel full">
   <div class="ph"><span class="ph-left">The Blood</span></div>
   <div class="pb">
+
+    <!-- Blood Potency row -->
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:8px;">
       <div>
         <div class="itl" style="margin-top:0;margin-bottom:4px">Blood Potency</div>
@@ -317,15 +770,38 @@ const firebaseConfig = {
         </div>
       </div>
     </div>
+
+    <!-- BP stat grid -->
     <div class="bp-stat-grid">
-      <div class="bp-stat"><div class="bp-stat-label">Blood Surge</div><div class="bp-stat-value">Add <b id="bp_surge">2</b> dice to any pool</div></div>
-      <div class="bp-stat"><div class="bp-stat-label">Bane Severity</div><div class="bp-stat-value"><b id="bp_bane_sev">2</b></div></div>
-      <div class="bp-stat"><div class="bp-stat-label">Power Bonus</div><div class="bp-stat-value" id="bp_power_bonus">—</div></div>
-      <div class="bp-stat"><div class="bp-stat-label">Mend Amount</div><div class="bp-stat-value" id="bp_mend">1 Superficial</div></div>
-      <div class="bp-stat"><div class="bp-stat-label">Rouse Re-Roll</div><div class="bp-stat-value" id="bp_rouse">Level 1</div></div>
-      <div class="bp-stat"><div class="bp-stat-label">Feeding Penalty</div><div class="bp-stat-value" id="bp_feeding">No penalty</div></div>
+      <div class="bp-stat">
+        <div class="bp-stat-label">Blood Surge</div>
+        <div class="bp-stat-value">Add <b id="bp_surge">2</b> dice to any pool</div>
+      </div>
+      <div class="bp-stat">
+        <div class="bp-stat-label">Bane Severity</div>
+        <div class="bp-stat-value"><b id="bp_bane_sev">2</b></div>
+      </div>
+      <div class="bp-stat">
+        <div class="bp-stat-label">Power Bonus</div>
+        <div class="bp-stat-value" id="bp_power_bonus">—</div>
+      </div>
+      <div class="bp-stat">
+        <div class="bp-stat-label">Mend Amount</div>
+        <div class="bp-stat-value" id="bp_mend">1 Superficial</div>
+      </div>
+      <div class="bp-stat">
+        <div class="bp-stat-label">Rouse Re-Roll</div>
+        <div class="bp-stat-value" id="bp_rouse">Level 1</div>
+      </div>
+      <div class="bp-stat">
+        <div class="bp-stat-label">Feeding Penalty</div>
+        <div class="bp-stat-value" id="bp_feeding">No penalty</div>
+      </div>
     </div>
+
     <div class="div"></div>
+
+    <!-- Humanity + Hunger + Stains row -->
     <div class="grid-3" style="margin-bottom:0">
       <div>
         <div class="itl" style="margin-top:0;margin-bottom:4px">Humanity</div>
@@ -346,9 +822,11 @@ const firebaseConfig = {
         <input class="fi" id="f_dyscrasia" placeholder="Exceptional resonance notes...">
       </div>
     </div>
+
   </div>
 </div>
 
+<!-- XP TRACKER -->
 <div class="panel full">
   <div class="ph">
     <span class="ph-left">Experience</span>
@@ -356,28 +834,91 @@ const firebaseConfig = {
   </div>
   <div class="pb">
     <div class="xp-summary">
-      <div class="xp-box"><div class="xp-box-label">Total Earned</div><div class="xp-box-val" id="xp_total_big">0</div></div>
-      <div class="xp-box"><div class="xp-box-label">Spent</div><div class="xp-box-val spent" id="xp_spent_big">0</div></div>
-      <div class="xp-box"><div class="xp-box-label">Remaining</div><div class="xp-box-val remaining" id="xp_remain_big">0</div></div>
+      <div class="xp-box">
+        <div class="xp-box-label">Total Earned</div>
+        <div class="xp-box-val" id="xp_total_big">0</div>
+      </div>
+      <div class="xp-box">
+        <div class="xp-box-label">Spent</div>
+        <div class="xp-box-val spent" id="xp_spent_big">0</div>
+      </div>
+      <div class="xp-box">
+        <div class="xp-box-label">Remaining</div>
+        <div class="xp-box-val remaining" id="xp_remain_big">0</div>
+      </div>
     </div>
+
+    <!-- XP Cost Reference -->
+    <div class="xp-ref">
+      <div class="xp-ref-title">XP Cost Reference</div>
+      <div class="xp-ref-grid">
+        <div class="xp-ref-cat">
+          <div class="xp-ref-cat-title">Attributes &amp; Skills</div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Attribute (new dot)</span><span class="xp-ref-cost">5 per dot</span></div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Skill (new dot)</span><span class="xp-ref-cost">3 per dot</span></div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Skill Specialty</span><span class="xp-ref-cost">3</span></div>
+        </div>
+        <div class="xp-ref-cat">
+          <div class="xp-ref-cat-title">Disciplines</div>
+          <div class="xp-ref-row"><span class="xp-ref-item">In-clan (new dot)</span><span class="xp-ref-cost">5 per dot</span></div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Out-of-clan (new dot)</span><span class="xp-ref-cost">7 per dot</span></div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Blood Sorcery ritual</span><span class="xp-ref-cost">3 × level</span></div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Thin-Blood formula</span><span class="xp-ref-cost">3 × level</span></div>
+        </div>
+        <div class="xp-ref-cat">
+          <div class="xp-ref-cat-title">Other</div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Merit (new dot)</span><span class="xp-ref-cost">3 per dot</span></div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Blood Potency</span><span class="xp-ref-cost">6 per dot</span></div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Humanity (rouse)</span><span class="xp-ref-cost">3 per dot</span></div>
+          <div class="xp-ref-row"><span class="xp-ref-item">Loresheets</span><span class="xp-ref-cost">1–5</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add entry row -->
     <div class="xp-add-row">
-      <select id="xp_type" style="flex:0 0 90px"><option value="gain">+ Gain</option><option value="spend">− Spend</option></select>
+      <select id="xp_type" style="flex:0 0 90px">
+        <option value="gain">+ Gain</option>
+        <option value="spend">− Spend</option>
+      </select>
       <input type="number" id="xp_amount" placeholder="XP" min="1" style="width:64px;flex-shrink:0">
-      <select id="xp_cat" style="flex:0 0 140px"><option value="Award">Award</option><option value="Attribute">Attribute</option><option value="Skill">Skill</option><option value="Discipline">Discipline</option><option value="Ritual">Ritual</option><option value="Merit">Merit</option><option value="Other">Other</option></select>
+      <select id="xp_cat" style="flex:0 0 140px">
+        <option value="Award">Award</option>
+        <option value="Attribute">Attribute</option>
+        <option value="Skill">Skill</option>
+        <option value="Discipline">Discipline</option>
+        <option value="Ritual">Ritual</option>
+        <option value="Merit">Merit</option>
+        <option value="Other">Other</option>
+      </select>
       <input type="text" id="xp_desc" placeholder="Description (e.g. Auspex ●●, session reward...)" style="flex:1;min-width:160px">
       <button class="btn green" onclick="addXPEntry()">Add</button>
     </div>
-    <div class="xp-log" id="xp_log"><div class="xp-empty" id="xp_empty">No entries yet. Add XP gains and spends above.</div></div>
+
+    <!-- Log -->
+    <div class="xp-log" id="xp_log">
+      <div class="xp-empty" id="xp_empty">No entries yet. Add XP gains and spends above.</div>
+    </div>
   </div>
 </div>
 
+<!-- CONVICTIONS + AMBITION -->
 <div class="grid-2">
   <div class="panel">
     <div class="ph"><span class="ph-left">Convictions & Touchstones</span></div>
     <div class="pb">
-      <div class="cp"><div class="cl cv">Conviction I</div><input class="fi" id="conv_1" placeholder="Your conviction..." style="margin-bottom:4px"><div class="cl ts">Touchstone I</div><input class="fi" id="touch_1" placeholder="Linked person or object..."></div>
-      <div class="cp"><div class="cl cv">Conviction II</div><input class="fi" id="conv_2" placeholder="Your conviction..." style="margin-bottom:4px"><div class="cl ts">Touchstone II</div><input class="fi" id="touch_2" placeholder="Linked person or object..."></div>
-      <div class="cp"><div class="cl cv">Conviction III</div><input class="fi" id="conv_3" placeholder="Your conviction..." style="margin-bottom:4px"><div class="cl ts">Touchstone III</div><input class="fi" id="touch_3" placeholder="Linked person or object..."></div>
+      <div class="cp">
+        <div class="cl cv">Conviction I</div><input class="fi" id="conv_1" placeholder="Your conviction..." style="margin-bottom:4px">
+        <div class="cl ts">Touchstone I</div><input class="fi" id="touch_1" placeholder="Linked person or object...">
+      </div>
+      <div class="cp">
+        <div class="cl cv">Conviction II</div><input class="fi" id="conv_2" placeholder="Your conviction..." style="margin-bottom:4px">
+        <div class="cl ts">Touchstone II</div><input class="fi" id="touch_2" placeholder="Linked person or object...">
+      </div>
+      <div class="cp">
+        <div class="cl cv">Conviction III</div><input class="fi" id="conv_3" placeholder="Your conviction..." style="margin-bottom:4px">
+        <div class="cl ts">Touchstone III</div><input class="fi" id="touch_3" placeholder="Linked person or object...">
+      </div>
     </div>
   </div>
   <div class="panel">
@@ -391,118 +932,1157 @@ const firebaseConfig = {
   </div>
 </div>
 
+<!-- FEEDING LOG -->
 <div class="panel full">
   <div class="ph"><span class="ph-left">Feeding Log</span></div>
   <div class="pb">
     <div class="feed-add-row">
-      <select id="feed_resonance" style="flex:0 0 130px"><option value="">— Resonance —</option><option value="phleg">Phlegmatic</option><option value="sang">Sanguine</option><option value="chol">Choleric</option><option value="melan">Melancholic</option><option value="empty">Empty (Thin)</option><option value="">Animal / Unknown</option></select>
+      <select id="feed_resonance" style="flex:0 0 130px">
+        <option value="">— Resonance —</option>
+        <option value="phleg">Phlegmatic</option>
+        <option value="sang">Sanguine</option>
+        <option value="chol">Choleric</option>
+        <option value="melan">Melancholic</option>
+        <option value="empty">Empty (Thin)</option>
+        <option value="">Animal / Unknown</option>
+      </select>
       <input type="number" id="feed_hunger" placeholder="Hunger lost" min="1" max="5" style="width:90px;flex-shrink:0">
       <input type="text" id="feed_target" placeholder="Who / what was fed on..." style="flex:1;min-width:150px">
       <input type="text" id="feed_notes" placeholder="Notes (dyscrasia, complications...)" style="flex:1;min-width:150px">
       <button class="btn green" onclick="addFeedEntry()">Log</button>
     </div>
-    <div class="feed-log" id="feed_log"><div class="xp-empty" id="feed_empty">No feeding entries yet.</div></div>
+    <div class="feed-log" id="feed_log">
+      <div class="xp-empty" id="feed_empty">No feeding entries yet.</div>
+    </div>
   </div>
 </div>
 
+<!-- DOWNTIME TRACKER -->
 <div class="panel full">
-  <div class="ph"><span class="ph-left">Downtime</span><button class="add-btn" style="margin-left:auto" onclick="addDowntimeSession()">+ New Session</button></div>
-  <div class="pb"><div id="downtime_list"><div class="xp-empty" id="downtime_empty">No downtime sessions yet. Click + New Session.</div></div></div>
+  <div class="ph">
+    <span class="ph-left">Downtime</span>
+    <button class="add-btn" style="margin-left:auto" onclick="addDowntimeSession()">+ New Session</button>
+  </div>
+  <div class="pb">
+    <div id="downtime_list">
+      <div class="xp-empty" id="downtime_empty">No downtime sessions yet. Click + New Session.</div>
+    </div>
+  </div>
 </div>
 
+<!-- COTERIE -->
 <div class="panel full">
-  <div class="ph"><span class="ph-left">Coterie</span><button class="add-btn" style="margin-left:auto" onclick="openCoterieModal()">+ Add Member</button></div>
+  <div class="ph">
+    <span class="ph-left">Coterie</span>
+    <button class="add-btn" style="margin-left:auto" onclick="openCoterieModal()">+ Add Member</button>
+  </div>
   <div class="pb">
     <div class="fr" style="margin-bottom:10px">
       <span class="fl">Coterie Type</span>
       <select class="fi" id="f_coterie_type">
-        <option value="">— Select —</option><option>Hunting Party</option><option>Nomads</option><option>Saboteurs</option><option>Cerberus</option><option>Champions</option><option>Day Watch</option><option>Freehold</option><option>Investigators</option><option>Lair</option><option>Messengers</option><option>Power Brokers</option><option>Regency</option><option>Sworn</option><option>War Party</option>
+        <option value="">— Select —</option>
+        <option>Hunting Party</option><option>Nomads</option><option>Saboteurs</option>
+        <option>Cerberus</option><option>Champions</option><option>Day Watch</option>
+        <option>Freehold</option><option>Investigators</option><option>Lair</option>
+        <option>Messengers</option><option>Power Brokers</option><option>Regency</option>
+        <option>Sworn</option><option>War Party</option>
       </select>
     </div>
     <div class="fr" style="margin-bottom:12px">
-      <span class="fl">Shared Resources</span><input class="fi" id="f_coterie_resources" placeholder="Shared haven, contacts, assets...">
+      <span class="fl">Shared Resources</span>
+      <input class="fi" id="f_coterie_resources" placeholder="Shared haven, contacts, assets...">
     </div>
-    <div id="coterie_list"><div class="xp-empty" id="coterie_empty">No members added yet.</div></div>
+    <div id="coterie_list">
+      <div class="xp-empty" id="coterie_empty">No members added yet.</div>
+    </div>
   </div>
 </div>
 
+<!-- RELATIONSHIPS / NPC MAP -->
 <div class="panel full">
-  <div class="ph"><span class="ph-left">Relationships & NPCs</span><button class="add-btn" style="margin-left:auto" onclick="openNPCModal()">+ Add NPC</button></div>
-  <div class="pb"><div id="npc_list"><div class="xp-empty" id="npc_empty">No NPCs tracked yet. Add people who matter to your character.</div></div></div>
+  <div class="ph">
+    <span class="ph-left">Relationships & NPCs</span>
+    <button class="add-btn" style="margin-left:auto" onclick="openNPCModal()">+ Add NPC</button>
+  </div>
+  <div class="pb">
+    <div id="npc_list">
+      <div class="xp-empty" id="npc_empty">No NPCs tracked yet. Add people who matter to your character.</div>
+    </div>
+  </div>
 </div>
 
+<!-- BACKGROUND -->
 <div class="panel full">
   <div class="ph"><span class="ph-left">Background</span></div>
-  <div class="pb"><textarea class="fta xxl" id="f_backstory" placeholder="Your character's history — mortal life, the Embrace, what brought you here..."></textarea></div>
+  <div class="pb">
+    <textarea class="fta xxl" id="f_backstory" placeholder="Your character's history — mortal life, the Embrace, what brought you here..."></textarea>
+  </div>
 </div>
 
+<!-- PLAYER NOTES (visible to DM) -->
 <div class="panel full">
   <div class="ph"><span class="ph-left">Player Notes &nbsp;<span style="font-size:8px;color:var(--green-lt);letter-spacing:1px">◈ Your DM can read these when you sync</span></span></div>
   <div class="pb">
-    <div class="shared-label">These notes are shared with your DM each time you hit ☁ Sync to Cloud</div>
-    <div class="itl">Session Log</div><textarea class="fta lg" id="notes_session" placeholder="Session notes, events, what happened..."></textarea>
-    <div class="itl" style="margin-top:8px">NPC Relationships</div><textarea class="fta lg" id="notes_npcs" placeholder="People you've met, relationships, impressions..."></textarea>
-    <div class="itl" style="margin-top:8px">Goals & Plans</div><textarea class="fta" id="notes_goals" placeholder="What you're currently pursuing..."></textarea>
-    <div class="itl" style="margin-top:8px">General Notes</div><textarea class="fta lg" id="notes_general" placeholder="Anything else..."></textarea>
+    <div class="shared-label">These notes are shared with your DM each time you hit ☁ Sync to DM</div>
+    <div class="itl">Session Log</div>
+    <textarea class="fta lg" id="notes_session" placeholder="Session notes, events, what happened..."></textarea>
+    <div class="itl" style="margin-top:8px">NPC Relationships</div>
+    <textarea class="fta lg" id="notes_npcs" placeholder="People you've met, relationships, impressions..."></textarea>
+    <div class="itl" style="margin-top:8px">Goals & Plans</div>
+    <textarea class="fta" id="notes_goals" placeholder="What you're currently pursuing..."></textarea>
+    <div class="itl" style="margin-top:8px">General Notes</div>
+    <textarea class="fta lg" id="notes_general" placeholder="Anything else..."></textarea>
   </div>
 </div>
 
+<!-- PRIVATE NOTES -->
 <div class="panel full">
   <div class="ph"><span class="ph-left">Private Notes &nbsp;<span style="font-size:8px;color:var(--crimson-lt);letter-spacing:1px">✕ Never synced</span></span></div>
-  <div class="pb"><textarea class="fta xl" id="notes_private" placeholder="Private thoughts — never uploaded to Cloud..."></textarea></div>
+  <div class="pb">
+    <textarea class="fta xl" id="notes_private" placeholder="Private thoughts — never uploaded to GitHub..."></textarea>
+  </div>
 </div>
 
 <div class="footer">✦ &nbsp; Vampire: The Masquerade V5 &nbsp;·&nbsp; Player Sheet &nbsp;·&nbsp; Player Sheet — Group Sync &nbsp; ✦</div>
-</div>
+</div><!-- end .page -->
 
 <script>
-// ALL VTM DATA AND UI LOGIC STAYS EXACTLY THE SAME AS ORIGINAL
+// ════════════════════════════════════════════════════════════
+// VTM DATA (inline)
+// ════════════════════════════════════════════════════════════
 const VTM = {
-  disciplines: { /* omitted for brevity, same as original */ },
-  merits: { /* omitted for brevity, same as original */ },
-  flaws: { /* omitted for brevity, same as original */ },
+  disciplines: {
+    animalism:{name:"Animalism",icon:"🐺",desc:"Interact with and control animals",powers:{1:[{name:"Bond Famulus",desc:"Bind a small animal as a permanent familiar. Share a mental link.",dice:"CHARISMA + ANIMALISM",rouses:1},{name:"Sense the Beast",desc:"Detect Hunger, fear, and predatory nature in others. Sense supernatural beings.",dice:"WITS / RESOLVE + ANIMALISM",rouses:0}],2:[{name:"Feral Whispers",desc:"Communicate with any animal, give simple commands, receive information.",dice:"MANIPULATION + ANIMALISM",rouses:0},{name:"Animal Succulence",desc:"Animal blood satisfies your Hunger as if from a human.",dice:"RESOLVE + ANIMALISM",rouses:0}],3:[{name:"Quell the Beast",desc:"Suppress predatory nature in mortal or vampire, preventing Frenzy.",dice:"CHARISMA + ANIMALISM",rouses:1},{name:"Unliving Hive",desc:"Control insects and vermin, directing swarms as extensions of your will.",dice:"STAMINA + ANIMALISM",rouses:1}],4:[{name:"Subsume the Spirit",desc:"Project your mind into an animal, controlling its body while yours lies dormant.",dice:"INTELLIGENCE + ANIMALISM",rouses:1},{name:"Animal Dominion",desc:"Command all animals in area simultaneously as a unified force.",dice:"CHARISMA + ANIMALISM",rouses:2}],5:[{name:"Drawing Out the Beast",desc:"Expel your own Beast into another, forcing immediate Frenzy.",dice:"MANIPULATION + ANIMALISM",rouses:2}]}},
+    auspex:{name:"Auspex",icon:"👁",desc:"Supernatural senses and premonitions",powers:{1:[{name:"Sense the Unseen",desc:"Sense supernatural activity, spirits, hidden beings. Detect Obfuscate users.",dice:"WITS / RESOLVE + AUSPEX",rouses:0}],2:[{name:"Obeah",desc:"Soothe psychological turmoil, calm someone's Beast or relieve trauma.",dice:"COMPOSURE + AUSPEX",rouses:1},{name:"Unerring Pursuit",desc:"Create a bond with a target to spy on them — sense their location, observe through their senses.",dice:"RESOLVE + AUSPEX",rouses:1}],3:[{name:"Fatal Flaw",desc:"Determine a target's greatest weakness — physical, psychological, or supernatural.",dice:"INTELLIGENCE + AUSPEX",rouses:1},{name:"Scry the Soul",desc:"See auras — revealing emotional state, supernatural nature, and secrets.",dice:"INTELLIGENCE + AUSPEX",rouses:1},{name:"Share the Senses",desc:"Sense through another person — see through their eyes, hear through their ears.",dice:"RESOLVE + AUSPEX",rouses:1}]}},
+    blood_sorcery:{name:"Blood Sorcery",icon:"🩸",desc:"Use blood-related magic and rituals",powers:{1:[{name:"Corrosive Vitae",desc:"Your blood becomes caustic, dissolving material. Deals Aggravated damage to Kindred.",dice:"STRENGTH + BLOOD SORCERY",rouses:1},{name:"A Taste for Blood",desc:"Learn information about a target by tasting their blood — age, clan, emotional state.",dice:"INTELLIGENCE + BLOOD SORCERY",rouses:0}],2:[{name:"Extinguish Vitae",desc:"Disrupt another vampire's blood, forcing Rouse checks or causing Hunger.",dice:"INTELLIGENCE + BLOOD SORCERY",rouses:1},{name:"Scour Secrets",desc:"Taste a drop of blood to divine hidden truths — secrets, fears, locations of loved ones.",dice:"INTELLIGENCE + BLOOD SORCERY",rouses:1}],3:[{name:"Blood of Potency",desc:"Temporarily increase your Blood Potency, gaining elder benefits.",dice:"RESOLVE + BLOOD SORCERY",rouses:1},{name:"Theft of Vitae",desc:"Draw blood from a target at range, pulling it through the air into your mouth.",dice:"WITS + BLOOD SORCERY",rouses:1}],4:[{name:"Baal's Caress",desc:"Coat a weapon in vitae to deal Aggravated damage even to mortals.",dice:"WITS + BLOOD SORCERY",rouses:1}],5:[{name:"Cauldron of Blood",desc:"Boil the blood in a target's body, dealing massive Aggravated damage.",dice:"RESOLVE + BLOOD SORCERY",rouses:3}]}},
+    celerity:{name:"Celerity",icon:"⚡",desc:"Move with supernatural speed",powers:{1:[{name:"Cat's Grace",desc:"Perfect balance — never fall, always land on feet. Ignore difficult terrain.",dice:"PASSIVE",rouses:0}],2:[{name:"Fleetness",desc:"Add Celerity dots to Dexterity for one scene. Move with blinding speed.",dice:"PASSIVE",rouses:1}],3:[{name:"Blink",desc:"Move so fast you appear to teleport short distances.",dice:"DEXTERITY + CELERITY",rouses:1}],4:[{name:"Traversal",desc:"Run up walls and across water, briefly defying gravity.",dice:"DEXTERITY + CELERITY",rouses:1}],5:[{name:"Unerring Aim",desc:"Combined with ranged weapon — never miss regardless of cover.",dice:"COMPOSURE + CELERITY",rouses:2}]}},
+    dominate:{name:"Dominate",icon:"🧠",desc:"Control other's minds",powers:{1:[{name:"Cloud Memory",desc:"Erase a short stretch of memory — up to five minutes. Requires eye contact.",dice:"CHARISMA + DOMINATE",rouses:0},{name:"Compel",desc:"Issue a single word or short command the target must immediately obey.",dice:"CHARISMA + DOMINATE",rouses:0}],2:[{name:"Mesmerize",desc:"Implant a complex instruction or false memory in a target's mind.",dice:"MANIPULATION + DOMINATE",rouses:1},{name:"Domitor's Favor",desc:"Resist blood bonds placed on you. Your regnant's hold is weakened.",dice:"RESOLVE + DOMINATE",rouses:0}],3:[{name:"The Forgetful Mind",desc:"Completely rewrite a target's memories of an event.",dice:"MANIPULATION + DOMINATE",rouses:1},{name:"Submerged Directive",desc:"Plant a trigger — when a specific event occurs the target carries out your hidden command.",dice:"INTELLIGENCE + DOMINATE",rouses:1}],4:[{name:"Rationalize",desc:"A Dominated target will construct logical justifications for actions you compelled.",dice:"INTELLIGENCE + DOMINATE",rouses:1}],5:[{name:"Mass Manipulation",desc:"Dominate a crowd simultaneously without individual eye contact.",dice:"MANIPULATION + DOMINATE",rouses:2}]}},
+    fortitude:{name:"Fortitude",icon:"🛡",desc:"Resist damage and influence",powers:{1:[{name:"Resilience",desc:"Harden your body — Superficial damage from physical attacks is halved.",dice:"PASSIVE",rouses:0}],2:[{name:"Unswayable Mind",desc:"Resist mental domination and supernatural social influence.",dice:"RESOLVE + FORTITUDE",rouses:0}],3:[{name:"Toughness",desc:"Downgrade Aggravated damage to Superficial. Survive injuries that should be lethal.",dice:"STAMINA + FORTITUDE",rouses:1}],4:[{name:"Defy Bane",desc:"Temporarily overcome your clan bane or a specific supernatural weakness.",dice:"COMPOSURE + FORTITUDE",rouses:2}],5:[{name:"Flesh of Marble",desc:"Become nearly indestructible for a scene — most damage cannot affect you.",dice:"STAMINA + FORTITUDE",rouses:3}]}},
+    obfuscate:{name:"Obfuscate",icon:"👤",desc:"Remain undetected",powers:{1:[{name:"Cloak of Shadows",desc:"Remain perfectly still to become invisible, blending into the environment.",dice:"PASSIVE",rouses:0},{name:"Silence of Death",desc:"Move without making any sound — footsteps, rustling, breathing, all silenced.",dice:"PASSIVE",rouses:0}],2:[{name:"Unseen Passage",desc:"Move while remaining invisible — not just while stationary.",dice:"WITS + OBFUSCATE",rouses:1}],3:[{name:"Mask of a Thousand Faces",desc:"Alter your appearance to look like any person you've seen.",dice:"MANIPULATION + OBFUSCATE",rouses:1},{name:"Ghost in the Machine",desc:"Disappear from cameras, microphones, and digital recording devices.",dice:"INTELLIGENCE + OBFUSCATE",rouses:1}],4:[{name:"Conceal",desc:"Extend your Obfuscate to hide an object or another person.",dice:"WITS + OBFUSCATE",rouses:1}],5:[{name:"Phantasm",desc:"Create convincing illusions — visual and auditory hallucinations fooling all observers.",dice:"MANIPULATION + OBFUSCATE",rouses:2}]}},
+    oblivion:{name:"Oblivion",icon:"💀",desc:"Shadow powers and necromancy",powers:{1:[{name:"Stygian Shroud",desc:"Drain warmth and light from an area, creating unnatural cold and shadow.",dice:"COMPOSURE + OBLIVION",rouses:1},{name:"Ashes to Ashes",desc:"Accelerate decay of a dead body, turning it to dust rapidly.",dice:"INTELLIGENCE + OBLIVION",rouses:0}],2:[{name:"Where the Shroud Thins",desc:"Sense ghosts and the presence of death in an area.",dice:"COMPOSURE + OBLIVION",rouses:0}],3:[{name:"Shadow Cloak",desc:"Wrap yourself in living shadow, granting concealment and supernatural intimidation.",dice:"RESOLVE + OBLIVION",rouses:1},{name:"Touch of Oblivion",desc:"Your touch deals Aggravated damage by channeling the void.",dice:"STAMINA + OBLIVION",rouses:2}],4:[{name:"Necrotic Plague",desc:"Inflict supernatural decay on a target.",dice:"RESOLVE + OBLIVION",rouses:2}],5:[{name:"Tenebrous Avatar",desc:"Transform into a being of living shadow, gaining immunity to physical attacks.",dice:"RESOLVE + OBLIVION",rouses:3}]}},
+    potence:{name:"Potence",icon:"💪",desc:"Gain supernatural strength",powers:{1:[{name:"Lethal Body",desc:"Your unarmed attacks deal Aggravated damage to mortals.",dice:"PASSIVE",rouses:0}],2:[{name:"Soaring Leap",desc:"Jump incredible distances — clear buildings, leap across rooftops.",dice:"PASSIVE",rouses:0}],3:[{name:"Uncanny Strength",desc:"Add Potence dots to Strength for one scene.",dice:"PASSIVE",rouses:1}],4:[{name:"Brutal Feed",desc:"Rip through armor and supernatural resilience — ignore armor and Fortitude.",dice:"STRENGTH + POTENCE",rouses:1}],5:[{name:"Earthshock",desc:"Strike the ground to send a shockwave, knocking down everyone nearby.",dice:"STRENGTH + POTENCE",rouses:2}]}},
+    presence:{name:"Presence",icon:"✨",desc:"Supernatural appearance and vibe",powers:{1:[{name:"Awe",desc:"Become the center of attention — everyone magnetically drawn to you.",dice:"CHARISMA + PRESENCE",rouses:0},{name:"Daunt",desc:"Project supernatural menace — mortals flee, vampires think twice.",dice:"CHARISMA + PRESENCE",rouses:0}],2:[{name:"Lingering Kiss",desc:"Your feeding causes ecstasy — targets crave being fed on again.",dice:"PASSIVE",rouses:0}],3:[{name:"Entrancement",desc:"A target becomes obsessively devoted to you, acting as a willing servant.",dice:"CHARISMA + PRESENCE",rouses:1}],4:[{name:"Summon",desc:"Call any being you've fed from to your location, regardless of distance.",dice:"MANIPULATION + PRESENCE",rouses:1}],5:[{name:"Majesty",desc:"No one can attack you or act against your wishes without spending Willpower.",dice:"CHARISMA + PRESENCE",rouses:3}]}},
+    protean:{name:"Protean",icon:"🦇",desc:"Shape your body supernaturally",powers:{1:[{name:"Eyes of the Beast",desc:"See perfectly in total darkness.",dice:"PASSIVE",rouses:0},{name:"Weight of a Feather",desc:"Control your weight, becoming lighter or heavier at will.",dice:"PASSIVE",rouses:0}],2:[{name:"Feral Weapons",desc:"Grow claws that deal Aggravated damage.",dice:"PASSIVE",rouses:1}],3:[{name:"Earth Meld",desc:"Sink into earth to hide during daylight, merging with soil or stone.",dice:"STAMINA + PROTEAN",rouses:1}],4:[{name:"Shapechange",desc:"Transform into a specific animal — bat, wolf, or rat.",dice:"STAMINA + PROTEAN",rouses:1}],5:[{name:"Metamorphosis",desc:"Take any form — mist, creature, or humanoid shape of your choice.",dice:"STAMINA + PROTEAN",rouses:2}]}},
+    thin_blood_alchemy:{name:"Thin-Blood Alchemy",icon:"⚗",desc:"Create supernatural formulae from blood",powers:{1:[{name:"Athanor Corporis",desc:"Create formulae that mimic Discipline powers using alchemical processes.",dice:"INTELLIGENCE + THIN-BLOOD ALCHEMY",rouses:1}],2:[{name:"Farouche",desc:"Create a formula that repels animals and mortals, making them deeply uncomfortable.",dice:"INTELLIGENCE + THIN-BLOOD ALCHEMY",rouses:1}],3:[{name:"Hemoalchemy",desc:"Create potent formulae that replicate higher-level Discipline effects.",dice:"INTELLIGENCE + THIN-BLOOD ALCHEMY",rouses:2}]}}
+  },
+  merits: {
+    looks:{label:"Looks",icon:"💄",items:[{name:"Beautiful",cost:"2",desc:"+1 die in Social rolls"},{name:"Stunning",cost:"4",desc:"+2 dice in Social rolls"}]},
+    haven:{label:"Haven",icon:"🏠",items:[{name:"Haven",cost:"1/2/3",desc:"Secure homebase — 1 apartment, 3 big building"},{name:"Hidden Armory",cost:"1",desc:"Weapons and armor in your haven"},{name:"Cell",cost:"1",desc:"You can imprison people in your haven"},{name:"Watchmen",cost:"1",desc:"Mortal security guards"},{name:"Luxury",cost:"1",desc:"+2 Dice on Social rolls in your haven"}]},
+    resources:{label:"Resources",icon:"💰",items:[{name:"Resources",cost:"1/2/3/4/5",desc:"Wealth & income — 1 afford basics, 5 afford anything"},{name:"Check the Trunk",cost:"1",desc:"Easy access to armory/tools; none more valuable than Resources 2"}]},
+    feeding:{label:"Feeding",icon:"🩸",items:[{name:"Bloodhound",cost:"1",desc:"Smell resonance in mortal blood"},{name:"High-functioning Addict",cost:"1",desc:"Add a die to one pool category when last feed from was on your drug"},{name:"Iron Gullet",cost:"3",desc:"Able to feed on rancid blood"}]},
+    mythic:{label:"Mythic",icon:"🌙",items:[{name:"Eat Food",cost:"2",desc:"Can consume normal food"}]},
+    mask:{label:"Mask",icon:"🎭",items:[{name:"Mask",cost:"1/2",desc:"Fake identity — lv2 passes background checks"},{name:"Zeroed",cost:"1",desc:"All real records purged, you officially don't exist"},{name:"Cobbler",cost:"1",desc:"You can make or source masks for others"}]},
+    linguistics:{label:"Linguistics",icon:"📜",items:[{name:"Linguistics",cost:"1",desc:"Fluently speak another language (one per dot)"}]},
+    kindred:{label:"Kindred",icon:"🧛",items:[{name:"Mawla",cost:"1/2/3/4/5",desc:"Kindred mentor to advise or help you"},{name:"Status",cost:"1/2/3/4/5",desc:"Positive reputation within a faction"}]},
+    mortals:{label:"Mortals",icon:"👤",items:[{name:"Retainer",cost:"1/2/3",desc:"Loyal mortal servant — 1 weak lowlife, 3 skilled professional"},{name:"Allies",cost:"1/2/3/4/5",desc:"Group of mortals to advise or help you"},{name:"Contacts",cost:"1/2/3",desc:"Mortals who provide information or valuable items"},{name:"Herd",cost:"1/2/3/4/5",desc:"Group of mortals who let you feed — 5 freely pick resonances"},{name:"Fame",cost:"1/2/3/4/5",desc:"1 a select subculture loves you, 5 globally loved"}]}
+  },
+  flaws: {
+    looks:{label:"Looks",icon:"💄",items:[{name:"Ugly",cost:"1",desc:"-1 die in Social rolls"},{name:"Repulsive",cost:"2",desc:"-2 dice in Social rolls"}]},
+    haven:{label:"Haven",icon:"🏠",items:[{name:"No Haven",cost:"1",desc:"You don't have a home"},{name:"Haunted",cost:"1",desc:"Ghostly presence in your haven"},{name:"Creepy",cost:"1",desc:"Haven looks like a serial killer's den — neighbors may call police"},{name:"Compromised",cost:"2",desc:"Your haven is on a watchlist"}]},
+    resources:{label:"Resources",icon:"💰",items:[{name:"Destitute",cost:"1",desc:"Poor and no income"}]},
+    feeding:{label:"Feeding",icon:"🩸",items:[{name:"Prey Exclusion",cost:"1",desc:"Can't feed on certain types of people"},{name:"Methusela's Thirst",cost:"1",desc:"Can't fully satiate on mortal blood"},{name:"Farmer",cost:"2",desc:"Feeding on non-animal blood costs 2 Willpower"},{name:"Organovore",cost:"2",desc:"Your hunger demands human flesh and organs"},{name:"Addiction",cost:"1",desc:"-1 die on all pools if last fed from wasn't on your drug"},{name:"Hopeless Addiction",cost:"2",desc:"-2 dice on all pools if last fed from wasn't on your drug"}]},
+    times:{label:"Keeping Up with the Times",icon:"📱",items:[{name:"Living in the Past",cost:"1",desc:"Outdated views and convictions"},{name:"Archaic",cost:"2",desc:"Can't use computers, Technology capped at 0"}]},
+    mythic:{label:"Mythic",icon:"🌙",items:[{name:"Folkloric Bane",cost:"1",desc:"Specific items damage you (e.g. silver, garlic)"},{name:"Folkloric Block",cost:"1",desc:"Must spend Willpower to move past specific block (e.g. running water)"},{name:"Stigmata",cost:"1",desc:"Bleed from hands/feet/forehead at Hunger 4"},{name:"Stake Bait",cost:"2",desc:"Final Death when staked"}]},
+    mask:{label:"Mask",icon:"🎭",items:[{name:"Known Corpse",cost:"1",desc:"Others know you're dead"},{name:"Known Blankbody",cost:"2",desc:"Certain governments/organizations know you're a vampire"}]},
+    linguistics:{label:"Linguistics",icon:"📜",items:[{name:"Illiterate",cost:"2",desc:"Can't read or write — Academics and Science capped at 1"}]},
+    kindred:{label:"Kindred",icon:"🧛",items:[{name:"Adversary",cost:"1",desc:"Kindred enemy"},{name:"Suspect",cost:"1",desc:"Bad reputation in a faction — -2 on Social tests"},{name:"Shunned",cost:"2",desc:"Despised by a faction"},{name:"Dark Secret",cost:"1/2",desc:"You have a dark secret — debt, blood hunt, masquerade breach"}]},
+    bonding:{label:"Bonding",icon:"🔗",items:[{name:"Long Bond",cost:"1",desc:"Blood bonds on you take longer to wane"},{name:"Bond Junkie",cost:"1",desc:"Lose one die on actions against your blood bond"},{name:"Bondslave",cost:"2",desc:"Blood bonds on you created on the first drink"}]}
+  },
   clans:["Banu Haqim","Brujah","Gangrel","Hecata","Lasombra","Malkavian","The Ministry","Nosferatu","Ravnos","Salubri","Toreador","Tremere","Tzimisce","Ventrue","Caitiff","Thin-blood"],
   predatorTypes:["Alleycat","Bagger","Blood Leech","Cleaver","Consensualist","Extortionist","Farmer","Graverobber","Grim Reaper","Montero","Osiris","Pursuer","Roadside Killer","Sandman","Scene Queen","Siren","Trapdoor"],
   skills:{physical:["Athletics","Brawl","Craft","Drive","Firearms","Larceny","Melee","Stealth","Survival"],social:["Animal Ken","Etiquette","Insight","Intimidation","Leadership","Performance","Persuasion","Streetwise","Subterfuge"],mental:["Academics","Awareness","Finance","Investigation","Medicine","Occult","Politics","Science","Technology"]}
 };
 
+// ════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════
 const SK = 'vtm_blank_v1';
 const SK_PRIV = 'vtm_blank_priv_v1';
 const SK_CFG = 'vtm_blank_cfg_v1';
 let cfg = {};
-let charId = localStorage.getItem('vtm_char_id') || ('char_' + Date.now());
-localStorage.setItem('vtm_char_id', charId);
-
-let state = { disciplines: [], merits: [], flaws: [], specialties: [], rituals: [], xpLog: [], feedLog: [], downtime: [], coterie: [], npcs: [] };
+let state = {
+  disciplines: [],
+  merits: [],
+  flaws: [],
+  specialties: [],
+  rituals: [],
+  xpLog: [],
+  feedLog: [],      // [{id, resonance, hunger, target, notes, date}]
+  downtime: [],     // [{id, session, activities:[{type,desc}]}]
+  coterie: [],      // [{id, name, clan, player, bp, vinculum, notes}]
+  npcs: []          // [{id, name, type, faction, relation, secrets, notes, open}]
+};
 let autoSyncTimer = null;
-let isApplyingSnapshot = false;
 
-// UI Helpers (same as your original)
-function g(id){const e=document.getElementById(id);return e?e.value:''}
-function s(id,v){const e=document.getElementById(id);if(e)e.value=v||''}
-function toast(msg, type) {
-  const ex = document.querySelector('.toast'); if (ex) ex.remove();
-  const el = document.createElement('div');
-  el.className = 'toast'+(type==='error'?' error':''); el.textContent = msg;
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(),4000);
+// ════════════════════════════════════════════════════════════
+// TOOLTIP
+// ════════════════════════════════════════════════════════════
+const tooltip = document.getElementById('tooltip');
+let ttHide;
+function showTT(e, title, meta, desc, sys) {
+  clearTimeout(ttHide);
+  document.getElementById('tt-title').textContent = title || '';
+  document.getElementById('tt-meta').textContent = meta || '';
+  document.getElementById('tt-desc').textContent = desc || '';
+  const sysEl = document.getElementById('tt-sys');
+  sysEl.textContent = sys || '';
+  sysEl.style.display = sys ? 'block' : 'none';
+  tooltip.style.display = 'block';
+  posTT(e);
 }
-function setStatus(msg, type) {
-  const el = document.getElementById('saveStatus');
-  el.textContent = msg; el.className = 'save-status'+(type?' '+type:'');
+function posTT(e) {
+  const x = e.clientX + 14, y = e.clientY + 14;
+  const tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
+  tooltip.style.left = (x + tw > window.innerWidth ? x - tw - 28 : x) + 'px';
+  tooltip.style.top  = (y + th > window.innerHeight ? y - th - 28 : y) + 'px';
 }
-function markUnsaved() {
-  if (isApplyingSnapshot) return;
-  setStatus('Unsaved changes','');
-  scheduleAutoSync();
+function hideTT() { ttHide = setTimeout(() => { tooltip.style.display = 'none'; }, 150); }
+document.addEventListener('mousemove', e => { if (tooltip.style.display === 'block') posTT(e); });
+
+// ════════════════════════════════════════════════════════════
+// MODAL
+// ════════════════════════════════════════════════════════════
+function openModal(title, body, showFooter) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = body;
+  document.getElementById('modalFooter').style.display = showFooter ? 'flex' : 'none';
+  document.getElementById('mainModal').classList.add('open');
+}
+function closeModal() { document.getElementById('mainModal').classList.remove('open'); }
+document.getElementById('mainModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('mainModal')) closeModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ════════════════════════════════════════════════════════════
+// DISCIPLINE SYSTEM
+// ════════════════════════════════════════════════════════════
+function openDisciplineSelector() {
+  const existing = state.disciplines.map(d => d.key);
+  let html = '<div class="disc-grid">';
+  Object.entries(VTM.disciplines).forEach(([key, d]) => {
+    const added = existing.includes(key);
+    html += `<div class="disc-sel-card${added ? '" style="opacity:.5;cursor:not-allowed' : '" onclick="selectDiscipline(\'' + key + '\')'}"  >
+      <div class="disc-sel-icon">${d.icon}</div>
+      <div class="disc-sel-name">${d.name}${added ? ' ✓' : ''}</div>
+      <div class="disc-sel-desc">${d.desc}</div>
+    </div>`;
+  });
+  html += `<div class="disc-sel-card" onclick="openCustomDiscipline()">
+    <div class="disc-sel-icon">✏</div>
+    <div class="disc-sel-name">Custom</div>
+    <div class="disc-sel-desc">Add a custom or homebrew discipline</div>
+  </div>`;
+  html += '</div>';
+  openModal('Select a Discipline', html, false);
 }
 
-const TEXT_IDS = ['f_name','f_clan','f_gen','f_bp','f_sire','f_sect','f_chronicle','f_predator','f_concept','f_archetype','f_xp','f_humanity_text','f_stains','f_resonance','f_dyscrasia','f_bane','f_compulsion','f_vamp_age','f_coterie_type','f_coterie_resources','conv_1','conv_2','conv_3','touch_1','touch_2','touch_3','f_ambition','f_desire','f_backstory','notes_session','notes_npcs','notes_goals','notes_general'];
-const DOT_IDS = ['attr_str','attr_dex','attr_sta','attr_cha','attr_man','attr_com','attr_int','attr_wit','attr_res','sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel','sk_ste','sk_sur','sk_ani','sk_eti','sk_ins','sk_imi','sk_lea','sk_per','sk_prs','sk_str','sk_sub','sk_aca','sk_awa','sk_fin','sk_inv','sk_med','sk_occ','sk_pol','sk_sci','sk_tec'];
+function selectDiscipline(key) {
+  const d = VTM.disciplines[key];
+  if (state.disciplines.find(x => x.key === key)) { toast('Already added'); return; }
+  const addedPowers = state.disciplines.find(x => x.key === key)?.powers || [];
+  let html = '';
+  Object.entries(d.powers).forEach(([lvl, powers]) => {
+    html += `<div class="power-level-section"><div class="power-level-label">Level ${lvl}</div><div class="power-sel-grid">`;
+    powers.forEach(p => {
+      const rouseStr = p.rouses === 0 ? 'FREE' : '●'.repeat(p.rouses);
+      html += `<div class="power-sel-card" onclick="addPowerToNewDisc('${key}','${p.name.replace(/'/g,"\\'")}',${lvl})">
+        <div class="power-sel-name">${p.name}</div>
+        <div class="power-sel-desc">${p.desc}</div>
+        <div class="power-sel-meta">${p.dice} &nbsp;·&nbsp; Rouses: ${rouseStr}</div>
+      </div>`;
+    });
+    html += '</div></div>';
+  });
+  // Add discipline to state first (empty powers), show power selector
+  state.disciplines.push({ key, name: d.name, icon: d.icon, powers: [] });
+  renderDisciplines();
+  closeModal();
+  // Re-open showing powers
+  setTimeout(() => {
+    openModal('Select a Power — ' + d.name, html, true);
+    document.getElementById('modalFooter').style.display = 'flex';
+  }, 50);
+}
 
+function addPowerToNewDisc(discKey, powerName, level) {
+  const disc = state.disciplines.find(d => d.key === discKey);
+  if (!disc) return;
+  const discData = VTM.disciplines[discKey];
+  const powerData = discData.powers[level]?.find(p => p.name === powerName);
+  if (!powerData) return;
+  if (disc.powers.find(p => p.name === powerName)) { toast('Power already added'); return; }
+  disc.powers.push({ name: powerName, level, desc: powerData.desc, dice: powerData.dice, rouses: powerData.rouses });
+  renderDisciplines();
+  markUnsaved();
+  toast('Added: ' + powerName);
+}
+
+function addPowerToExistingDisc(discKey) {
+  const disc = state.disciplines.find(d => d.key === discKey);
+  if (!disc) return;
+  const d = VTM.disciplines[discKey];
+  if (!d) { openCustomPowerModal(discKey); return; }
+  let html = '';
+  Object.entries(d.powers).forEach(([lvl, powers]) => {
+    html += `<div class="power-level-section"><div class="power-level-label">Level ${lvl}</div><div class="power-sel-grid">`;
+    powers.forEach(p => {
+      const already = disc.powers.find(x => x.name === p.name);
+      const rouseStr = p.rouses === 0 ? 'FREE' : '●'.repeat(p.rouses);
+      html += `<div class="power-sel-card${already ? ' already-added' : ''}" ${already ? '' : `onclick="addPowerToNewDisc('${discKey}','${p.name.replace(/'/g,"\\'")}',${lvl})"`}>
+        <div class="power-sel-name">${p.name}${already ? ' ✓' : ''}</div>
+        <div class="power-sel-desc">${p.desc}</div>
+        <div class="power-sel-meta">${p.dice} &nbsp;·&nbsp; Rouses: ${rouseStr}</div>
+      </div>`;
+    });
+    html += '</div></div>';
+  });
+  html += `<div class="custom-form"><div class="custom-form-title">Add Custom Power</div>
+    <input id="cp_name" placeholder="Power name..." style="margin-bottom:6px">
+    <input id="cp_level" placeholder="Level (1-5)..." type="number" min="1" max="5" style="margin-bottom:6px">
+    <input id="cp_dice" placeholder="Dice pool (e.g. WITS + AUSPEX)..." style="margin-bottom:6px">
+    <textarea id="cp_desc" placeholder="Description..."></textarea>
+    <button class="btn" style="margin-top:6px" onclick="addCustomPower('${discKey}')">Add Custom Power</button>
+  </div>`;
+  openModal('Add Power — ' + disc.name, html, true);
+}
+
+function addCustomPower(discKey) {
+  const name = document.getElementById('cp_name')?.value?.trim();
+  const level = parseInt(document.getElementById('cp_level')?.value) || 1;
+  const dice = document.getElementById('cp_dice')?.value?.trim() || 'Custom';
+  const desc = document.getElementById('cp_desc')?.value?.trim() || '';
+  if (!name) { toast('Enter a power name', 'error'); return; }
+  const disc = state.disciplines.find(d => d.key === discKey);
+  if (!disc) return;
+  disc.powers.push({ name, level, desc, dice, rouses: 0, custom: true });
+  renderDisciplines(); markUnsaved(); closeModal(); toast('Added: ' + name);
+}
+
+function openCustomDiscipline() {
+  const html = `<div class="custom-form">
+    <div class="custom-form-title">Custom Discipline</div>
+    <input id="cd_name" placeholder="Discipline name...">
+    <input id="cd_desc" placeholder="Brief description...">
+    <button class="btn" style="margin-top:8px" onclick="addCustomDiscipline()">Add Discipline</button>
+  </div>`;
+  openModal('Custom Discipline', html, false);
+}
+
+function addCustomDiscipline() {
+  const name = document.getElementById('cd_name')?.value?.trim();
+  const desc = document.getElementById('cd_desc')?.value?.trim() || '';
+  if (!name) { toast('Enter a name', 'error'); return; }
+  const key = 'custom_' + Date.now();
+  state.disciplines.push({ key, name, icon: '✏', powers: [], desc, custom: true });
+  renderDisciplines(); markUnsaved(); closeModal();
+}
+
+function removeDisc(key) {
+  state.disciplines = state.disciplines.filter(d => d.key !== key);
+  renderDisciplines(); markUnsaved();
+}
+
+function removePower(discKey, powerName) {
+  const disc = state.disciplines.find(d => d.key === discKey);
+  if (disc) disc.powers = disc.powers.filter(p => p.name !== powerName);
+  renderDisciplines(); markUnsaved();
+}
+
+function renderDisciplines() {
+  const list = document.getElementById('disciplines_list');
+  const empty = document.getElementById('disciplines_empty');
+  list.innerHTML = '';
+  if (state.disciplines.length === 0) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  state.disciplines.forEach(disc => {
+    const card = document.createElement('div');
+    card.className = 'disc-card';
+    const powersHTML = disc.powers.length === 0
+      ? '<div style="font-size:11px;color:var(--subtext);font-style:italic;padding:4px 0">No powers added — click + Add Power</div>'
+      : disc.powers.map(p => {
+          const dots = '●'.repeat(p.level);
+          const rStr = p.rouses === 0 ? 'Free' : '●'.repeat(p.rouses) + ' Rouse' + (p.rouses > 1 ? 's' : '');
+          return `<div class="power-row"
+            onmouseenter="showTT(event,'${p.name.replace(/'/g,"\\'")}','Level ${p.level} · ${p.dice || ''} · ${rStr}','${(p.desc||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}','')"
+            onmouseleave="hideTT()">
+            <span class="power-lvl">${dots}</span>
+            <span class="power-name">${p.name}</span>
+            <button class="power-remove" onclick="removePower('${disc.key}','${p.name.replace(/'/g,"\\'")}')">✕</button>
+          </div>`;
+        }).join('');
+    card.innerHTML = `
+      <div class="disc-card-header">
+        <span class="disc-icon">${disc.icon}</span>
+        <span class="disc-card-name">${disc.name}</span>
+        <button class="add-btn" style="font-size:7px;padding:2px 7px" onclick="addPowerToExistingDisc('${disc.key}')">+ Power</button>
+        <button class="disc-remove-btn" onclick="removeDisc('${disc.key}')">✕</button>
+      </div>
+      <div class="disc-card-body">${powersHTML}</div>`;
+    list.appendChild(card);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// MERIT / FLAW SYSTEM
+// ════════════════════════════════════════════════════════════
+function openMeritSelector() { openAdvFlawModal('merit'); }
+function openFlawSelector() { openAdvFlawModal('flaw'); }
+
+function openAdvFlawModal(type) {
+  const data = type === 'merit' ? VTM.merits : VTM.flaws;
+  const title = type === 'merit' ? 'Select a Merit' : 'Select a Flaw';
+  let html = `<div class="merit-tabs">
+    <div class="merit-tab active" onclick="switchMeritTab(this,'standard')">Merits</div>
+    <div class="merit-tab" onclick="switchMeritTab(this,'custom')">Custom</div>
+  </div>
+  <div id="merit-standard">`;
+  Object.entries(data).forEach(([catKey, cat]) => {
+    html += `<div class="merit-section"><div class="merit-cat-label">${cat.icon} ${cat.label}</div><div class="merit-grid">`;
+    cat.items.forEach(item => {
+      const already = type === 'merit'
+        ? state.merits.find(m => m.name === item.name)
+        : state.flaws.find(f => f.name === item.name);
+      html += `<div class="merit-sel-card${already ? ' already-added' : ''}"
+        onclick="${already ? '' : `addAdvFlaw('${type}','${item.name.replace(/'/g,"\\'")}','${item.cost}','${item.desc.replace(/'/g,"\\'")}')`}"
+        onmouseenter="showTT(event,'${item.name.replace(/'/g,"\\'")}','${cat.label} · Cost: ${item.cost}','${item.desc.replace(/'/g,"\\'").replace(/"/g,"&quot;")}','')"
+        onmouseleave="hideTT()">
+        <div class="merit-sel-info">
+          <div class="merit-sel-name">${item.name}${already ? ' ✓' : ''}</div>
+          <div class="merit-sel-desc">${item.desc}</div>
+        </div>
+        <div class="merit-sel-cost">${item.cost}</div>
+      </div>`;
+    });
+    html += '</div></div>';
+  });
+  html += `</div>
+  <div id="merit-custom" style="display:none">
+    <div class="custom-form">
+      <div class="custom-form-title">Custom ${type === 'merit' ? 'Merit' : 'Flaw'}</div>
+      <input id="caf_name" placeholder="Name...">
+      <input id="caf_cost" placeholder="Cost (e.g. 1 or 1/2/3)...">
+      <textarea id="caf_desc" placeholder="Description..."></textarea>
+      <button class="btn" style="margin-top:8px" onclick="addCustomAdvFlaw('${type}')">Add</button>
+    </div>
+  </div>`;
+  openModal(title, html, true);
+}
+
+function switchMeritTab(el, tab) {
+  document.querySelectorAll('.merit-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('merit-standard').style.display = tab === 'standard' ? 'block' : 'none';
+  document.getElementById('merit-custom').style.display = tab === 'custom' ? 'block' : 'none';
+}
+
+function addAdvFlaw(type, name, cost, desc) {
+  if (type === 'merit') {
+    if (state.merits.find(m => m.name === name)) { toast('Already added'); return; }
+    state.merits.push({ name, cost, desc, dots: 0 });
+    renderMerits();
+  } else {
+    if (state.flaws.find(f => f.name === name)) { toast('Already added'); return; }
+    state.flaws.push({ name, cost, desc });
+    renderFlaws();
+  }
+  markUnsaved(); toast('Added: ' + name);
+}
+
+function addCustomAdvFlaw(type) {
+  const name = document.getElementById('caf_name')?.value?.trim();
+  const cost = document.getElementById('caf_cost')?.value?.trim() || '?';
+  const desc = document.getElementById('caf_desc')?.value?.trim() || '';
+  if (!name) { toast('Enter a name', 'error'); return; }
+  if (type === 'merit') {
+    state.merits.push({ name, cost, desc, dots: 0, custom: true });
+    renderMerits();
+  } else {
+    state.flaws.push({ name, cost, desc, custom: true });
+    renderFlaws();
+  }
+  markUnsaved(); closeModal(); toast('Added: ' + name);
+}
+
+function removeMerit(name) {
+  state.merits = state.merits.filter(m => m.name !== name);
+  renderMerits(); markUnsaved();
+}
+
+function removeFlaw(name) {
+  state.flaws = state.flaws.filter(f => f.name !== name);
+  renderFlaws(); markUnsaved();
+}
+
+function renderMerits() {
+  const list = document.getElementById('merits_list');
+  const empty = document.getElementById('merits_empty');
+  list.innerHTML = '';
+  if (state.merits.length === 0) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  state.merits.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'adv-card';
+    div.onmouseenter = (e) => showTT(e, m.name, 'Merit · Cost: ' + m.cost, m.desc, '');
+    div.onmouseleave = hideTT;
+    div.innerHTML = `<div class="adv-card-name">${m.name}</div>
+      <div class="dots" id="merit_dots_${m.name.replace(/\s/g,'_')}" data-max="5" data-val="${m.dots||0}" style="flex-shrink:0"></div>
+      <div class="adv-card-cost">${m.cost}</div>
+      <button class="adv-card-remove" onclick="removeMerit('${m.name.replace(/'/g,"\\'")}')">✕</button>`;
+    list.appendChild(div);
+    initDots('merit_dots_' + m.name.replace(/\s/g,'_'), 5, m.dots || 0);
+  });
+}
+
+function renderFlaws() {
+  const list = document.getElementById('flaws_list');
+  const empty = document.getElementById('flaws_empty');
+  list.innerHTML = '';
+  if (state.flaws.length === 0) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  state.flaws.forEach(f => {
+    const div = document.createElement('div');
+    div.className = 'adv-card flaw-card';
+    div.onmouseenter = (e) => showTT(e, f.name, 'Flaw · Cost: ' + f.cost, f.desc, '');
+    div.onmouseleave = hideTT;
+    div.innerHTML = `<div class="adv-card-name">${f.name}</div>
+      <div class="adv-card-cost" style="color:var(--crimson-lt)">${f.cost}</div>
+      <button class="adv-card-remove" onclick="removeFlaw('${f.name.replace(/'/g,"\\'")}')">✕</button>`;
+    list.appendChild(div);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// SPECIALTY SYSTEM
+// ════════════════════════════════════════════════════════════
+function openSpecialtyModal() {
+  const allSkills = [...VTM.skills.physical, ...VTM.skills.social, ...VTM.skills.mental].sort();
+  const skillOpts = allSkills.map(s => `<option>${s}</option>`).join('');
+  const html = `
+    <div class="spec-form" style="flex-direction:column;align-items:flex-start;gap:10px">
+      <div style="width:100%">
+        <div class="itl" style="margin-top:0;margin-bottom:4px">Skill</div>
+        <select id="spec_skill" style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:6px 8px;outline:none">
+          ${skillOpts}
+          <option value="custom">Custom Skill...</option>
+        </select>
+        <input id="spec_skill_custom" placeholder="Custom skill name..." style="display:none;margin-top:6px;width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:6px 8px;outline:none">
+      </div>
+      <div style="width:100%">
+        <div class="itl" style="margin-top:0;margin-bottom:4px">Specialty Name</div>
+        <input id="spec_name" placeholder="e.g. Occult Literature, Deflection..." style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:6px 8px;outline:none">
+      </div>
+      <div style="width:100%">
+        <div class="itl" style="margin-top:0;margin-bottom:4px">Description (optional)</div>
+        <textarea id="spec_desc" placeholder="When does this specialty apply?" style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:6px 8px;outline:none;resize:vertical;min-height:60px"></textarea>
+      </div>
+      <button class="btn green" onclick="addSpecialty()">Add Specialty</button>
+    </div>`;
+  openModal('Add Specialty', html, false);
+  document.getElementById('spec_skill').addEventListener('change', function() {
+    document.getElementById('spec_skill_custom').style.display = this.value === 'custom' ? 'block' : 'none';
+  });
+}
+
+function addSpecialty() {
+  const skillEl = document.getElementById('spec_skill');
+  const skill = skillEl.value === 'custom'
+    ? (document.getElementById('spec_skill_custom')?.value?.trim() || '')
+    : skillEl.value;
+  const name = document.getElementById('spec_name')?.value?.trim();
+  const desc = document.getElementById('spec_desc')?.value?.trim() || '';
+  if (!skill || !name) { toast('Enter skill and name', 'error'); return; }
+  state.specialties.push({ skill, name, desc });
+  renderSpecialties(); markUnsaved(); closeModal(); toast('Added: ' + skill + ': ' + name);
+}
+
+function removeSpecialty(idx) {
+  state.specialties.splice(idx, 1);
+  renderSpecialties(); markUnsaved();
+}
+
+function renderSpecialties() {
+  // 1. Clear all existing inline tags from .dr rows
+  document.querySelectorAll('.dr .spec-tag').forEach(t => t.remove());
+
+  // 2. Inject inline tags next to matching skill/attr dots
+  state.specialties.forEach((s, i) => {
+    const row = document.querySelector(`.dr[data-skill="${s.skill}"]`);
+    if (row) {
+      const tag = document.createElement('span');
+      tag.className = 'spec-tag';
+      tag.title = s.desc || '+1 die when this specialty applies.';
+      tag.onmouseenter = (e) => showTT(e, s.skill + ': ' + s.name, 'Specialty', s.desc || '+1 die when this specialty applies.', '');
+      tag.onmouseleave = hideTT;
+      tag.innerHTML = `${s.name}<button class="spec-tag-x" onclick="removeSpecialty(${i})" title="Remove">✕</button>`;
+      row.appendChild(tag);
+    }
+  });
+
+  // 3. Update the reference list panel (pills) — kept as fallback for custom skills
+  const list = document.getElementById('specialties_list');
+  const empty = document.getElementById('specialties_empty');
+  list.innerHTML = '';
+  const unplaced = state.specialties.filter(s => !document.querySelector(`.dr[data-skill="${s.skill}"]`));
+  if (state.specialties.length === 0) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  // Show pills only for specialties that couldn't be placed inline (custom skills)
+  unplaced.forEach((s, i) => {
+    const realIdx = state.specialties.indexOf(s);
+    const pill = document.createElement('span');
+    pill.className = 'spec-pill';
+    pill.onmouseenter = (e) => showTT(e, s.skill + ': ' + s.name, 'Specialty', s.desc || '+1 die when this specialty applies.', '');
+    pill.onmouseleave = hideTT;
+    pill.innerHTML = `<span class="spec-pill-skill">${s.skill}:</span>
+      <span class="spec-pill-name">${s.name}</span>
+      <button class="spec-pill-remove" onclick="removeSpecialty(${realIdx})">✕</button>`;
+    list.appendChild(pill);
+  });
+  if (unplaced.length === 0) {
+    empty.style.display = 'block';
+    empty.textContent = 'All specialties shown inline on skill rows above.';
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// RITUAL SYSTEM
+// ════════════════════════════════════════════════════════════
+function openRitualModal() {
+  const html = `
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div>
+        <div class="itl" style="margin-top:0;margin-bottom:4px">Level</div>
+        <select id="rit_level" style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:6px 8px;outline:none">
+          <option value="1">● Level 1</option><option value="2">●● Level 2</option>
+          <option value="3">●●● Level 3</option><option value="4">●●●● Level 4</option>
+          <option value="5">●●●●● Level 5</option>
+        </select>
+      </div>
+      <div>
+        <div class="itl" style="margin-top:0;margin-bottom:4px">Ritual Name</div>
+        <input id="rit_name" placeholder="e.g. Blood Walk, Ward vs. Ghouls..." style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:6px 8px;outline:none">
+      </div>
+      <div>
+        <div class="itl" style="margin-top:0;margin-bottom:4px">Description</div>
+        <textarea id="rit_desc" placeholder="What the ritual does..." style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:6px 8px;outline:none;resize:vertical;min-height:80px"></textarea>
+      </div>
+      <button class="btn green" onclick="addRitual()">Add Ritual</button>
+    </div>`;
+  openModal('Add Ritual / Formula', html, false);
+}
+
+function addRitual() {
+  const level = parseInt(document.getElementById('rit_level')?.value) || 1;
+  const name = document.getElementById('rit_name')?.value?.trim();
+  const desc = document.getElementById('rit_desc')?.value?.trim() || '';
+  if (!name) { toast('Enter ritual name', 'error'); return; }
+  state.rituals.push({ level, name, desc });
+  renderRituals(); markUnsaved(); closeModal(); toast('Added: ' + name);
+}
+
+function removeRitual(idx) {
+  state.rituals.splice(idx, 1);
+  renderRituals(); markUnsaved();
+}
+
+function renderRituals() {
+  const list = document.getElementById('rituals_list');
+  const empty = document.getElementById('rituals_empty');
+  list.innerHTML = '';
+  if (state.rituals.length === 0) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  state.rituals.sort((a,b) => a.level - b.level).forEach((r, i) => {
+    const div = document.createElement('div');
+    div.className = 'ritual-card';
+    div.onmouseenter = (e) => showTT(e, r.name, 'Level ' + r.level + ' Ritual', r.desc || 'No description.', '');
+    div.onmouseleave = hideTT;
+    div.innerHTML = `<span class="ritual-lvl">${'●'.repeat(r.level)}</span>
+      <span class="ritual-name">${r.name}</span>
+      <button class="ritual-card-remove" onclick="removeRitual(${i})">✕</button>`;
+    list.appendChild(div);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// DOTS
+// ════════════════════════════════════════════════════════════
+function initDots(id, max, val) {
+  const c = document.getElementById(id); if (!c) return;
+  c.innerHTML = ''; c.dataset.max = max; c.dataset.val = val;
+  for (let i = 1; i <= max; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i <= val ? ' filled' : '');
+    d.addEventListener('click', () => { updateDots(id, parseInt(c.dataset.val) === i ? i-1 : i); markUnsaved(); });
+    c.appendChild(d);
+  }
+}
+function updateDots(id, val) {
+  const c = document.getElementById(id); if (!c) return;
+  val = Math.max(0, Math.min(parseInt(c.dataset.max), val));
+  c.dataset.val = val;
+  c.querySelectorAll('.dot').forEach((d,i) => { d.className = 'dot' + (i < val ? ' filled' : ''); });
+  // Update merit dots in state
+  const meritName = id.replace('merit_dots_','').replace(/_/g,' ');
+  const merit = state.merits.find(m => m.name.replace(/\s/g,'_') === id.replace('merit_dots_',''));
+  if (merit) merit.dots = val;
+  // update humanity/hunger labels
+  if (id === 'humanity_dots') document.getElementById('humanity_val').textContent = val;
+  if (id === 'hunger_dots') document.getElementById('hunger_val').textContent = val;
+}
 function getDotVal(id) { const e = document.getElementById(id); return e ? parseInt(e.dataset.val) : 0; }
+
+function initLargeDots(id, max, val, type) {
+  const c = document.getElementById(id); if (!c) return;
+  c.innerHTML = ''; c.dataset.max = max; c.dataset.val = val; c.dataset.type = type;
+  for (let i = 1; i <= max; i++) {
+    const d = document.createElement('div');
+    d.className = 'ld' + (i <= val ? (type === 'hunger' ? ' hfilled' : ' filled') : '');
+    d.addEventListener('click', () => {
+      const cur = parseInt(c.dataset.val);
+      updateLargeDots(id, i === cur ? i-1 : i);
+      markUnsaved();
+    });
+    c.appendChild(d);
+  }
+}
+function updateLargeDots(id, val) {
+  const c = document.getElementById(id); if (!c) return;
+  const t = c.dataset.type; val = Math.max(0, Math.min(parseInt(c.dataset.max), val));
+  c.dataset.val = val;
+  c.querySelectorAll('.ld').forEach((d,i) => { d.className = 'ld' + (i < val ? (t === 'hunger' ? ' hfilled' : ' filled') : ''); });
+  if (id === 'humanity_dots') document.getElementById('humanity_val').textContent = val;
+  if (id === 'hunger_dots') {
+    document.getElementById('hunger_val').textContent = val;
+    const warn = document.getElementById('frenzy_warning');
+    if (warn) warn.classList.toggle('show', val >= 4);
+    // At hunger 5 escalate message
+    if (warn && val === 5) warn.textContent = '💀 HUNGER 5 — FRENZY ON ANY PROVOCATION. Rouse check to resist feeding.';
+    else if (warn && val >= 4) warn.textContent = '⚠ FRENZY RISK — All provocation requires a Frenzy check';
+  }
+}
 function getLDVal(id) { const e = document.getElementById(id); return e ? parseInt(e.dataset.val) : 0; }
+
+// BOX TRACKER
+function initBoxTrack(id, n, states) {
+  const c = document.getElementById(id); if (!c) return;
+  c.innerHTML = ''; states = states || new Array(n).fill(0);
+  c.dataset.states = JSON.stringify(states);
+  for (let i = 0; i < n; i++) {
+    const b = document.createElement('div'); b.className = 'tb';
+    applyBox(b, states[i]);
+    b.addEventListener('click', () => {
+      const s = JSON.parse(c.dataset.states); s[i] = (s[i]+1)%3;
+      c.dataset.states = JSON.stringify(s); applyBox(b, s[i]); markUnsaved();
+    });
+    c.appendChild(b);
+  }
+}
+function applyBox(b, s) { b.className = 'tb' + (s===1?' sup':s===2?' agg':''); }
 function getBoxStates(id) { const e = document.getElementById(id); return e ? JSON.parse(e.dataset.states||'[]') : []; }
+function setBoxStates(id, states) {
+  const c = document.getElementById(id); if (!c) return;
+  c.dataset.states = JSON.stringify(states);
+  c.querySelectorAll('.tb').forEach((b,i) => applyBox(b, states[i]||0));
+}
+function resizeTrack(id, n) {
+  n = Math.max(1, Math.min(15, parseInt(n)||5));
+  const old = getBoxStates(id);
+  const newStates = Array.from({length:n}, (_,i) => old[i]||0);
+  initBoxTrack(id, n, newStates);
+}
+
+// ════════════════════════════════════════════════════════════
+// BLOOD POTENCY
+// ════════════════════════════════════════════════════════════
+const BP_TABLE = {
+  0: {surge:1, bane:1, power:'—',         mend:'1 Superficial', rouse:'None',    feeding:'No penalty'},
+  1: {surge:2, bane:2, power:'—',         mend:'1 Superficial', rouse:'Level 1', feeding:'No penalty'},
+  2: {surge:2, bane:2, power:'—',         mend:'1 Superficial', rouse:'Level 1', feeding:'No penalty'},
+  3: {surge:3, bane:2, power:'+1 die',    mend:'2 Superficial', rouse:'Level 1', feeding:'Prey Excl. 1'},
+  4: {surge:3, bane:3, power:'+1 die',    mend:'2 Superficial', rouse:'Level 2', feeding:'Prey Excl. 1'},
+  5: {surge:4, bane:3, power:'+2 dice',   mend:'3 Superficial', rouse:'Level 2', feeding:'Prey Excl. 2'},
+  6: {surge:4, bane:3, power:'+2 dice',   mend:'3 Superficial', rouse:'Level 3', feeding:'Prey Excl. 2'},
+  7: {surge:5, bane:4, power:'+3 dice',   mend:'1 Aggravated',  rouse:'Level 3', feeding:'Prey Excl. 3'},
+  8: {surge:5, bane:4, power:'+3 dice',   mend:'1 Aggravated',  rouse:'Level 4', feeding:'Prey Excl. 3'},
+  9: {surge:6, bane:5, power:'+4 dice',   mend:'2 Aggravated',  rouse:'Level 4', feeding:'Prey Excl. 4'},
+  10:{surge:6, bane:5, power:'+4 dice',   mend:'2 Aggravated',  rouse:'Level 5', feeding:'Prey Excl. 4'},
+};
+
+function initBPDots() {
+  const c = document.getElementById('bp_dots'); if (!c) return;
+  c.innerHTML = '';
+  for (let i = 1; i <= 10; i++) {
+    const d = document.createElement('div');
+    d.className = 'bp-dot';
+    d.dataset.i = i;
+    d.addEventListener('click', () => {
+      const cur = getLDVal('bp_dots');
+      updateBPDots(i === cur ? i-1 : i);
+      markUnsaved();
+    });
+    c.appendChild(d);
+    if (i === 5) { const spacer = document.createElement('div'); spacer.style.width='6px'; c.appendChild(spacer); }
+  }
+  updateBPDots(1);
+}
+
+function updateBPDots(val) {
+  const c = document.getElementById('bp_dots'); if (!c) return;
+  val = Math.max(0, Math.min(10, val));
+  c.dataset.val = val;
+  c.querySelectorAll('.bp-dot').forEach((d,i) => {
+    d.className = 'bp-dot' + (i < val ? ' filled' : '');
+  });
+  document.getElementById('bp_val').textContent = val;
+  // Update stat display
+  const row = BP_TABLE[val] || BP_TABLE[1];
+  document.getElementById('bp_surge').textContent = row.surge;
+  document.getElementById('bp_bane_sev').textContent = row.bane;
+  document.getElementById('bp_power_bonus').textContent = row.power;
+  document.getElementById('bp_mend').textContent = row.mend;
+  document.getElementById('bp_rouse').textContent = row.rouse;
+  document.getElementById('bp_feeding').textContent = row.feeding;
+}
+
+function onAgeChange() { markUnsaved(); }
+
+// ════════════════════════════════════════════════════════════
+// XP TRACKER
+// ════════════════════════════════════════════════════════════
+function addXPEntry() {
+  const type   = document.getElementById('xp_type').value;
+  const amount = parseInt(document.getElementById('xp_amount').value);
+  const cat    = document.getElementById('xp_cat').value;
+  const desc   = document.getElementById('xp_desc').value.trim();
+  if (!amount || amount < 1) { toast('Enter an XP amount', 'error'); return; }
+  if (!desc) { toast('Enter a description', 'error'); return; }
+  state.xpLog.unshift({
+    id: Date.now(),
+    type, amount, cat, desc,
+    date: new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short'})
+  });
+  document.getElementById('xp_amount').value = '';
+  document.getElementById('xp_desc').value = '';
+  renderXPLog(); markUnsaved();
+}
+
+function deleteXPEntry(id) {
+  state.xpLog = state.xpLog.filter(e => e.id !== id);
+  renderXPLog(); markUnsaved();
+}
+
+function renderXPLog() {
+  const log = document.getElementById('xp_log');
+  const empty = document.getElementById('xp_empty');
+  let totalGained = 0, totalSpent = 0;
+  state.xpLog.forEach(e => {
+    if (e.type === 'gain') totalGained += e.amount;
+    else totalSpent += e.amount;
+  });
+  const remaining = totalGained - totalSpent;
+  // Update displays
+  ['xp_total_big','xp_total_hdr'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=totalGained; });
+  ['xp_spent_big','xp_spent_hdr'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=totalSpent; });
+  ['xp_remain_big','xp_remain_hdr'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=remaining; });
+  // Render log rows
+  const entries = log.querySelectorAll('.xp-entry');
+  entries.forEach(e => e.remove());
+  if (state.xpLog.length === 0) { empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  state.xpLog.forEach(e => {
+    const div = document.createElement('div');
+    div.className = 'xp-entry';
+    const sign = e.type === 'gain' ? '+' : '−';
+    div.innerHTML = `
+      <span class="xp-entry-cost ${e.type}">${sign}${e.amount}</span>
+      <span class="xp-entry-cat">${e.cat}</span>
+      <span class="xp-entry-desc">${e.desc}</span>
+      <span class="xp-entry-date">${e.date||''}</span>
+      <button class="xp-entry-del" onclick="deleteXPEntry(${e.id})">✕</button>`;
+    log.appendChild(div);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// FEEDING LOG
+// ════════════════════════════════════════════════════════════
+const RES_LABELS = {phleg:'Phlegmatic',sang:'Sanguine',chol:'Choleric',melan:'Melancholic',empty:'Empty (Thin)',''  :'Animal / Unknown'};
+
+function addFeedEntry() {
+  const resonance = document.getElementById('feed_resonance').value;
+  const hunger    = parseInt(document.getElementById('feed_hunger').value) || 0;
+  const target    = document.getElementById('feed_target').value.trim();
+  const notes     = document.getElementById('feed_notes').value.trim();
+  if (!target) { toast('Enter who was fed on', 'error'); return; }
+  state.feedLog.unshift({ id:Date.now(), resonance, hunger, target, notes, date:new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short'}) });
+  document.getElementById('feed_target').value = '';
+  document.getElementById('feed_notes').value = '';
+  document.getElementById('feed_hunger').value = '';
+  renderFeedLog(); markUnsaved();
+}
+
+function deleteFeedEntry(id) { state.feedLog = state.feedLog.filter(e => e.id !== id); renderFeedLog(); markUnsaved(); }
+
+function renderFeedLog() {
+  const log = document.getElementById('feed_log');
+  const empty = document.getElementById('feed_empty');
+  log.querySelectorAll('.feed-entry').forEach(e => e.remove());
+  if (!state.feedLog.length) { empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  state.feedLog.forEach(e => {
+    const div = document.createElement('div'); div.className = 'feed-entry';
+    const resClass = e.resonance ? e.resonance : '';
+    const resLabel = RES_LABELS[e.resonance] ?? e.resonance ?? '—';
+    div.innerHTML = `<span class="feed-res ${resClass}">${resLabel}</span>
+      <span class="feed-amount">${e.hunger ? '-'+e.hunger+'🩸' : '—'}</span>
+      <span class="feed-target">${e.target}</span>
+      ${e.notes ? `<span class="feed-notes">${e.notes}</span>` : ''}
+      <span class="feed-date">${e.date||''}</span>
+      <button class="feed-del" onclick="deleteFeedEntry(${e.id})">✕</button>`;
+    log.appendChild(div);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// DOWNTIME TRACKER
+// ════════════════════════════════════════════════════════════
+const DT_TYPES = ['Hunt','Investigate','Influence','Recover','Study','Craft','Social','Other'];
+
+function addDowntimeSession() {
+  const session = prompt('Session name / number (e.g. "Session 4 — October downtime"):');
+  if (!session) return;
+  state.downtime.unshift({ id:Date.now(), session, activities:[] });
+  renderDowntime(); markUnsaved();
+}
+
+function addDowntimeActivity(sessionId) {
+  const sess = state.downtime.find(s => s.id === sessionId); if (!sess) return;
+  const type = document.getElementById('dt_type_'+sessionId)?.value || 'Other';
+  const desc = document.getElementById('dt_desc_'+sessionId)?.value?.trim();
+  if (!desc) { toast('Enter activity description','error'); return; }
+  sess.activities.push({ id:Date.now(), type, desc });
+  document.getElementById('dt_desc_'+sessionId).value = '';
+  renderDowntime(); markUnsaved();
+}
+
+function deleteDowntimeActivity(sessionId, actId) {
+  const sess = state.downtime.find(s => s.id === sessionId); if (!sess) return;
+  sess.activities = sess.activities.filter(a => a.id !== actId);
+  renderDowntime(); markUnsaved();
+}
+
+function deleteDowntimeSession(id) {
+  if (!confirm('Delete this downtime session?')) return;
+  state.downtime = state.downtime.filter(s => s.id !== id);
+  renderDowntime(); markUnsaved();
+}
+
+function renderDowntime() {
+  const list = document.getElementById('downtime_list');
+  const empty = document.getElementById('downtime_empty');
+  list.innerHTML = '';
+  if (!state.downtime.length) { list.appendChild(empty); empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  state.downtime.forEach(sess => {
+    const div = document.createElement('div'); div.className = 'dt-session';
+    const typeOpts = DT_TYPES.map(t => `<option>${t}</option>`).join('');
+    const acts = sess.activities.map(a => `
+      <div class="dt-activity">
+        <span class="dt-act-type">${a.type}</span>
+        <span class="dt-act-desc">${a.desc}</span>
+        <button class="dt-act-del" onclick="deleteDowntimeActivity(${sess.id},${a.id})">✕</button>
+      </div>`).join('') || '<div style="font-size:11px;color:var(--subtext);font-style:italic;padding:4px 0">No activities yet.</div>';
+    div.innerHTML = `
+      <div class="dt-session-hdr">
+        <span class="dt-session-title">✦ ${sess.session}</span>
+        <span style="font-size:10px;color:var(--subtext)">${sess.activities.length} activit${sess.activities.length===1?'y':'ies'}</span>
+        <button class="add-btn" style="font-size:7px;padding:2px 7px;margin-left:8px" onclick="deleteDowntimeSession(${sess.id})">Remove</button>
+      </div>
+      <div class="dt-session-body">
+        ${acts}
+        <div class="dt-add-row" style="margin-top:8px">
+          <select id="dt_type_${sess.id}" style="flex:0 0 110px">${typeOpts}</select>
+          <input id="dt_desc_${sess.id}" placeholder="What did you do..." style="flex:1;min-width:160px">
+          <button class="btn green" onclick="addDowntimeActivity(${sess.id})">Add</button>
+        </div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// COTERIE
+// ════════════════════════════════════════════════════════════
+function openCoterieModal() {
+  const html = `<div style="display:flex;flex-direction:column;gap:10px;">
+    <div><div class="itl" style="margin-top:0;margin-bottom:4px">Character Name</div>
+      <input id="cot_name" class="fi" style="width:100%" placeholder="Name..."></div>
+    <div class="grid-2" style="margin-bottom:0">
+      <div><div class="itl" style="margin-top:0;margin-bottom:4px">Clan</div>
+        <select id="cot_clan" class="fi" style="width:100%">
+          <option value="">— Select —</option>${VTM.clans.map(c=>`<option>${c}</option>`).join('')}
+        </select></div>
+      <div><div class="itl" style="margin-top:0;margin-bottom:4px">Player (optional)</div>
+        <input id="cot_player" class="fi" style="width:100%" placeholder="Player name..."></div>
+    </div>
+    <div class="grid-2" style="margin-bottom:0">
+      <div><div class="itl" style="margin-top:0;margin-bottom:4px">Blood Potency</div>
+        <input id="cot_bp" class="fi" type="number" min="0" max="10" style="width:100%" placeholder="1"></div>
+      <div><div class="itl" style="margin-top:0;margin-bottom:4px">Vinculum to you (0–3)</div>
+        <input id="cot_vin" class="fi" type="number" min="0" max="3" style="width:100%" placeholder="0"></div>
+    </div>
+    <div><div class="itl" style="margin-top:0;margin-bottom:4px">Notes</div>
+      <textarea id="cot_notes" class="fta" style="min-height:60px" placeholder="Disciplines, role in coterie, history..."></textarea></div>
+    <button class="btn green" onclick="addCoterieMember()">Add Member</button>
+  </div>`;
+  openModal('Add Coterie Member', html, false);
+}
+
+function addCoterieMember() {
+  const name = document.getElementById('cot_name')?.value?.trim();
+  if (!name) { toast('Enter a name','error'); return; }
+  state.coterie.push({
+    id: Date.now(),
+    name, clan: document.getElementById('cot_clan')?.value||'',
+    player: document.getElementById('cot_player')?.value?.trim()||'',
+    bp: parseInt(document.getElementById('cot_bp')?.value)||1,
+    vinculum: Math.min(3, parseInt(document.getElementById('cot_vin')?.value)||0),
+    notes: document.getElementById('cot_notes')?.value?.trim()||''
+  });
+  renderCoterie(); markUnsaved(); closeModal(); toast('Added: '+name);
+}
+
+function deleteCoterieMember(id) { state.coterie = state.coterie.filter(c => c.id !== id); renderCoterie(); markUnsaved(); }
+
+function setVinculum(memberId, val) {
+  const m = state.coterie.find(c => c.id === memberId); if (!m) return;
+  m.vinculum = m.vinculum === val ? val-1 : val;
+  renderCoterie(); markUnsaved();
+}
+
+function renderCoterie() {
+  const list = document.getElementById('coterie_list');
+  const empty = document.getElementById('coterie_empty');
+  list.innerHTML = '';
+  if (!state.coterie.length) { list.appendChild(empty); empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  state.coterie.forEach(m => {
+    const card = document.createElement('div'); card.className = 'coterie-card';
+    const vinDots = [1,2,3].map(i =>
+      `<div class="vin-dot${m.vinculum>=i?' filled':''}" onclick="setVinculum(${m.id},${i})" title="Vinculum ${i}"></div>`).join('');
+    card.innerHTML = `
+      <div class="coterie-card-hdr">
+        <span class="coterie-name">${m.name}</span>
+        <span class="coterie-clan">${m.clan||'—'}</span>
+        ${m.player ? `<span style="font-size:9px;color:var(--subtext);margin-left:6px">(${m.player})</span>` : ''}
+        <button class="coterie-del" onclick="deleteCoterieMember(${m.id})">✕</button>
+      </div>
+      <div class="coterie-body">
+        <div class="coterie-field"><div class="coterie-field-label">Blood Potency</div>${m.bp}</div>
+        <div class="coterie-field"><div class="coterie-field-label">Vinculum to You</div>
+          <div class="coterie-vinculum">${vinDots}</div></div>
+        ${m.notes ? `<div class="coterie-field" style="grid-column:1/-1"><div class="coterie-field-label">Notes</div>${m.notes}</div>` : ''}
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// NPC / RELATIONSHIP MAP
+// ════════════════════════════════════════════════════════════
+function openNPCModal() {
+  const html = `<div style="display:flex;flex-direction:column;gap:10px;">
+    <div class="grid-2" style="margin-bottom:0">
+      <div><div class="itl" style="margin-top:0;margin-bottom:4px">Name</div>
+        <input id="npc_name" class="fi" style="width:100%" placeholder="NPC name..."></div>
+      <div><div class="itl" style="margin-top:0;margin-bottom:4px">Relationship</div>
+        <select id="npc_type" class="fi" style="width:100%">
+          <option value="neutral">Neutral</option>
+          <option value="ally">Ally</option>
+          <option value="enemy">Enemy</option>
+          <option value="complicated">Complicated</option>
+          <option value="unknown">Unknown</option>
+        </select></div>
+    </div>
+    <div class="grid-2" style="margin-bottom:0">
+      <div><div class="itl" style="margin-top:0;margin-bottom:4px">Faction / Clan</div>
+        <input id="npc_faction" class="fi" style="width:100%" placeholder="e.g. Camarilla, Tremere..."></div>
+      <div><div class="itl" style="margin-top:0;margin-bottom:4px">Known Role</div>
+        <input id="npc_relation" class="fi" style="width:100%" placeholder="e.g. Sheriff, Harpy..."></div>
+    </div>
+    <div><div class="itl" style="margin-top:0;margin-bottom:4px">Notes</div>
+      <textarea id="npc_notes" class="fta" style="min-height:60px" placeholder="What you know about them..."></textarea></div>
+    <div><div class="itl" style="margin-top:0;margin-bottom:4px">Secrets / Suspicions <span style="color:var(--crimson-lt);font-size:9px">(private — never synced)</span></div>
+      <textarea id="npc_secrets" class="fta" style="min-height:50px" placeholder="What they might be hiding, your theories..."></textarea></div>
+    <button class="btn green" onclick="addNPC()">Add NPC</button>
+  </div>`;
+  openModal('Add NPC / Relationship', html, false);
+}
+
+function addNPC() {
+  const name = document.getElementById('npc_name')?.value?.trim();
+  if (!name) { toast('Enter a name','error'); return; }
+  state.npcs.push({
+    id: Date.now(), name,
+    type: document.getElementById('npc_type')?.value||'neutral',
+    faction: document.getElementById('npc_faction')?.value?.trim()||'',
+    relation: document.getElementById('npc_relation')?.value?.trim()||'',
+    notes: document.getElementById('npc_notes')?.value?.trim()||'',
+    secrets: document.getElementById('npc_secrets')?.value?.trim()||'',
+    open: false
+  });
+  renderNPCs(); markUnsaved(); closeModal(); toast('Added: '+name);
+}
+
+function deleteNPC(id) { state.npcs = state.npcs.filter(n => n.id !== id); renderNPCs(); markUnsaved(); }
+
+function toggleNPC(id) {
+  const n = state.npcs.find(n => n.id === id); if (!n) return;
+  n.open = !n.open; renderNPCs();
+}
+
+function renderNPCs() {
+  const list = document.getElementById('npc_list');
+  const empty = document.getElementById('npc_empty');
+  list.innerHTML = '';
+  if (!state.npcs.length) { list.appendChild(empty); empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  state.npcs.forEach(n => {
+    const card = document.createElement('div'); card.className = 'npc-card';
+    const typeLabel = {ally:'Ally',enemy:'Enemy',neutral:'Neutral',complicated:'Complicated',unknown:'Unknown'}[n.type]||n.type;
+    card.innerHTML = `
+      <div class="npc-card-hdr" onclick="toggleNPC(${n.id})">
+        <span class="npc-name">${n.name}</span>
+        ${n.faction ? `<span style="font-size:10px;color:var(--subtext)">${n.faction}</span>` : ''}
+        ${n.relation ? `<span style="font-size:10px;color:var(--subtext)">· ${n.relation}</span>` : ''}
+        <span class="npc-type ${n.type}">${typeLabel}</span>
+        <button class="npc-del" onclick="event.stopPropagation();deleteNPC(${n.id})">✕</button>
+      </div>
+      <div class="npc-body${n.open?' open':''}">
+        ${n.notes ? `<div style="font-size:12px;color:var(--text);margin-bottom:6px">${n.notes}</div>` : ''}
+        ${n.secrets ? `<div class="na-box" style="font-size:11px"><strong style="color:var(--crimson-lt)">Secrets:</strong> ${n.secrets}</div>` : ''}
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// SAVE / LOAD / SYNC
+// ════════════════════════════════════════════════════════════
+const TEXT_IDS = [
+  'f_name','f_clan','f_gen','f_bp','f_sire','f_sect','f_chronicle','f_predator',
+  'f_concept','f_archetype','f_xp','f_humanity_text','f_stains','f_resonance','f_dyscrasia',
+  'f_bane','f_compulsion','f_vamp_age','f_coterie_type','f_coterie_resources',
+  'conv_1','conv_2','conv_3','touch_1','touch_2','touch_3',
+  'f_ambition','f_desire','f_backstory',
+  'notes_session','notes_npcs','notes_goals','notes_general'
+];
+const DOT_IDS = [
+  'attr_str','attr_dex','attr_sta','attr_cha','attr_man','attr_com','attr_int','attr_wit','attr_res',
+  'sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel','sk_ste','sk_sur',
+  'sk_ani','sk_eti','sk_ins','sk_imi','sk_lea','sk_per','sk_prs','sk_str','sk_sub',
+  'sk_aca','sk_awa','sk_fin','sk_inv','sk_med','sk_occ','sk_pol','sk_sci','sk_tec'
+];
 
 function collectData() {
   const d = {
@@ -519,107 +2099,239 @@ function collectData() {
   return d;
 }
 
-// ── FIREBASE INTEGRATION ──
-let unsubscribeFirebase = null;
-
-function listenToFirebase() {
-  if(!cfg.campaignId) return;
-  if(unsubscribeFirebase) unsubscribeFirebase();
-  
-  unsubscribeFirebase = db.collection('campaigns').doc(cfg.campaignId)
-    .collection('characters').doc(charId)
-    .onSnapshot(doc => {
-      if(doc.exists) {
-        // Prevent loop: don't let applying remote data trigger another save
-        isApplyingSnapshot = true; 
-        applyData(doc.data());
-        saveLocal(); 
-        isApplyingSnapshot = false;
-        setStatus('Live synced — ' + new Date().toLocaleTimeString(), 'saved');
-      }
-    });
-}
-
-function syncToCloud() {
-  saveLocal();
-  if (!cfg.campaignId) { toast('Set up your Campaign ID first (Click ⚙)', 'error'); return; }
-  setStatus('Syncing...', 'syncing');
-  const d = collectData();
-  db.collection('campaigns').doc(cfg.campaignId).collection('characters').doc(charId).set(d)
-    .then(() => {
-      setStatus('Synced to Cloud — ' + new Date().toLocaleTimeString(), 'saved');
-    })
-    .catch(err => {
-      setStatus('Sync failed', 'error');
-      toast(err.message, 'error');
-    });
-}
-
-function scheduleAutoSync() {
-  clearTimeout(autoSyncTimer);
-  saveLocal(); // always save local instantly
-  if (cfg.campaignId && !cfg.skipCloud) {
-    autoSyncTimer = setTimeout(() => { syncToCloud(); }, 3000);
-  }
-}
-
-function saveLocal() {
-  const d = collectData();
-  localStorage.setItem(SK, JSON.stringify(d));
-  localStorage.setItem(SK_PRIV, document.getElementById('notes_private')?.value || '');
-}
-
-function saveAll() {
-  saveLocal();
-  syncToCloud();
-}
-
 function applyData(d) {
   if (!d) return;
   if (d.text) Object.entries(d.text).forEach(([id,v]) => { const e = document.getElementById(id); if (e) e.value = v; });
-  // Omitted complex DOM re-rendering lines for brevity, assuming standard population...
-  // In a real copy/paste scenario, leave your existing applyData logic completely untouched here.
+  if (d.dots) Object.entries(d.dots).forEach(([id,v]) => updateDots(id,v));
+  if (d.largeDots) {
+    updateLargeDots('humanity_dots', d.largeDots.humanity ?? 7);
+    updateLargeDots('hunger_dots', d.largeDots.hunger ?? 1);
+    updateBPDots(d.largeDots.bp ?? 1);
+  }
+  if (d.boxes) {
+    if (d.boxes.health) setBoxStates('health_track', d.boxes.health);
+    if (d.boxes.wp) setBoxStates('wp_track', d.boxes.wp);
+  }
+  if (d.trackSizes) {
+    if (d.trackSizes.health) { document.getElementById('health_count').value = d.trackSizes.health; resizeTrack('health_track', d.trackSizes.health); }
+    if (d.trackSizes.wp) { document.getElementById('wp_count').value = d.trackSizes.wp; resizeTrack('wp_track', d.trackSizes.wp); }
+  }
+  if (d.disciplines) { state.disciplines = d.disciplines; renderDisciplines(); }
+  if (d.merits) { state.merits = d.merits; renderMerits(); }
+  if (d.flaws) { state.flaws = d.flaws; renderFlaws(); }
+  if (d.specialties) { state.specialties = d.specialties; renderSpecialties(); }
+  if (d.rituals) { state.rituals = d.rituals; renderRituals(); }
+  if (d.xpLog) { state.xpLog = d.xpLog; renderXPLog(); }
+  if (d.feedLog) { state.feedLog = d.feedLog; renderFeedLog(); }
+  if (d.downtime) { state.downtime = d.downtime; renderDowntime(); }
+  if (d.coterie) { state.coterie = d.coterie; renderCoterie(); }
+  if (d.npcs) { state.npcs = d.npcs; renderNPCs(); }
+  updateHeader();
 }
 
-// ── SETUP MODAL LOGIC ──
+function saveAll() {
+  const d = collectData();
+  localStorage.setItem(SK, JSON.stringify(d));
+  localStorage.setItem(SK_PRIV, document.getElementById('notes_private')?.value || '');
+  setStatus('Saved — ' + new Date().toLocaleTimeString(), 'saved');
+}
+
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(SK);
+    if (raw) applyData(JSON.parse(raw));
+    const priv = localStorage.getItem(SK_PRIV);
+    if (priv) { const el = document.getElementById('notes_private'); if (el) el.value = priv; }
+    setStatus('Loaded', 'saved');
+  } catch(e) { console.error(e); }
+}
+
+// Auto-sync
+// BroadcastChannel for instant same-browser sync (player -> DM in same browser)
+const BC = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('vtm_sheet_sync') : null;
+
+function broadcastState() {
+  if (!BC) return;
+  try {
+    const d = collectData();
+    BC.postMessage({ type: 'sheet_update', charId: cfg.gistId || ('local_' + (cfg.charName||'char').replace(/\s/g,'_')), data: d, charName: cfg.charName||'Character' });
+  } catch(e) {}
+}
+
+function scheduleAutoSync() {
+  // Push instantly to any DM tab in the same browser
+  broadcastState();
+  // Push to GitHub with a short debounce (5s) for cross-device sync
+  if (!cfg.token || cfg.skipCloud) return;
+  clearTimeout(autoSyncTimer);
+  autoSyncTimer = setTimeout(() => { syncToFirestore()(true); }, 5000);
+}
+
+async function syncToFirestore(silent) {
+  if (!cfg.gistId) {
+    // Generate a unique ID if they don't have one yet
+    cfg.gistId = generateCode(cfg.charName || 'Char', Date.now().toString());
+    saveCfg();
+    updateShareCode();
+  }
+
+  if (!silent) setStatus('Syncing to Cloud...', 'syncing');
+  const btn = document.getElementById('syncBtn'); 
+  if (btn) btn.disabled = true;
+
+  try {
+    const d = collectData();
+    // Write to Firestore
+    await db.collection("characters").doc(cfg.gistId).set(d);
+    
+    if (!silent) { 
+      setStatus('Synced to DM — '+new Date().toLocaleTimeString(),'saved'); 
+      toast('Sheet synced to Cloud!'); 
+    } else {
+      setStatus('Auto-synced — '+new Date().toLocaleTimeString(),'saved');
+    }
+  } catch(e) {
+    setStatus('Sync failed: '+e.message,'error');
+    if (!silent) toast('Sync failed: '+e.message,'error');
+  }
+  if (btn) btn.disabled = false;
+}
+
+function exportJSON() {
+  const d = collectData();
+  const blob = new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = (d.text?.f_name||'character').replace(/\s/g,'_')+'_sheet.json';
+  a.click();
+}
+
+function importJSON(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { try { applyData(JSON.parse(ev.target.result)); saveAll(); toast('Imported'); } catch(err) { toast('Invalid JSON','error'); } };
+  reader.readAsText(file); e.target.value = '';
+}
+
+// ════════════════════════════════════════════════════════════
+// SETUP & CONFIG
+// ════════════════════════════════════════════════════════════
 function loadCfg() { try { cfg = JSON.parse(localStorage.getItem(SK_CFG)||'{}'); } catch(e) { cfg={}; } }
 function saveCfg() { localStorage.setItem(SK_CFG, JSON.stringify(cfg)); }
-
 function showSetup() {
-  document.getElementById('setup_campaign').value = cfg.campaignId || '';
-  document.getElementById('setup_charname').value = cfg.charName || '';
+  document.getElementById('setup_token').value = cfg.token ? '••••••••••••••••' : '';
+  document.getElementById('setup_charname').value = cfg.charName||'';
+  document.getElementById('setup_gistid').value = cfg.gistId||'';
   document.getElementById('setupOverlay').classList.add('open');
 }
-
-function skipSetup() { 
-  cfg.skipCloud=true; saveCfg(); 
-  document.getElementById('setupOverlay').classList.remove('open'); 
-  setStatus('Local only',''); 
-}
-
-function confirmSetup() {
-  const campaignId = document.getElementById('setup_campaign').value.trim();
+function skipSetup() { cfg.skipCloud=true; saveCfg(); document.getElementById('setupOverlay').classList.remove('open'); setStatus('Local only',''); }
+async function confirmSetup() {
+  const rawToken = document.getElementById('setup_token').value.trim();
   const charName = document.getElementById('setup_charname').value.trim()||'Character';
-  if (!campaignId) { toast('Ask your DM for the Campaign ID first.','error'); return; }
-  
-  cfg = { campaignId, charName, skipCloud:false };
-  saveCfg(); 
-  document.getElementById('setupOverlay').classList.remove('open');
-  
-  toast('Connected! Syncing...');
-  listenToFirebase();
-  syncToCloud();
+  const gistId = document.getElementById('setup_gistid').value.trim();
+  // Only update token if they typed something new (not the masked placeholder)
+  const token = (rawToken && rawToken !== '••••••••••••••••') ? rawToken : cfg.token;
+  if (!token) { toast('Ask your DM for the group sync code first.','error'); return; }
+  cfg = { token, charName, gistId:gistId||cfg.gistId||'', skipCloud:false };
+  saveCfg(); document.getElementById('setupOverlay').classList.remove('open');
+  updateShareCode(); setStatus('Connected to session','saved'); toast('Connected! Hit ☁ Sync to upload your sheet.');
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  loadCfg(); 
-  /* Assume DOM initializations here... */
-  if (cfg.campaignId && !cfg.skipCloud) {
-    listenToFirebase();
-  } else if (!cfg.skipCloud) {
-    setTimeout(() => { showSetup(); }, 500);
-  }
-});
+function generateCode(name, gistId) {
+  const prefix = name.replace(/[^a-zA-Z]/g,'').substring(0,4).toUpperCase().padEnd(4,'X');
+  const suffix = gistId ? gistId.substring(0,6).toUpperCase() : '??????';
+  return prefix + '-' + suffix;
+}
+function updateShareCode() {
+  const el = document.getElementById('shareCodeEl');
+  if (cfg.gistId && cfg.charName) {
+    el.textContent = generateCode(cfg.charName, cfg.gistId);
+    el.style.display = 'inline-block';
+  } else el.style.display = 'none';
+}
+function copyCode() {
+  const el = document.getElementById('shareCodeEl');
+  navigator.clipboard.writeText(el.textContent).then(() => toast('Sheet ID copied — give this to your DM if returning to a campaign: '+el.textContent));
+}
+
+// ════════════════════════════════════════════════════════════
+// UI
+// ════════════════════════════════════════════════════════════
+function setStatus(msg, type) {
+  const el = document.getElementById('saveStatus');
+  el.textContent = msg; el.className = 'save-status'+(type?' '+type:'');
+}
+function markUnsaved() {
+  setStatus('Unsaved changes','');
+  scheduleAutoSync();
+}
+function updateHeader() {
+  const n = document.getElementById('f_name')?.value||'';
+  document.title = (n||'Character') + ' — VtM Sheet';
+}
+function resetAll() {
+  if (!confirm('Reset all data? This cannot be undone.')) return;
+  localStorage.removeItem(SK); localStorage.removeItem(SK_PRIV);
+  location.reload();
+}
+
+let toastTimer;
+function toast(msg, type) {
+  const ex = document.querySelector('.toast'); if (ex) ex.remove();
+  const el = document.createElement('div');
+  el.className = 'toast'+(type==='error'?' error':''); el.textContent = msg;
+  document.body.appendChild(el);
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>el.remove(),4000);
+}
+
+// ════════════════════════════════════════════════════════════
+// POPULATE DROPDOWNS
+// ════════════════════════════════════════════════════════════
+function populateDropdowns() {
+  const clanSel = document.getElementById('f_clan');
+  VTM.clans.forEach(c => { const o=document.createElement('option'); o.textContent=c; clanSel.appendChild(o); });
+  const predSel = document.getElementById('f_predator');
+  VTM.predatorTypes.forEach(p => { const o=document.createElement('option'); o.textContent=p; predSel.appendChild(o); });
+}
+
+// ════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', async () => {
+  loadCfg(); populateDropdowns();
+  initDots('attr_str',5,1);initDots('attr_dex',5,1);initDots('attr_sta',5,1);
+  initDots('attr_cha',5,1);initDots('attr_man',5,1);initDots('attr_com',5,1);
+  initDots('attr_int',5,1);initDots('attr_wit',5,1);initDots('attr_res',5,1);
+  ['sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel','sk_ste','sk_sur',
+   'sk_ani','sk_eti','sk_ins','sk_imi','sk_lea','sk_per','sk_prs','sk_str','sk_sub',
+   'sk_aca','sk_awa','sk_fin','sk_inv','sk_med','sk_occ','sk_pol','sk_sci','sk_tec']
+  .forEach(id => initDots(id,5,0));
+  initBoxTrack('health_track',5);
+  initBoxTrack('wp_track',5);
+  initLargeDots('humanity_dots',10,7,'h');
+  initLargeDots('hunger_dots',5,1,'hunger');
+  initBPDots();
+  renderXPLog();
+  renderFeedLog();
+  renderDowntime();
+  renderCoterie();
+  renderNPCs();
+  loadLocal();
+let unsubPlayer = null;
+
+function listenToFirestore() {
+  if (!cfg.gistId) return;
+  if (unsubPlayer) unsubPlayer(); // clear old listener
+  
+  unsubPlayer = db.collection("characters").doc(cfg.gistId).onSnapshot((doc) => {
+    if (doc.exists) {
+      // Prevent overwriting if the player is currently typing
+      // A more robust app checks individual fields, but this works for a V1
+      applyData(doc.data());
+      setStatus('Live update received', 'saved');
+    }
+  });
+}
+
 document.addEventListener('input', markUnsaved);
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey||e.metaKey) && e.key==='s') { e.preventDefault(); saveAll(); }
