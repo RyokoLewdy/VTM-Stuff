@@ -725,7 +725,25 @@ function showView(name){
 function updateName(){const n=g('dm_name')||'VtM V5 Campaign';document.getElementById('sb_name').textContent=n;document.title=n+' — DM Dashboard'}
 
 // ── CHAR VIEW ──
+// ── CHAR VIEW ──
+// buildCharShell: creates the full DOM structure once (on first load / tab switch)
+// updateCharData: patches only the changing values on live updates — never rebuilds DOM
 function renderChar(id){
+  const alreadyBuilt = !!document.getElementById('cv_ov_'+id);
+  if(alreadyBuilt){
+    updateCharData(id);
+  } else {
+    buildCharShell(id);
+  }
+  // Restore active sub-tab without touching the rest of the DOM
+  const savedTab = activeTab[id] || 'ov';
+  ['ov','st','di','lg','pn','dm'].forEach(t=>{
+    document.getElementById('vt_'+t+'_'+id)?.classList.toggle('active',t===savedTab);
+    document.getElementById('cv_'+t+'_'+id)?.classList.toggle('active',t===savedTab);
+  });
+}
+
+function buildCharShell(id){
   const c=chars[id]; if(!c)return;
   const d=c.data,t=d.text||{},dots=d.dots||{},boxes=d.boxes||{},ld=d.largeDots||{};
   const discs=d.disciplines||[],merits=d.merits||[],flaws=d.flaws||[];
@@ -739,16 +757,16 @@ function renderChar(id){
   document.getElementById('charContent').innerHTML=`
     <div class="mh">
       <div>
-        <div class="mh-title">${esc(t.f_name||'Character')}</div>
-        <div class="mh-sub">${esc(t.f_clan||'')} · ${esc(t.f_sect||'')} · Gen ${esc(t.f_gen||'?')}${hunger>=4?' &nbsp;<span class="frenzy-tag">⚠ FRENZY RISK</span>':''}</div>
+        <div class="mh-title" id="mh_name_${id}">${esc(t.f_name||'Character')}</div>
+        <div class="mh-sub" id="mh_sub_${id}">${esc(t.f_clan||'')} · ${esc(t.f_sect||'')} · Gen ${esc(t.f_gen||'?')}${hunger>=4?' &nbsp;<span class="frenzy-tag">⚠ FRENZY RISK</span>':''}</div>
       </div>
       <div class="mh-actions">
-        ${c.source==='gist'?`<button class="btn green sm" onclick="refreshChar('${id}')">↻ Refresh</button>`:''}
+        ${c.source==='firestore'?`<button class="btn green sm" onclick="refreshChar('${id}')">↻ Refresh</button>`:''}
         <button class="btn danger sm" onclick="removeChar('${id}')">Remove</button>
       </div>
     </div>
     <div class="view-tabs">
-      <div class="vt active" id="vt_ov_${id}" onclick="cvt('${id}','ov')">Overview</div>
+      <div class="vt" id="vt_ov_${id}" onclick="cvt('${id}','ov')">Overview</div>
       <div class="vt" id="vt_st_${id}" onclick="cvt('${id}','st')">Stats</div>
       <div class="vt" id="vt_di_${id}" onclick="cvt('${id}','di')">Disciplines</div>
       <div class="vt" id="vt_lg_${id}" onclick="cvt('${id}','lg')">Logs & Coterie</div>
@@ -757,43 +775,43 @@ function renderChar(id){
     </div>
 
     <!-- OVERVIEW -->
-    <div class="tab-content active" id="cv_ov_${id}">
+    <div class="tab-content" id="cv_ov_${id}">
       <div class="grid-2">
-        <div class="panel"><div class="ph">Identity</div><div class="pb"><div class="info-grid">
+        <div class="panel"><div class="ph">Identity</div><div class="pb"><div class="info-grid" id="ig_identity_${id}">
           ${ic('Name',t.f_name)}${ic('Clan',t.f_clan)}
           ${ic('Generation',t.f_gen)}${ic('Blood Potency',bp)}
           ${ic('Sire',t.f_sire)}${ic('Sect',t.f_sect)}
           ${ic('Predator Type',t.f_predator)}${ic('Archetype',t.f_archetype)}
           ${ic('Vampire Age',t.f_vamp_age)}${ic('XP',xpTotal+' earned / '+(xpTotal-xpSpent)+' left')}
         </div></div></div>
-        <div class="panel"><div class="ph">Trackers</div><div class="pb">
-          <div class="itl" style="margin-top:0">Humanity (${ld.humanity||7}/10)</div>
-          <div class="ld-d">${ldH(ld.humanity||7,10,'h')}</div>
-          <div class="itl">Hunger (${hunger}/5)${hunger>=4?' &nbsp;<span class="frenzy-tag">FRENZY</span>':''}</div>
-          <div class="ld-d">${ldH(hunger,5,'hg')}</div>
-          <div class="itl">Blood Potency (${bp}/10) — Surge +${bpRow.surge}d · Bane Sev. ${bpRow.bane}</div>
-          <div class="ld-d">${ldH(bp,10,'bp')}</div>
+        <div class="panel"><div class="ph">Trackers</div><div class="pb" id="trackers_${id}">
+          <div class="itl" style="margin-top:0">Humanity (<span id="hum_val_${id}">${ld.humanity||7}</span>/10)</div>
+          <div class="ld-d" id="hum_dots_${id}">${ldH(ld.humanity||7,10,'h')}</div>
+          <div class="itl">Hunger (<span id="hgr_val_${id}">${hunger}</span>/5)<span id="hgr_frenzy_${id}">${hunger>=4?' &nbsp;<span class="frenzy-tag">FRENZY</span>':''}</span></div>
+          <div class="ld-d" id="hgr_dots_${id}">${ldH(hunger,5,'hg')}</div>
+          <div class="itl">Blood Potency (<span id="bp_val_${id}">${bp}</span>/10) — Surge +<span id="bp_surge_${id}">${bpRow.surge}</span>d · Bane Sev. <span id="bp_bane_${id}">${bpRow.bane}</span></div>
+          <div class="ld-d" id="bp_dots_${id}">${ldH(bp,10,'bp')}</div>
           <div class="itl">Health</div>
-          <div class="boxes-d">${bxH(boxes.health||[],d.trackSizes?.health||5)}</div>
+          <div class="boxes-d" id="health_boxes_${id}">${bxH(boxes.health||[],d.trackSizes?.health||5)}</div>
           <div class="itl">Willpower</div>
-          <div class="boxes-d">${bxH(boxes.wp||[],d.trackSizes?.wp||5)}</div>
-          <div style="margin-top:8px" class="info-grid">
+          <div class="boxes-d" id="wp_boxes_${id}">${bxH(boxes.wp||[],d.trackSizes?.wp||5)}</div>
+          <div style="margin-top:8px" class="info-grid" id="ig_res_${id}">
             ${ic('Stains',t.f_stains||'0')}${ic('Resonance',t.f_resonance||'—')}
           </div>
         </div></div>
       </div>
       <div class="grid-2">
-        <div class="panel"><div class="ph">Convictions & Touchstones</div><div class="pb">
+        <div class="panel"><div class="ph">Convictions & Touchstones</div><div class="pb" id="conv_block_${id}">
           ${conv(t.conv_1,t.touch_1,1)}${conv(t.conv_2,t.touch_2,2)}${conv(t.conv_3,t.touch_3,3)}
         </div></div>
         <div class="panel"><div class="ph">Ambition & Desire</div><div class="pb">
           <div class="itl" style="margin-top:0">Ambition</div>
-          <div style="font-size:13px;line-height:1.6;margin-bottom:8px">${esc(t.f_ambition||'—')}</div>
+          <div style="font-size:13px;line-height:1.6;margin-bottom:8px" id="ambition_${id}">${esc(t.f_ambition||'—')}</div>
           <div class="itl">Desire</div>
-          <div style="font-size:13px;line-height:1.6">${esc(t.f_desire||'—')}</div>
+          <div style="font-size:13px;line-height:1.6" id="desire_${id}">${esc(t.f_desire||'—')}</div>
         </div></div>
       </div>
-      <div class="panel"><div class="ph">Background</div><div class="pb" style="white-space:pre-wrap;font-size:13px;line-height:1.7">${esc(t.f_backstory||'No background recorded.')}</div></div>
+      <div class="panel"><div class="ph">Background</div><div class="pb" style="white-space:pre-wrap;font-size:13px;line-height:1.7" id="backstory_${id}">${esc(t.f_backstory||'No background recorded.')}</div></div>
     </div>
 
     <!-- STATS -->
@@ -844,26 +862,26 @@ function renderChar(id){
     <!-- LOGS & COTERIE -->
     <div class="tab-content" id="cv_lg_${id}">
       <div class="grid-2">
-        <div class="panel"><div class="ph">XP Log (${xpTotal} earned · ${xpTotal-xpSpent} remaining)</div>
-          <div class="pb" style="max-height:220px;overflow-y:auto;padding:0">
+        <div class="panel"><div class="ph">XP Log (<span id="xp_summary_${id}">${xpTotal} earned · ${xpTotal-xpSpent} remaining</span>)</div>
+          <div class="pb" style="max-height:220px;overflow-y:auto;padding:0" id="xp_log_${id}">
             ${xpLog.length?xpLog.map(e=>`<div class="log-entry-d"><span class="log-tag ${e.type}">${e.type==='gain'?'+'+e.amount:'−'+e.amount} XP</span><span class="log-tag neutral">${esc(e.cat)}</span><span style="flex:1;font-size:12px">${esc(e.desc)}</span><span style="font-size:10px;color:var(--subtext)">${esc(e.date||'')}</span></div>`).join(''):'<div class="empty-msg" style="padding:8px">No XP entries.</div>'}
           </div>
         </div>
         <div class="panel"><div class="ph">Feeding Log</div>
-          <div class="pb" style="max-height:220px;overflow-y:auto;padding:0">
+          <div class="pb" style="max-height:220px;overflow-y:auto;padding:0" id="feed_log_${id}">
             ${feedLog.length?feedLog.map(e=>`<div class="log-entry-d"><span class="log-tag ${e.resonance||'neutral'}">${RES[e.resonance]||'Unknown'}</span>${e.hunger?`<span style="font-family:'Cinzel',serif;font-size:10px;color:var(--crimson-lt);flex-shrink:0">-${e.hunger}🩸</span>`:''}<span style="flex:1;font-size:12px">${esc(e.target)}</span>${e.notes?`<span style="font-size:11px;color:var(--subtext);font-style:italic">${esc(e.notes)}</span>`:''}<span style="font-size:10px;color:var(--subtext)">${esc(e.date||'')}</span></div>`).join(''):'<div class="empty-msg" style="padding:8px">No entries.</div>'}
           </div>
         </div>
       </div>
       <div class="grid-2">
-        <div class="panel"><div class="ph">Coterie</div><div class="pb">
+        <div class="panel"><div class="ph">Coterie</div><div class="pb" id="coterie_${id}">
           ${coterie.length?coterie.map(m=>`<div style="border:1px solid rgba(122,94,24,.3);padding:8px;margin-bottom:6px;background:rgba(16,12,8,.5)">
             <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt)">${esc(m.name)}</span><span style="font-size:10px;color:var(--subtext)">${esc(m.clan||'')}</span></div>
             <div style="font-size:11px;color:var(--subtext)">BP ${m.bp||1} · Vinculum ${'●'.repeat(m.vinculum||0)}${'○'.repeat(3-(m.vinculum||0))}</div>
             ${m.notes?`<div style="font-size:12px;margin-top:4px">${esc(m.notes)}</div>`:''}
           </div>`).join(''):'<div class="empty-msg">No coterie recorded.</div>'}
         </div></div>
-        <div class="panel"><div class="ph">Player-Tracked NPCs</div><div class="pb">
+        <div class="panel"><div class="ph">Player-Tracked NPCs</div><div class="pb" id="pnpcs_${id}">
           ${pnpcs.length?pnpcs.map(n=>`<div class="adv-d"><span class="npc-attitude ${n.type||'neutral'}" style="font-size:8px;padding:2px 6px">${cap(n.type||'neutral')}</span><span class="adv-d-name">${esc(n.name)}</span>${n.faction?`<span style="font-size:10px;color:var(--subtext)">${esc(n.faction)}</span>`:''}</div>`).join(''):'<div class="empty-msg">None tracked by player.</div>'}
         </div></div>
       </div>
@@ -871,7 +889,7 @@ function renderChar(id){
 
     <!-- PLAYER NOTES -->
     <div class="tab-content" id="cv_pn_${id}">
-      <div class="panel"><div class="ph">Player Notes <span style="font-size:8px;color:var(--green-lt);margin-left:8px">◈ Shared by player</span></div><div class="pb">
+      <div class="panel"><div class="ph">Player Notes <span style="font-size:8px;color:var(--green-lt);margin-left:8px">◈ Shared by player</span></div><div class="pb" id="pnotes_${id}">
         ${pn('Session Log',t.notes_session)}${pn('NPC Relationships',t.notes_npcs)}
         ${pn('Goals & Plans',t.notes_goals)}${pn('General Notes',t.notes_general)}
       </div></div>
@@ -896,6 +914,59 @@ function renderChar(id){
     </div>`;
 }
 
+// Patch only the values that change frequently — no DOM rebuild, no tab reset
+function updateCharData(id){
+  const c=chars[id]; if(!c)return;
+  const d=c.data,t=d.text||{},dots=d.dots||{},boxes=d.boxes||{},ld=d.largeDots||{};
+  const hunger=ld.hunger||1,bp=ld.bp||1,bpRow=BPT[bp]||BPT[1];
+  const xpLog=d.xpLog||[],feedLog=d.feedLog||[],specs=d.specialties||[];
+  let xpTotal=0,xpSpent=0;
+  xpLog.forEach(e=>{if(e.type==='gain')xpTotal+=e.amount;else xpSpent+=e.amount});
+
+  function set(elId,html){const el=document.getElementById(elId);if(el)el.innerHTML=html;}
+  function txt(elId,val){const el=document.getElementById(elId);if(el)el.textContent=val||'';}
+
+  // Header
+  txt('mh_name_'+id, t.f_name||'Character');
+  set('mh_sub_'+id, `${esc(t.f_clan||'')} · ${esc(t.f_sect||'')} · Gen ${esc(t.f_gen||'?')}${hunger>=4?' &nbsp;<span class="frenzy-tag">⚠ FRENZY RISK</span>':''}`);
+
+  // Trackers
+  txt('hum_val_'+id, ld.humanity||7);
+  set('hum_dots_'+id, ldH(ld.humanity||7,10,'h'));
+  txt('hgr_val_'+id, hunger);
+  set('hgr_frenzy_'+id, hunger>=4?' &nbsp;<span class="frenzy-tag">FRENZY</span>':'');
+  set('hgr_dots_'+id, ldH(hunger,5,'hg'));
+  txt('bp_val_'+id, bp);
+  txt('bp_surge_'+id, bpRow.surge);
+  txt('bp_bane_'+id, bpRow.bane);
+  set('bp_dots_'+id, ldH(bp,10,'bp'));
+  set('health_boxes_'+id, bxH(boxes.health||[],d.trackSizes?.health||5));
+  set('wp_boxes_'+id, bxH(boxes.wp||[],d.trackSizes?.wp||5));
+  set('ig_res_'+id, ic('Stains',t.f_stains||'0')+ic('Resonance',t.f_resonance||'—'));
+
+  // Identity grid
+  set('ig_identity_'+id,
+    ic('Name',t.f_name)+ic('Clan',t.f_clan)+
+    ic('Generation',t.f_gen)+ic('Blood Potency',bp)+
+    ic('Sire',t.f_sire)+ic('Sect',t.f_sect)+
+    ic('Predator Type',t.f_predator)+ic('Archetype',t.f_archetype)+
+    ic('Vampire Age',t.f_vamp_age)+ic('XP',xpTotal+' earned / '+(xpTotal-xpSpent)+' left')
+  );
+
+  // Notes & story
+  set('conv_block_'+id, conv(t.conv_1,t.touch_1,1)+conv(t.conv_2,t.touch_2,2)+conv(t.conv_3,t.touch_3,3));
+  set('ambition_'+id, esc(t.f_ambition||'—'));
+  set('desire_'+id, esc(t.f_desire||'—'));
+  set('backstory_'+id, esc(t.f_backstory||'No background recorded.'));
+
+  // XP + feed logs
+  txt('xp_summary_'+id, `${xpTotal} earned · ${xpTotal-xpSpent} remaining`);
+  set('xp_log_'+id, xpLog.length?xpLog.map(e=>`<div class="log-entry-d"><span class="log-tag ${e.type}">${e.type==='gain'?'+'+e.amount:'−'+e.amount} XP</span><span class="log-tag neutral">${esc(e.cat)}</span><span style="flex:1;font-size:12px">${esc(e.desc)}</span><span style="font-size:10px;color:var(--subtext)">${esc(e.date||'')}</span></div>`).join(''):'<div class="empty-msg" style="padding:8px">No XP entries.</div>');
+  set('feed_log_'+id, feedLog.length?feedLog.map(e=>`<div class="log-entry-d"><span class="log-tag ${e.resonance||'neutral'}">${RES[e.resonance]||'Unknown'}</span>${e.hunger?`<span style="font-family:'Cinzel',serif;font-size:10px;color:var(--crimson-lt);flex-shrink:0">-${e.hunger}🩸</span>`:''}<span style="flex:1;font-size:12px">${esc(e.target)}</span>${e.notes?`<span style="font-size:11px;color:var(--subtext);font-style:italic">${esc(e.notes)}</span>`:''}<span style="font-size:10px;color:var(--subtext)">${esc(e.date||'')}</span></div>`).join(''):'<div class="empty-msg" style="padding:8px">No entries.</div>');
+
+  // Player notes
+  set('pnotes_'+id, pn('Session Log',t.notes_session)+pn('NPC Relationships',t.notes_npcs)+pn('Goals & Plans',t.notes_goals)+pn('General Notes',t.notes_general));
+}
 // ── RENDER HELPERS ──
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function cap(s){return s?s[0].toUpperCase()+s.slice(1):s}
@@ -906,13 +977,7 @@ function bxH(states,n){return Array.from({length:n},(_,i)=>`<div class="box-d${s
 function conv(cv,ts,n){if(!cv&&!ts)return '';return `<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(122,94,24,.2)"><div style="font-size:9px;font-family:'Cinzel',serif;color:var(--gold);margin-bottom:2px">Conviction ${n}</div><div style="font-size:12px;margin-bottom:4px">${esc(cv||'')}</div><div style="font-size:9px;font-family:'Cinzel',serif;color:var(--crimson-lt);margin-bottom:2px">Touchstone ${n}</div><div style="font-size:12px;color:var(--subtext);font-style:italic">${esc(ts||'')}</div></div>`}
 function pn(label,text){return `<div class="pn-block"><div class="pn-label">${label}</div><div class="pn-text${!text?' pn-empty':''}">${text?esc(text):'No notes provided'}</div></div>`}
 function ap(title,names,keys,dots){return `<div class="panel"><div class="ph">${title}</div><div class="pb">${names.map((n,i)=>`<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[keys[i]]||0,5)}</div>`).join('')}</div></div>`}
-function sp(title,names,keys,dots,specs){return `<div class="panel"><div class="ph">${title}</div><div class="pb">${names.map((n,i)=>{const ss=specs.filter(s=>s.skill===n);return `<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[keys[i]]||0,5)}${ss.map(s=>`<span style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--gold);border:1px solid rgba(196,154,34,.35);padding:1px 5px;margin-left:3px">${esc(s.name)}</span>`).join('')}</div>`}).join('')}</div></div>`;
-  // Restore active sub-tab without disrupting DM view
-  const savedTab = activeTab[id] || 'ov';
-  ['ov','st','di','lg','pn','dm'].forEach(t=>{
-    document.getElementById('vt_'+t+'_'+id)?.classList.toggle('active',t===savedTab);
-    document.getElementById('cv_'+t+'_'+id)?.classList.toggle('active',t===savedTab);
-  });}
+function sp(title,names,keys,dots,specs){return `<div class="panel"><div class="ph">${title}</div><div class="pb">${names.map((n,i)=>{const ss=specs.filter(s=>s.skill===n);return `<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[keys[i]]||0,5)}${ss.map(s=>`<span style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--gold);border:1px solid rgba(196,154,34,.35);padding:1px 5px;margin-left:3px">${esc(s.name)}</span>`).join('')}</div>`}).join('')}</div></div>`;}
 
 function cvt(id,tab){
   collectDM();
