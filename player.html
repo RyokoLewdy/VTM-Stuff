@@ -5,21 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VtM V5 — Character Sheet</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-<script>
-  // 🔴 PASTE YOUR FIREBASE CONFIG HERE 🔴
-  const firebaseConfig = {
-  apiKey: "AIzaSyD4ZzE-wQ1PT9fkvm4JmJuoYvtsC5rhBkI",
-  authDomain: "vtmcampaignsync.firebaseapp.com",
-  projectId: "vtmcampaignsync",
-  storageBucket: "vtmcampaignsync.firebasestorage.app",
-  messagingSenderId: "891411401019",
-  appId: "1:891411401019:web:cced7ba60037ed7c614f1e"
-};
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-</script>
 <style>
 :root{
   --bg:#0e0b08;--surface:#16120d;--panel:#1c1710;--border:#7a5c18;
@@ -472,22 +457,17 @@ select.fi::-ms-expand{display:none;}
   <div class="setup-box">
     <div class="setup-hdr">
       <h2>Session Sync Setup</h2>
-      <p>Ask your DM for the Group Sync Code — no GitHub account needed</p>
+      <p>Connect your sheet to the campaign cloud — no account needed</p>
     </div>
     <div class="setup-body">
-      <div class="sf">
-        <label>Group Sync Code (from your DM)</label>
-        <input type="password" id="setup_token" placeholder="Paste the code your DM gave you">
-        <div class="hint">Your DM has a shared code for the whole group. You do <strong>not</strong> need a GitHub account. Paste the code here once and your sheet will sync so your DM can see it during sessions.</div>
-      </div>
       <div class="sf">
         <label>Character Name</label>
         <input type="text" id="setup_charname" placeholder="Your character name">
       </div>
       <div class="sf">
-        <label>Returning player? Paste your Sheet ID here</label>
-        <input type="text" id="setup_gistid" placeholder="Leave blank for a brand new character">
-        <div class="hint">Your DM can give you your Sheet ID if you want to continue from a previous sheet on a new device.</div>
+        <label>Returning player? Paste your Character ID here</label>
+        <input type="text" id="setup_charid" placeholder="Leave blank for a brand new character">
+        <div class="hint">Your DM can give you your Character ID if you're continuing from a previous sheet. Leave blank to create a fresh character.</div>
       </div>
     </div>
     <div class="setup-footer">
@@ -525,7 +505,7 @@ select.fi::-ms-expand{display:none;}
 <div class="save-bar">
   <span class="save-status" id="saveStatus">Ready</span>
   <button class="btn" onclick="saveAll()">Save (Ctrl+S)</button>
-  <button class="btn green" id="syncBtn" onclick="syncToFirestore()()">☁ Sync to DM</button>
+  <button class="btn green" id="syncBtn" onclick="syncToGist()">☁ Sync to DM</button>
   <button class="btn" onclick="exportJSON()">Export JSON</button>
   <button class="btn" onclick="document.getElementById('importFile').click()">Import JSON</button>
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
@@ -1039,12 +1019,42 @@ select.fi::-ms-expand{display:none;}
 <div class="panel full">
   <div class="ph"><span class="ph-left">Private Notes &nbsp;<span style="font-size:8px;color:var(--crimson-lt);letter-spacing:1px">✕ Never synced</span></span></div>
   <div class="pb">
-    <textarea class="fta xl" id="notes_private" placeholder="Private thoughts — never uploaded to GitHub..."></textarea>
+    <textarea class="fta xl" id="notes_private" placeholder="Private thoughts — never uploaded to the cloud..."></textarea>
   </div>
 </div>
 
 <div class="footer">✦ &nbsp; Vampire: The Masquerade V5 &nbsp;·&nbsp; Player Sheet &nbsp;·&nbsp; Player Sheet — Group Sync &nbsp; ✦</div>
 </div><!-- end .page -->
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD4ZzE-wQ1PT9fkvm4JmJuoYvtsC5rhBkI",
+  authDomain: "vtmcampaignsync.firebaseapp.com",
+  projectId: "vtmcampaignsync",
+  storageBucket: "vtmcampaignsync.firebasestorage.app",
+  messagingSenderId: "891411401019",
+  appId: "1:891411401019:web:cced7ba60037ed7c614f1e"
+};
+const _app = initializeApp(firebaseConfig);
+const _db  = getFirestore(_app);
+const _auth = getAuth(_app);
+
+// Expose to global scope so non-module code can call them
+window._db  = _db;
+window._auth = _auth;
+window._fsDoc = doc;
+window._fsSetDoc = setDoc;
+window._fsGetDoc = getDoc;
+window._fsOnSnapshot = onSnapshot;
+
+// Sign in anonymously so Firestore security rules can allow the write
+signInAnonymously(_auth).catch(e => console.warn('Anon auth failed:', e));
+</script>
 
 <script>
 // ════════════════════════════════════════════════════════════
@@ -2146,56 +2156,56 @@ function loadLocal() {
   } catch(e) { console.error(e); }
 }
 
-// Auto-sync
-// BroadcastChannel for instant same-browser sync (player -> DM in same browser)
+// ── BroadcastChannel: instant same-browser sync (player → DM tab) ──
 const BC = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('vtm_sheet_sync') : null;
 
 function broadcastState() {
   if (!BC) return;
   try {
     const d = collectData();
-    BC.postMessage({ type: 'sheet_update', charId: cfg.gistId || ('local_' + (cfg.charName||'char').replace(/\s/g,'_')), data: d, charName: cfg.charName||'Character' });
+    BC.postMessage({ type: 'sheet_update', charId: cfg.charId || ('local_' + (cfg.charName||'char').replace(/\s/g,'_')), data: d, charName: cfg.charName||'Character' });
   } catch(e) {}
 }
 
 function scheduleAutoSync() {
-  // Push instantly to any DM tab in the same browser
-  broadcastState();
-  // Push to GitHub with a short debounce (5s) for cross-device sync
-  if (!cfg.token || cfg.skipCloud) return;
+  broadcastState(); // instant push to any DM tab in the same browser
+  if (cfg.skipCloud) return;
+  if (!cfg.charId) return; // no Firestore ID yet — wait for setup
   clearTimeout(autoSyncTimer);
-  autoSyncTimer = setTimeout(() => { syncToFirestore()(true); }, 5000);
+  autoSyncTimer = setTimeout(() => { syncToFirestore(true); }, 5000);
 }
 
+// ── Firestore sync ──
 async function syncToFirestore(silent) {
-  if (!cfg.gistId) {
-    // Generate a unique ID if they don't have one yet
-    cfg.gistId = generateCode(cfg.charName || 'Char', Date.now().toString());
-    saveCfg();
-    updateShareCode();
-  }
-
-  if (!silent) setStatus('Syncing to Cloud...', 'syncing');
-  const btn = document.getElementById('syncBtn'); 
-  if (btn) btn.disabled = true;
-
+  broadcastState();
+  if (!window._db) { if (!silent) toast('Firebase not ready yet.', 'error'); return; }
+  if (!cfg.charId) { if (!silent) toast('No character ID — complete setup first. Click ⚙', 'error'); return; }
+  if (!silent) setStatus('Syncing...', 'syncing');
+  const btn = document.getElementById('syncBtn'); if (btn) btn.disabled = true;
   try {
     const d = collectData();
-    // Write to Firestore
-    await db.collection("characters").doc(cfg.gistId).set(d);
-    
-    if (!silent) { 
-      setStatus('Synced to DM — '+new Date().toLocaleTimeString(),'saved'); 
-      toast('Sheet synced to Cloud!'); 
-    } else {
-      setStatus('Auto-synced — '+new Date().toLocaleTimeString(),'saved');
-    }
+    const priv = document.getElementById('notes_private')?.value || '';
+    const charRef = window._fsDoc(window._db, 'characters', cfg.charId);
+    const privRef = window._fsDoc(window._db, 'characters_private', cfg.charId);
+    await Promise.all([
+      window._fsSetDoc(charRef, { ...d, _charName: cfg.charName || 'Character', _updatedAt: Date.now() }),
+      window._fsSetDoc(privRef, { notes_private: priv, _updatedAt: Date.now() })
+    ]);
+    localStorage.setItem(SK, JSON.stringify(d));
+    localStorage.setItem(SK_PRIV, priv);
+    updateShareCode();
+    if (!silent) { setStatus('Synced to DM — ' + new Date().toLocaleTimeString(), 'saved'); toast('Sheet synced — your DM can see it now'); }
+    else setStatus('Auto-synced to DM — ' + new Date().toLocaleTimeString(), 'saved');
   } catch(e) {
-    setStatus('Sync failed: '+e.message,'error');
-    if (!silent) toast('Sync failed: '+e.message,'error');
+    setStatus('Sync failed: ' + e.message, 'error');
+    if (!silent) toast('Sync failed: ' + e.message, 'error');
+    console.error(e);
   }
   if (btn) btn.disabled = false;
 }
+
+// Keep old name wired up so any button calling syncToGist() still works
+function syncToGist(silent) { return syncToFirestore(silent); }
 
 function exportJSON() {
   const d = collectData();
@@ -2218,39 +2228,59 @@ function importJSON(e) {
 function loadCfg() { try { cfg = JSON.parse(localStorage.getItem(SK_CFG)||'{}'); } catch(e) { cfg={}; } }
 function saveCfg() { localStorage.setItem(SK_CFG, JSON.stringify(cfg)); }
 function showSetup() {
-  document.getElementById('setup_token').value = cfg.token ? '••••••••••••••••' : '';
   document.getElementById('setup_charname').value = cfg.charName||'';
-  document.getElementById('setup_gistid').value = cfg.gistId||'';
+  document.getElementById('setup_charid').value = cfg.charId||'';
   document.getElementById('setupOverlay').classList.add('open');
 }
 function skipSetup() { cfg.skipCloud=true; saveCfg(); document.getElementById('setupOverlay').classList.remove('open'); setStatus('Local only',''); }
 async function confirmSetup() {
-  const rawToken = document.getElementById('setup_token').value.trim();
   const charName = document.getElementById('setup_charname').value.trim()||'Character';
-  const gistId = document.getElementById('setup_gistid').value.trim();
-  // Only update token if they typed something new (not the masked placeholder)
-  const token = (rawToken && rawToken !== '••••••••••••••••') ? rawToken : cfg.token;
-  if (!token) { toast('Ask your DM for the group sync code first.','error'); return; }
-  cfg = { token, charName, gistId:gistId||cfg.gistId||'', skipCloud:false };
-  saveCfg(); document.getElementById('setupOverlay').classList.remove('open');
-  updateShareCode(); setStatus('Connected to session','saved'); toast('Connected! Hit ☁ Sync to upload your sheet.');
+  let charId = document.getElementById('setup_charid').value.trim();
+  // Generate a new stable ID if the player doesn't have one yet
+  if (!charId) {
+    const prefix = charName.replace(/[^a-zA-Z0-9]/g,'').substring(0,6).toLowerCase();
+    charId = prefix + '_' + Math.random().toString(36).substring(2,10);
+  }
+  cfg = { charName, charId, skipCloud: false };
+  saveCfg();
+  document.getElementById('setupOverlay').classList.remove('open');
+  // Try to load existing cloud data for this charId
+  if (window._db) {
+    try {
+      const snap = await window._fsGetDoc(window._fsDoc(window._db, 'characters', charId));
+      if (snap.exists()) {
+        applyData(snap.data());
+        const pSnap = await window._fsGetDoc(window._fsDoc(window._db, 'characters_private', charId));
+        if (pSnap.exists()) {
+          const el = document.getElementById('notes_private');
+          if (el) el.value = pSnap.data().notes_private || '';
+        }
+        saveAll();
+        toast('Cloud sheet loaded — welcome back, ' + charName + '!');
+      } else {
+        toast('New character created. Hit ☁ Sync to upload your sheet.');
+      }
+    } catch(e) { console.warn('Cloud load failed:', e); toast('Connected — hit ☁ Sync to upload.'); }
+  }
+  updateShareCode();
+  setStatus('Connected — ' + charName, 'saved');
 }
 
-function generateCode(name, gistId) {
+function generateCode(name, charId) {
   const prefix = name.replace(/[^a-zA-Z]/g,'').substring(0,4).toUpperCase().padEnd(4,'X');
-  const suffix = gistId ? gistId.substring(0,6).toUpperCase() : '??????';
+  const suffix = charId ? charId.substring(0,8).toUpperCase() : '????????';
   return prefix + '-' + suffix;
 }
 function updateShareCode() {
   const el = document.getElementById('shareCodeEl');
-  if (cfg.gistId && cfg.charName) {
-    el.textContent = generateCode(cfg.charName, cfg.gistId);
+  if (cfg.charId && cfg.charName) {
+    el.textContent = cfg.charId;
     el.style.display = 'inline-block';
   } else el.style.display = 'none';
 }
 function copyCode() {
   const el = document.getElementById('shareCodeEl');
-  navigator.clipboard.writeText(el.textContent).then(() => toast('Sheet ID copied — give this to your DM if returning to a campaign: '+el.textContent));
+  navigator.clipboard.writeText(el.textContent).then(() => toast('Character ID copied — give this to your DM to load your sheet: ' + el.textContent));
 }
 
 // ════════════════════════════════════════════════════════════
@@ -2315,22 +2345,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderDowntime();
   renderCoterie();
   renderNPCs();
-  loadLocal();
-let unsubPlayer = null;
-
-function listenToFirestore() {
-  if (!cfg.gistId) return;
-  if (unsubPlayer) unsubPlayer(); // clear old listener
-  
-  unsubPlayer = db.collection("characters").doc(cfg.gistId).onSnapshot((doc) => {
-    if (doc.exists) {
-      // Prevent overwriting if the player is currently typing
-      // A more robust app checks individual fields, but this works for a V1
-      applyData(doc.data());
-      setStatus('Live update received', 'saved');
-    }
-  });
-}
+  loadLocal(); // always restore from localStorage first for instant load
+  // Then try to pull fresher data from Firestore if we have a charId
+  if (cfg.charId && !cfg.skipCloud) {
+    try {
+      // Wait a moment for Firebase auth to settle
+      await new Promise(r => setTimeout(r, 800));
+      if (window._db) {
+        const snap = await window._fsGetDoc(window._fsDoc(window._db, 'characters', cfg.charId));
+        if (snap.exists()) {
+          const cloud = snap.data();
+          // Only override local if cloud is newer
+          const localRaw = localStorage.getItem(SK);
+          const localTime = localRaw ? (JSON.parse(localRaw)._updatedAt || 0) : 0;
+          if ((cloud._updatedAt || 0) >= localTime) {
+            applyData(cloud);
+            const pSnap = await window._fsGetDoc(window._fsDoc(window._db, 'characters_private', cfg.charId));
+            if (pSnap.exists()) {
+              const el = document.getElementById('notes_private');
+              if (el) el.value = pSnap.data().notes_private || '';
+            }
+            setStatus('Loaded from cloud — ' + new Date().toLocaleTimeString(), 'saved');
+          }
+        }
+      }
+    } catch(e) { console.warn('Firestore load error:', e); }
+  }
+  updateShareCode();
+  if (!cfg.charId && !cfg.skipCloud) setTimeout(() => { showSetup(); }, 500);
+});
 
 document.addEventListener('input', markUnsaved);
 document.addEventListener('keydown', e => {
