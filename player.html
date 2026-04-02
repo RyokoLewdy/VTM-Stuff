@@ -10,13 +10,13 @@
   --bg:#0e0b08;--surface:#16120d;--panel:#1c1710;--border:#7a5c18;
   --gold:#c49a22;--gold-lt:#e8c96a;--gold-dim:#8a6a10;
   --crimson:#7a1515;--crimson-lt:#c02020;--crimson-br:#e03030;
-  --text:#e0d4b8;--subtext:#8a7a5a;
-  --field-bg:#100e0a;--field-border:#3a2e18;--input-text:#d4c898;
+  --text:#ede0c4;--subtext:#a08a62;
+  --field-bg:#100e0a;--field-border:#3a2e18;--input-text:#e0d4b0;
   --green:#3a7a3a;--green-lt:#5aaa5a;
   --blue:#1a3a7a;--blue-lt:#6080e0;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:13px;min-height:100vh;
+body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:14px;min-height:100vh;
   background-image:radial-gradient(ellipse at 20% 20%,rgba(122,21,21,.06) 0%,transparent 60%),
   radial-gradient(ellipse at 80% 80%,rgba(196,154,34,.04) 0%,transparent 60%);}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;opacity:.35;
@@ -68,17 +68,17 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;o
 /* FIELDS */
 .fr{display:flex;align-items:baseline;gap:6px;margin-bottom:6px;border-bottom:1px solid rgba(122,94,24,.2);padding-bottom:5px;}
 .fr:last-child{margin-bottom:0;border-bottom:none;padding-bottom:0;}
-.fl{font-size:10px;color:var(--subtext);min-width:88px;font-family:'Cinzel',serif;letter-spacing:.5px;flex-shrink:0;}
+.fl{font-size:11px;color:var(--subtext);min-width:88px;font-family:'Cinzel',serif;letter-spacing:.5px;flex-shrink:0;}
 .fi{flex:1;background:transparent;border:none;border-bottom:1px solid var(--field-border);
-  color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:1px 4px;outline:none;transition:border-color .2s;width:100%;}
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:14px;padding:1px 4px;outline:none;transition:border-color .2s;width:100%;}
 .fi:focus{border-bottom-color:var(--gold-dim);}
 select.fi{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}
 select.fi option{background:#0e0b08;color:#d4c898;}
 select.fi:focus{border-bottom-color:var(--gold-dim);}
 select.fi::-ms-expand{display:none;}
 .fta{width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);
-  font-family:'EB Garamond',serif;font-size:13px;padding:8px;outline:none;resize:vertical;min-height:80px;
-  transition:border-color .2s;line-height:1.55;}
+  font-family:'EB Garamond',serif;font-size:14px;padding:8px;outline:none;resize:vertical;min-height:80px;
+  transition:border-color .2s;line-height:1.6;}
 .fta:focus{border-color:var(--gold-dim);}
 .fta.lg{min-height:120px;} .fta.xl{min-height:160px;} .fta.xxl{min-height:220px;}
 
@@ -94,7 +94,7 @@ select.fi::-ms-expand{display:none;}
 .dr{display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap;}
 .dr{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
 .dr:last-child{margin-bottom:0;}
-.dl{font-size:11px;color:var(--text);min-width:108px;flex-shrink:0;}
+.dl{font-size:12px;color:var(--text);min-width:108px;flex-shrink:0;}
 .dots{display:flex;gap:4px;align-items:center;}
 .dot{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--gold-dim);
   background:var(--field-bg);cursor:pointer;transition:all .15s;flex-shrink:0;}
@@ -164,18 +164,18 @@ select.fi::-ms-expand{display:none;}
 .xp-ref-row:last-child{border-bottom:none;}
 .xp-ref-item{color:var(--text);}
 .xp-ref-cost{font-family:'Cinzel',serif;font-size:10px;color:var(--gold);white-space:nowrap;margin-left:8px;}
-.xp-entry{display:flex;align-items:center;gap:8px;padding:5px 8px;border-bottom:1px solid rgba(122,94,24,.15);font-size:12px;}
+.xp-entry{display:flex;align-items:center;gap:8px;padding:5px 8px;border-bottom:1px solid rgba(122,94,24,.15);font-size:13px;}
 .xp-entry:last-child{border-bottom:none;}
-.xp-entry-cost{font-family:'Cinzel',serif;font-size:11px;min-width:36px;text-align:right;flex-shrink:0;}
+.xp-entry-cost{font-family:'Cinzel',serif;font-size:12px;min-width:36px;text-align:right;flex-shrink:0;}
 .xp-entry-cost.gain{color:var(--green-lt);}
 .xp-entry-cost.spend{color:var(--crimson-lt);}
 .xp-entry-cat{font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);min-width:70px;flex-shrink:0;text-transform:uppercase;}
 .xp-entry-desc{flex:1;color:var(--text);}
-.xp-entry-date{font-size:10px;color:var(--subtext);white-space:nowrap;flex-shrink:0;}
+.xp-entry-date{font-size:11px;color:var(--subtext);white-space:nowrap;flex-shrink:0;}
 .xp-entry-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;padding:0 3px;opacity:0;transition:opacity .2s;}
 .xp-entry:hover .xp-entry-del{opacity:1;}
 .xp-entry-del:hover{color:var(--crimson-lt);}
-.xp-empty{font-size:11px;color:var(--subtext);font-style:italic;padding:8px 0;text-align:center;}
+.xp-empty{font-size:12px;color:var(--subtext);font-style:italic;padding:8px 0;text-align:center;}
 
 /* ═══════════════════════════════
    DYNAMIC CARDS — Disciplines / Merits / Flaws / Specialties
@@ -201,7 +201,7 @@ select.fi::-ms-expand{display:none;}
   border-bottom:1px solid rgba(122,94,24,.15);position:relative;}
 .power-row:last-child{border-bottom:none;margin-bottom:0;}
 .power-lvl{font-size:9px;font-family:'Cinzel',serif;color:var(--crimson-lt);min-width:18px;flex-shrink:0;}
-.power-name{font-size:12px;color:var(--text);flex:1;cursor:help;position:relative;}
+.power-name{font-size:13px;color:var(--text);flex:1;cursor:help;position:relative;}
 .power-name:hover{color:var(--gold-lt);}
 .power-remove{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:10px;padding:0 3px;transition:color .2s;opacity:0;}
 .power-row:hover .power-remove{opacity:1;}
@@ -211,7 +211,7 @@ select.fi::-ms-expand{display:none;}
 .adv-card{display:flex;align-items:center;gap:8px;padding:5px 8px;margin-bottom:4px;
   border:1px solid rgba(122,94,24,.3);background:rgba(28,23,16,.6);position:relative;cursor:help;}
 .adv-card:hover{border-color:rgba(196,154,34,.4);}
-.adv-card-name{flex:1;font-size:12px;color:var(--text);}
+.adv-card-name{flex:1;font-size:13px;color:var(--text);}
 .adv-card-cost{font-size:9px;font-family:'Cinzel',serif;color:var(--subtext);min-width:24px;text-align:right;}
 .adv-card.flaw-card .adv-card-name{color:#c08080;}
 .adv-card-remove{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:10px;padding:0 3px;opacity:0;transition:all .2s;}
@@ -234,7 +234,7 @@ select.fi::-ms-expand{display:none;}
   border:1px solid rgba(122,94,24,.3);background:rgba(28,23,16,.6);cursor:help;position:relative;}
 .ritual-card:hover{border-color:rgba(196,154,34,.4);}
 .ritual-lvl{font-size:9px;font-family:'Cinzel',serif;color:var(--crimson-lt);min-width:20px;}
-.ritual-name{flex:1;font-size:12px;color:var(--text);}
+.ritual-name{flex:1;font-size:13px;color:var(--text);}
 .ritual-card-remove{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:10px;padding:0 3px;opacity:0;transition:all .2s;}
 .ritual-card:hover .ritual-card-remove{opacity:1;}
 .ritual-card-remove:hover{color:var(--crimson-lt);}
@@ -251,7 +251,7 @@ select.fi::-ms-expand{display:none;}
 /* ═══════════════════════════════
    FEEDING LOG
    ═══════════════════════════════ */
-.feed-entry{display:flex;align-items:center;gap:8px;padding:5px 8px;border-bottom:1px solid rgba(122,94,24,.15);font-size:12px;}
+.feed-entry{display:flex;align-items:center;gap:8px;padding:5px 8px;border-bottom:1px solid rgba(122,94,24,.15);font-size:13px;}
 .feed-entry:last-child{border-bottom:none;}
 .feed-res{font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;padding:2px 7px;border:1px solid rgba(122,94,24,.4);
   background:rgba(122,94,24,.1);color:var(--gold);min-width:80px;text-align:center;flex-shrink:0;}
@@ -261,8 +261,8 @@ select.fi::-ms-expand{display:none;}
 .feed-res.melan{border-color:#3a5a3a;background:rgba(40,80,40,.2);color:#80c080;}
 .feed-amount{font-family:'Cinzel',serif;font-size:10px;color:var(--crimson-lt);min-width:28px;text-align:center;flex-shrink:0;}
 .feed-target{flex:1;color:var(--text);}
-.feed-notes{font-size:11px;color:var(--subtext);font-style:italic;}
-.feed-date{font-size:10px;color:var(--subtext);white-space:nowrap;flex-shrink:0;}
+.feed-notes{font-size:12px;color:var(--subtext);font-style:italic;}
+.feed-date{font-size:11px;color:var(--subtext);white-space:nowrap;flex-shrink:0;}
 .feed-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;padding:0 3px;opacity:0;transition:opacity .2s;}
 .feed-entry:hover .feed-del{opacity:1;}
 .feed-del:hover{color:var(--crimson-lt);}
@@ -505,7 +505,7 @@ select.fi::-ms-expand{display:none;}
 <div class="save-bar">
   <span class="save-status" id="saveStatus">Ready</span>
   <button class="btn" onclick="saveAll()">Save (Ctrl+S)</button>
-  <button class="btn green" id="syncBtn" onclick="syncToGist()">☁ Sync to DM</button>
+  <button class="btn green" id="syncBtn" onclick="syncToFirestore()">☁ Sync to DM</button>
   <button class="btn" onclick="exportJSON()">Export JSON</button>
   <button class="btn" onclick="document.getElementById('importFile').click()">Import JSON</button>
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
@@ -2210,8 +2210,7 @@ async function syncToFirestore(silent) {
   if (btn) btn.disabled = false;
 }
 
-// Keep old name wired up so any button calling syncToGist() still works
-function syncToGist(silent) { return syncToFirestore(silent); }
+
 
 function exportJSON() {
   const d = collectData();
