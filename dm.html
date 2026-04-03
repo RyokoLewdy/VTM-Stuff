@@ -305,72 +305,135 @@ select.fi option{background:#0e0b08;color:#d4c898;}
         <select id="map_select" class="fi" style="max-width:160px;font-size:11px" onchange="loadSavedMap(this.value)">
           <option value="">— Saved Maps —</option>
         </select>
-        <button class="btn sm" onclick="deleteSavedMap()">🗑</button>
+        <button class="btn sm danger" onclick="deleteSavedMap()" title="Delete selected map">🗑</button>
       </div>
     </div>
-    <div style="display:flex;gap:12px;flex-wrap:wrap;padding:12px 16px 0">
-      <!-- Toolbar -->
-      <div class="dm-panel" style="flex:0 0 auto;min-width:160px">
+    <div style="display:flex;gap:10px;padding:0 0 12px;height:calc(100vh - 140px);min-height:600px">
+
+      <!-- LEFT TOOLBAR -->
+      <div class="dm-panel" style="flex:0 0 180px;overflow-y:auto;display:flex;flex-direction:column">
         <div class="ph dm-ph">Tools</div>
-        <div class="pb" style="display:flex;flex-direction:column;gap:6px">
-          <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <div class="pb" style="display:flex;flex-direction:column;gap:5px">
+
+          <!-- Draw Tools -->
+          <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin-bottom:2px">DRAW</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px">
             <button id="tool_pencil"  class="btn sm map-tool active-tool" onclick="setTool('pencil')"  title="Pencil">✏️</button>
             <button id="tool_line"    class="btn sm map-tool" onclick="setTool('line')"    title="Line">╱</button>
             <button id="tool_rect"    class="btn sm map-tool" onclick="setTool('rect')"    title="Rectangle">▭</button>
             <button id="tool_ellipse" class="btn sm map-tool" onclick="setTool('ellipse')" title="Ellipse">◯</button>
-            <button id="tool_fill"    class="btn sm map-tool" onclick="setTool('fill')"    title="Fill">🪣</button>
+            <button id="tool_fill"    class="btn sm map-tool" onclick="setTool('fill')"    title="Flood Fill">🪣</button>
             <button id="tool_text"    class="btn sm map-tool" onclick="setTool('text')"    title="Text">T</button>
             <button id="tool_eraser"  class="btn sm map-tool" onclick="setTool('eraser')"  title="Eraser">⬜</button>
+            <button id="tool_select"  class="btn sm map-tool" onclick="setTool('select')"  title="Select &amp; Move">⊹</button>
           </div>
-          <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-            <label style="font-family:Cinzel,serif;font-size:9px;letter-spacing:1px;color:var(--gold)">COLOR</label>
-            <input type="color" id="map_color" value="#c49a22" style="width:36px;height:24px;border:none;background:none;cursor:pointer;padding:0">
+
+          <!-- Stamps -->
+          <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin:4px 0 2px">STAMPS</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px">
+            <button class="btn sm map-tool" onclick="setStamp('🚪')" title="Door">🚪</button>
+            <button class="btn sm map-tool" onclick="setStamp('🪤')" title="Trap">🪤</button>
+            <button class="btn sm map-tool" onclick="setStamp('📦')" title="Chest">📦</button>
+            <button class="btn sm map-tool" onclick="setStamp('💡')" title="Light">💡</button>
+            <button class="btn sm map-tool" onclick="setStamp('🩸')" title="Blood">🩸</button>
+            <button class="btn sm map-tool" onclick="setStamp('💀')" title="Death">💀</button>
+            <button class="btn sm map-tool" onclick="setStamp('⭐')" title="Point of interest">⭐</button>
+            <button class="btn sm map-tool" onclick="setStamp('❓')" title="Unknown">❓</button>
+          </div>
+
+          <!-- Measure -->
+          <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin:4px 0 2px">MEASURE</div>
+          <button id="tool_measure" class="btn sm map-tool" style="width:100%" onclick="setTool('measure')" title="Measure distance">📏 Measure</button>
+          <div id="measure_result" style="font-size:10px;color:var(--gold);font-style:italic;min-height:14px;text-align:center"></div>
+
+          <hr style="border-color:var(--border);margin:4px 0">
+
+          <!-- Color & Size -->
+          <div style="display:flex;align-items:center;gap:6px">
+            <label style="font-family:Cinzel,serif;font-size:8px;letter-spacing:1px;color:var(--gold)">COLOR</label>
+            <input type="color" id="map_color" value="#c49a22" style="width:36px;height:22px;border:none;background:none;cursor:pointer;padding:0;flex:1">
           </div>
           <div style="display:flex;align-items:center;gap:6px">
-            <label style="font-family:Cinzel,serif;font-size:9px;letter-spacing:1px;color:var(--gold)">SIZE</label>
-            <input type="range" id="map_size" min="1" max="40" value="4" style="flex:1">
+            <label style="font-family:Cinzel,serif;font-size:8px;letter-spacing:1px;color:var(--gold)">SIZE</label>
+            <input type="range" id="map_size" min="1" max="80" value="4" style="flex:1">
             <span id="map_size_val" style="font-size:11px;color:var(--subtext);min-width:18px">4</span>
           </div>
-          <div style="display:flex;gap:4px;margin-top:4px">
-            <button class="btn sm" onclick="mapUndo()" title="Undo">↩</button>
-            <button class="btn sm" onclick="mapRedo()" title="Redo">↪</button>
-            <button class="btn danger sm" onclick="clearCanvas()" title="Clear canvas">✕</button>
+
+          <!-- History -->
+          <div style="display:flex;gap:3px">
+            <button class="btn sm" style="flex:1" onclick="mapUndo()" title="Undo">↩ Undo</button>
+            <button class="btn sm" style="flex:1" onclick="mapRedo()" title="Redo">↪ Redo</button>
           </div>
+          <button class="btn danger sm" style="width:100%" onclick="clearCanvas()">✕ Clear All</button>
+
           <hr style="border-color:var(--border);margin:4px 0">
-          <div style="font-family:Cinzel,serif;font-size:9px;letter-spacing:1px;color:var(--gold);margin-bottom:3px">LAYER</div>
+
+          <!-- Layer -->
+          <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin-bottom:2px">LAYER</div>
           <div style="display:flex;gap:4px">
             <button id="layer_base" class="btn sm active-tool" onclick="setLayer('base')" style="flex:1">Base</button>
             <button id="layer_fog"  class="btn sm" onclick="setLayer('fog')"  style="flex:1;color:#e05050">🌫 Fog</button>
           </div>
-          <div style="font-size:10px;color:var(--subtext);font-style:italic;line-height:1.4">Fog layer hidden from players. Paint over secrets.</div>
+          <div style="font-size:9px;color:var(--subtext);font-style:italic;line-height:1.4">Fog hidden from players.</div>
+
           <hr style="border-color:var(--border);margin:4px 0">
+
+          <!-- Grid -->
+          <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin-bottom:2px">GRID</div>
           <div style="display:flex;align-items:center;gap:6px">
             <input type="checkbox" id="map_grid" onchange="toggleGrid()" style="cursor:pointer">
-            <label for="map_grid" style="font-size:11px;cursor:pointer">Grid overlay</label>
-            <select id="map_grid_type" onchange="toggleGrid()" style="font-size:10px;background:var(--field-bg);color:var(--input-text);border:1px solid var(--field-border);padding:2px 4px">
+            <label for="map_grid" style="font-size:11px;cursor:pointer">Show</label>
+            <select id="map_grid_type" onchange="toggleGrid()" style="font-size:10px;background:var(--field-bg);color:var(--input-text);border:1px solid var(--field-border);padding:2px 4px;flex:1">
               <option value="square">Square</option>
               <option value="hex">Hex</option>
             </select>
           </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <label style="font-family:Cinzel,serif;font-size:8px;letter-spacing:1px;color:var(--subtext)">SZ</label>
+            <input type="range" id="map_grid_size" min="20" max="120" value="50" style="flex:1" oninput="toggleGrid();document.getElementById('grid_sz_val').textContent=this.value">
+            <span id="grid_sz_val" style="font-size:10px;color:var(--subtext);min-width:22px">50</span>
+          </div>
+
           <hr style="border-color:var(--border);margin:4px 0">
+
+          <!-- Image upload -->
           <input type="file" id="map_upload" accept="image/*" style="display:none" onchange="uploadMapImage(event)">
           <button class="btn sm" style="width:100%" onclick="document.getElementById('map_upload').click()">🖼 Upload Image</button>
+
           <hr style="border-color:var(--border);margin:4px 0">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-            <input type="text" id="map_name_input" class="fi" placeholder="Map name…" style="flex:1;font-size:11px">
+
+          <!-- Push -->
+          <input type="text" id="map_name_input" class="fi" placeholder="Map name…" style="font-size:11px">
+          <button class="btn green sm" style="width:100%;margin-top:3px" onclick="saveAndPushMap()">🚀 Push to Players</button>
+          <div id="map_push_status" style="font-size:9px;color:var(--subtext);font-style:italic;margin-top:3px;min-height:14px;text-align:center"></div>
+        </div>
+      </div>
+
+      <!-- CANVAS AREA (scrollable pan container) -->
+      <div style="flex:1;overflow:hidden;position:relative;background:#0a0a0a;border:1px solid var(--border)" id="map_viewport">
+        <div id="map_canvas_wrap" style="position:absolute;transform-origin:0 0;cursor:crosshair">
+          <canvas id="map_base"        width="2048" height="1536" style="display:block"></canvas>
+          <canvas id="map_fog"         width="2048" height="1536" style="position:absolute;top:0;left:0;opacity:0.55;pointer-events:none"></canvas>
+          <canvas id="map_grid_canvas" width="2048" height="1536" style="position:absolute;top:0;left:0;pointer-events:none;opacity:0.3"></canvas>
+          <canvas id="map_token_canvas" width="2048" height="1536" style="position:absolute;top:0;left:0;pointer-events:none"></canvas>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL: Token Roster -->
+      <div class="dm-panel" style="flex:0 0 160px;overflow-y:auto;display:flex;flex-direction:column">
+        <div class="ph dm-ph">Tokens</div>
+        <div class="pb" style="display:flex;flex-direction:column;gap:6px">
+          <div style="font-size:9px;color:var(--subtext);font-style:italic;line-height:1.4">Drag a token onto the map. Players control their own.</div>
+          <div id="token_roster" style="display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:10px;color:var(--subtext);text-align:center;padding:8px 0">No characters loaded.</div>
           </div>
-          <button class="btn green sm" style="width:100%" onclick="saveAndPushMap()">🚀 Save & Push to Players</button>
-          <div id="map_push_status" style="font-size:10px;color:var(--subtext);font-style:italic;margin-top:4px;min-height:14px"></div>
+          <hr style="border-color:var(--border);margin:4px 0">
+          <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin-bottom:2px">ON MAP</div>
+          <div id="token_placed_list" style="display:flex;flex-direction:column;gap:3px"></div>
+          <button class="btn danger sm" style="width:100%;margin-top:4px" onclick="clearAllTokens()">✕ Clear Tokens</button>
         </div>
       </div>
-      <!-- Canvas area -->
-      <div style="flex:1;min-width:300px">
-        <div style="position:relative;display:inline-block;border:1px solid var(--border);cursor:crosshair" id="map_canvas_wrap">
-          <canvas id="map_base" width="1024" height="768" style="display:block;max-width:100%"></canvas>
-          <canvas id="map_fog"  width="1024" height="768" style="position:absolute;top:0;left:0;max-width:100%;opacity:0.55;pointer-events:none"></canvas>
-          <canvas id="map_grid_canvas" width="1024" height="768" style="position:absolute;top:0;left:0;max-width:100%;pointer-events:none;opacity:0.25"></canvas>
-        </div>
-      </div>
+
     </div>
   </div>
 
@@ -1481,23 +1544,149 @@ function newSession(){
 
 // ── MAP ENGINE ──
 (function(){
-  const CANVAS_W=1024, CANVAS_H=768;
+  const CANVAS_W=2048, CANVAS_H=1536;
   let tool='pencil', activeLayer='base', drawing=false;
   let startX=0, startY=0, snapshot=null;
+  let currentStamp=null;
+  let selRect=null, selImg=null, selDragging=false, selDragOx=0, selDragOy=0;
   const undoStack=[], redoStack=[];
-  const MAX_UNDO=25;
+  const MAX_UNDO=30;
 
-  function getScale(){
-    const el=document.getElementById('map_base');
-    if(!el) return 1;
-    return el.getBoundingClientRect().width / CANVAS_W;
+  // ── Viewport pan/zoom state ──
+  let vpScale=0.5, vpPanX=0, vpPanY=0;
+  let vpDragging=false, vpDragSX=0, vpDragSY=0, vpPanSX=0, vpPanSY=0;
+  let spaceHeld=false;
+  let lastTouchDist=null, lastTouchMidX=0, lastTouchMidY=0;
+
+  function applyVP(){
+    const wrap=document.getElementById('map_canvas_wrap');
+    if(wrap) wrap.style.transform=`translate(${vpPanX}px,${vpPanY}px) scale(${vpScale})`;
   }
 
-  function getCtx(layer){
-    const id = layer==='fog' ? 'map_fog' : 'map_base';
-    return document.getElementById(id)?.getContext('2d');
+  function clampPan(){
+    // allow some overscroll but not too far
+    const vp=document.getElementById('map_viewport');
+    if(!vp) return;
+    const maxX = vp.clientWidth * 0.9;
+    const maxY = vp.clientHeight * 0.9;
+    const minX = -(CANVAS_W * vpScale - vp.clientWidth * 0.1);
+    const minY = -(CANVAS_H * vpScale - vp.clientHeight * 0.1);
+    vpPanX = Math.min(maxX, Math.max(minX, vpPanX));
+    vpPanY = Math.min(maxY, Math.max(minY, vpPanY));
   }
 
+  // Convert viewport client coords → canvas pixel coords
+  function vpToCanvas(cx,cy){
+    const vp=document.getElementById('map_viewport');
+    if(!vp) return {x:cx,y:cy};
+    const r=vp.getBoundingClientRect();
+    return {
+      x: (cx - r.left - vpPanX) / vpScale,
+      y: (cy - r.top  - vpPanY) / vpScale
+    };
+  }
+
+  function setupVPEvents(){
+    const vp=document.getElementById('map_viewport');
+    if(!vp) return;
+
+    // Scroll to zoom
+    vp.addEventListener('wheel', e=>{
+      e.preventDefault();
+      const r=vp.getBoundingClientRect();
+      const mx=e.clientX-r.left, my=e.clientY-r.top;
+      const delta=e.deltaY>0?0.9:1.1;
+      const newScale=Math.min(4,Math.max(0.1,vpScale*delta));
+      // Zoom toward cursor
+      vpPanX=mx-(mx-vpPanX)*(newScale/vpScale);
+      vpPanY=my-(my-vpPanY)*(newScale/vpScale);
+      vpScale=newScale;
+      clampPan();
+      applyVP();
+    },{passive:false});
+
+    // Mouse pan (space+drag or middle click)
+    vp.addEventListener('mousedown', e=>{
+      if(e.button===1 || (e.button===0 && spaceHeld)){
+        e.preventDefault();
+        vpDragging=true;
+        vpDragSX=e.clientX; vpDragSY=e.clientY;
+        vpPanSX=vpPanX; vpPanSY=vpPanY;
+        vp.style.cursor='grabbing';
+      }
+    });
+    window.addEventListener('mousemove', e=>{
+      if(!vpDragging) return;
+      vpPanX=vpPanSX+(e.clientX-vpDragSX);
+      vpPanY=vpPanSY+(e.clientY-vpDragSY);
+      clampPan(); applyVP();
+    });
+    window.addEventListener('mouseup', e=>{
+      if(!vpDragging) return;
+      vpDragging=false;
+      vp.style.cursor= spaceHeld ? 'grab' : 'default';
+    });
+
+    // Touch pan+zoom
+    vp.addEventListener('touchstart', e=>{
+      if(e.touches.length===2){
+        lastTouchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+        lastTouchMidX=(e.touches[0].clientX+e.touches[1].clientX)/2;
+        lastTouchMidY=(e.touches[0].clientY+e.touches[1].clientY)/2;
+        vpDragSX=lastTouchMidX; vpDragSY=lastTouchMidY;
+        vpPanSX=vpPanX; vpPanSY=vpPanY;
+        vpDragging=true;
+      }
+    },{passive:true});
+    vp.addEventListener('touchmove', e=>{
+      if(e.touches.length===2){
+        const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+        const midX=(e.touches[0].clientX+e.touches[1].clientX)/2;
+        const midY=(e.touches[0].clientY+e.touches[1].clientY)/2;
+        if(lastTouchDist){
+          const r=vp.getBoundingClientRect();
+          const mx=midX-r.left, my=midY-r.top;
+          const newScale=Math.min(4,Math.max(0.1,vpScale*(dist/lastTouchDist)));
+          vpPanX=mx-(mx-vpPanX)*(newScale/vpScale);
+          vpPanY=my-(my-vpPanY)*(newScale/vpScale);
+          vpScale=newScale;
+        }
+        vpPanX=vpPanSX+(midX-vpDragSX);
+        vpPanY=vpPanSY+(midY-vpDragSY);
+        lastTouchDist=dist; vpDragSX=midX; vpDragSY=midY; vpPanSX=vpPanX; vpPanSY=vpPanY;
+        clampPan(); applyVP();
+      }
+    },{passive:true});
+    vp.addEventListener('touchend', ()=>{ vpDragging=false; lastTouchDist=null; });
+  }
+
+  // Space to pan
+  document.addEventListener('keydown', e=>{
+    if(e.code==='Space' && document.getElementById('view_map')?.classList.contains('active')){
+      spaceHeld=true;
+      const vp=document.getElementById('map_viewport');
+      if(vp) vp.style.cursor='grab';
+    }
+  });
+  document.addEventListener('keyup', e=>{
+    if(e.code==='Space'){ spaceHeld=false;
+      const vp=document.getElementById('map_viewport');
+      if(vp) vp.style.cursor='default';
+    }
+  });
+
+  window.vpFitToScreen=function(){
+    const vp=document.getElementById('map_viewport');
+    if(!vp) return;
+    vpScale=Math.min(vp.clientWidth/CANVAS_W, vp.clientHeight/CANVAS_H)*0.95;
+    vpPanX=(vp.clientWidth - CANVAS_W*vpScale)/2;
+    vpPanY=(vp.clientHeight - CANVAS_H*vpScale)/2;
+    applyVP();
+  };
+  window.vpResetZoom=function(){ vpScale=1; vpPanX=0; vpPanY=0; applyVP(); };
+
+  // ── Canvas draw helpers ──
+  function getCtx(layer){ return document.getElementById(layer==='fog'?'map_fog':'map_base')?.getContext('2d'); }
   function activeCtx(){ return getCtx(activeLayer); }
 
   function pushUndo(){
@@ -1513,32 +1702,28 @@ function newSession(){
   }
 
   function mapPos(e){
-    const wrap=document.getElementById('map_canvas_wrap');
-    if(!wrap) return {x:0,y:0};
-    const r=wrap.getBoundingClientRect();
-    const scaleX=CANVAS_W/r.width, scaleY=CANVAS_H/r.height;
     const src=e.touches?e.touches[0]:e;
-    return {x:(src.clientX-r.left)*scaleX, y:(src.clientY-r.top)*scaleY};
+    return vpToCanvas(src.clientX, src.clientY);
   }
 
   function applyStyle(ctx){
     const color=document.getElementById('map_color')?.value||'#c49a22';
     const size=parseInt(document.getElementById('map_size')?.value||4);
-    ctx.strokeStyle = tool==='eraser' ? '#000000' : color;
+    ctx.strokeStyle = tool==='eraser' ? 'rgba(0,0,0,1)' : color;
     ctx.fillStyle   = color;
     ctx.lineWidth   = tool==='eraser' ? size*3 : size;
     ctx.lineCap='round'; ctx.lineJoin='round';
-    if(tool==='eraser') ctx.globalCompositeOperation='destination-out';
-    else ctx.globalCompositeOperation='source-over';
+    ctx.globalCompositeOperation = tool==='eraser' ? 'destination-out' : 'source-over';
   }
 
-  function floodFill(ctx, x, y, fillColor){
+  function floodFill(ctx,x,y,fillColor){
     x=Math.round(x); y=Math.round(y);
+    if(x<0||y<0||x>=CANVAS_W||y>=CANVAS_H) return;
     const img=ctx.getImageData(0,0,CANVAS_W,CANVAS_H);
     const d=img.data;
     const idx=(y*CANVAS_W+x)*4;
     const tr=d[idx],tg=d[idx+1],tb=d[idx+2],ta=d[idx+3];
-    const fc=parseInt(fillColor.slice(1),16);
+    const fc=parseInt(fillColor.replace('#',''),16);
     const fr=(fc>>16)&255,fg=(fc>>8)&255,fb=fc&255;
     if(tr===fr&&tg===fg&&tb===fb&&ta===255) return;
     const stack=[[x,y]];
@@ -1553,18 +1738,90 @@ function newSession(){
     ctx.putImageData(img,0,0);
   }
 
+  // Measure tool state
+  let measStart=null;
+  function drawMeasure(x,y){
+    if(!measStart) return;
+    const gc=document.getElementById('map_grid_canvas');
+    if(!gc) return;
+    // Redraw grid then overlay measure line
+    toggleGrid();
+    const ctx=gc.getContext('2d');
+    ctx.save();
+    ctx.strokeStyle='#ff4444'; ctx.lineWidth=2; ctx.setLineDash([8,4]);
+    ctx.beginPath(); ctx.moveTo(measStart.x,measStart.y); ctx.lineTo(x,y); ctx.stroke();
+    ctx.setLineDash([]);
+    const px=Math.sqrt((x-measStart.x)**2+(y-measStart.y)**2);
+    const sz=parseInt(document.getElementById('map_grid_size')?.value||50);
+    const squares=(px/sz).toFixed(1);
+    const meters=(px/sz*1.5).toFixed(1);
+    document.getElementById('measure_result').textContent=`${squares} sq / ${meters}m`;
+    ctx.restore();
+  }
+
+  // Selection tool state
+  let selStartX=0,selStartY=0,selEndX=0,selEndY=0;
+  let selPhase='none'; // 'none','drawing','selected','moving'
+
+  function drawSelOverlay(){
+    const gc=document.getElementById('map_grid_canvas');
+    if(!gc||selPhase==='none') return;
+    toggleGrid();
+    const ctx=gc.getContext('2d');
+    ctx.save();
+    ctx.strokeStyle='#6699ff'; ctx.lineWidth=1.5; ctx.setLineDash([6,3]);
+    const x=Math.min(selStartX,selEndX), y=Math.min(selStartY,selEndY);
+    const w=Math.abs(selEndX-selStartX), h=Math.abs(selEndY-selStartY);
+    ctx.strokeRect(x,y,w,h);
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
   function onDown(e){
+    if(vpDragging||spaceHeld) return;
     e.preventDefault();
     const {x,y}=mapPos(e);
-    startX=x; startY=y; drawing=true;
+
+    if(tool==='measure'){
+      measStart={x,y};
+      drawing=true;
+      return;
+    }
+
+    if(tool==='select'){
+      if(selPhase==='selected'){
+        // Check if inside selection to start move
+        const sx=Math.min(selStartX,selEndX), sy=Math.min(selStartY,selEndY);
+        const sw=Math.abs(selEndX-selStartX), sh=Math.abs(selEndY-selStartY);
+        if(x>=sx&&x<=sx+sw&&y>=sy&&y<=sy+sh){
+          selPhase='moving'; selDragging=true;
+          selDragOx=x-sx; selDragOy=y-sy;
+          // Cut the selection out into temp canvas
+          const base=document.getElementById('map_base');
+          const ctx=base.getContext('2d');
+          selImg=ctx.getImageData(sx,sy,sw,sh);
+          ctx.clearRect(sx,sy,sw,sh);
+          return;
+        }
+      }
+      selPhase='drawing'; selStartX=x; selStartY=y; selEndX=x; selEndY=y;
+      drawing=true; return;
+    }
+
     const ctx=activeCtx(); if(!ctx) return;
-    pushUndo();
-    applyStyle(ctx);
+    pushUndo(); applyStyle(ctx);
+
+    if(tool==='stamp'&&currentStamp){
+      const sz=parseInt(document.getElementById('map_size')?.value||4)*4+16;
+      ctx.font=`${sz}px serif`;
+      ctx.globalCompositeOperation='source-over';
+      ctx.fillText(currentStamp, x-sz/2, y+sz/3);
+      return;
+    }
     if(tool==='pencil'||tool==='eraser'){
-      ctx.beginPath(); ctx.moveTo(x,y);
+      ctx.beginPath(); ctx.moveTo(x,y); drawing=true;
     } else if(tool==='fill'){
       floodFill(ctx,x,y,document.getElementById('map_color')?.value||'#c49a22');
-      drawing=false;
     } else if(tool==='text'){
       const txt=prompt('Enter text:');
       if(txt){
@@ -1574,35 +1831,59 @@ function newSession(){
         ctx.globalCompositeOperation='source-over';
         ctx.fillText(txt,x,y);
       }
-      drawing=false;
     } else {
       snapshot=ctx.getImageData(0,0,CANVAS_W,CANVAS_H);
+      drawing=true;
     }
   }
 
   function onMove(e){
+    if(vpDragging||spaceHeld) return;
     e.preventDefault();
-    if(!drawing) return;
     const {x,y}=mapPos(e);
+
+    if(tool==='measure'&&drawing){ drawMeasure(x,y); return; }
+
+    if(tool==='select'){
+      if(selPhase==='moving'&&selImg){
+        const sw=Math.abs(selEndX-selStartX), sh=Math.abs(selEndY-selStartY);
+        const nx=x-selDragOx, ny=y-selDragOy;
+        // redraw ghost
+        const gc=document.getElementById('map_grid_canvas');
+        if(gc){ toggleGrid(); const ctx=gc.getContext('2d'); ctx.save(); ctx.strokeStyle='#6699ff'; ctx.lineWidth=1.5; ctx.setLineDash([6,3]); ctx.strokeRect(nx,ny,sw,sh); ctx.setLineDash([]); ctx.restore(); }
+        selStartX=nx; selStartY=ny; selEndX=nx+sw; selEndY=ny+sh;
+        return;
+      }
+      if(selPhase==='drawing'){ selEndX=x; selEndY=y; drawSelOverlay(); return; }
+    }
+
+    if(!drawing) return;
     const ctx=activeCtx(); if(!ctx) return;
     applyStyle(ctx);
-    if(tool==='pencil'||tool==='eraser'){
-      ctx.lineTo(x,y); ctx.stroke();
-    } else if(tool==='line'){
-      ctx.putImageData(snapshot,0,0);
-      ctx.beginPath(); ctx.moveTo(startX,startY); ctx.lineTo(x,y); ctx.stroke();
-    } else if(tool==='rect'){
-      ctx.putImageData(snapshot,0,0);
-      ctx.beginPath(); ctx.strokeRect(startX,startY,x-startX,y-startY);
-    } else if(tool==='ellipse'){
-      ctx.putImageData(snapshot,0,0);
-      ctx.beginPath();
-      ctx.ellipse(startX+(x-startX)/2,startY+(y-startY)/2,Math.abs(x-startX)/2,Math.abs(y-startY)/2,0,0,Math.PI*2);
-      ctx.stroke();
-    }
+    if(tool==='pencil'||tool==='eraser'){ ctx.lineTo(x,y); ctx.stroke(); }
+    else if(tool==='line'){ ctx.putImageData(snapshot,0,0); ctx.beginPath(); ctx.moveTo(startX,startY); ctx.lineTo(x,y); ctx.stroke(); }
+    else if(tool==='rect'){ ctx.putImageData(snapshot,0,0); ctx.beginPath(); ctx.strokeRect(startX,startY,x-startX,y-startY); }
+    else if(tool==='ellipse'){ ctx.putImageData(snapshot,0,0); ctx.beginPath(); ctx.ellipse(startX+(x-startX)/2,startY+(y-startY)/2,Math.abs(x-startX)/2,Math.abs(y-startY)/2,0,0,Math.PI*2); ctx.stroke(); }
+    startX=x; startY=y;
   }
 
   function onUp(e){
+    const {x,y}=mapPos(e);
+
+    if(tool==='measure'&&drawing){ drawing=false; measStart=null; return; }
+
+    if(tool==='select'){
+      if(selPhase==='drawing'){ selEndX=x; selEndY=y; selPhase='selected'; drawSelOverlay(); drawing=false; return; }
+      if(selPhase==='moving'&&selImg){
+        const sw=Math.abs(selEndX-selStartX-0), sh=selImg.height;
+        const nx=Math.min(selStartX,selEndX), ny=Math.min(selStartY,selEndY);
+        const base=document.getElementById('map_base');
+        if(base){ const ctx=base.getContext('2d'); ctx.putImageData(selImg,nx,ny); }
+        selPhase='selected'; selDragging=false; selImg=null;
+        drawSelOverlay(); return;
+      }
+    }
+
     if(!drawing) return;
     drawing=false; snapshot=null;
     const ctx=activeCtx(); if(!ctx) return;
@@ -1611,27 +1892,28 @@ function newSession(){
   }
 
   window.setTool=function(t){
-    tool=t;
+    tool=t; currentStamp=null;
+    selPhase='none'; selImg=null;
     document.querySelectorAll('.map-tool').forEach(b=>b.classList.remove('active-tool'));
     document.getElementById('tool_'+t)?.classList.add('active-tool');
+    if(t!=='measure'){ document.getElementById('measure_result').textContent=''; }
+    const vp=document.getElementById('map_viewport');
+    if(vp) vp.style.cursor = t==='select'?'crosshair':t==='eraser'?'cell':'crosshair';
+  };
+
+  window.setStamp=function(emoji){
+    tool='stamp'; currentStamp=emoji;
+    document.querySelectorAll('.map-tool').forEach(b=>b.classList.remove('active-tool'));
   };
 
   window.setLayer=function(l){
     activeLayer=l;
-    const base=document.getElementById('map_base');
-    const fog=document.getElementById('map_fog');
-    if(!base||!fog) return;
     ['layer_base','layer_fog'].forEach(id=>document.getElementById(id)?.classList.remove('active-tool'));
     document.getElementById('layer_'+l)?.classList.add('active-tool');
-    // Make active layer interactive, other passthrough
-    if(l==='base'){
-      base.style.pointerEvents='auto'; fog.style.pointerEvents='none';
-      fog.style.opacity='0.45';
-    } else {
-      base.style.pointerEvents='none'; fog.style.pointerEvents='auto';
-      fog.style.opacity='0.65';
-    }
-    // Attach events to whichever canvas is active
+    const base=document.getElementById('map_base');
+    const fog=document.getElementById('map_fog');
+    if(l==='base'){ if(base)base.style.pointerEvents='auto'; if(fog)fog.style.pointerEvents='none'; if(fog)fog.style.opacity='0.45'; }
+    else { if(base)base.style.pointerEvents='none'; if(fog)fog.style.pointerEvents='auto'; if(fog)fog.style.opacity='0.65'; }
     setupCanvasEvents();
   };
 
@@ -1644,20 +1926,16 @@ function newSession(){
     const active=document.getElementById(activeLayer==='fog'?'map_fog':'map_base');
     if(!active) return;
     active.onmousedown=onDown; active.onmousemove=onMove; active.onmouseup=onUp;
-    active.onmouseleave=onUp;
+    active.onmouseleave=e=>{ if(drawing) onUp(e); };
     active.ontouchstart=onDown; active.ontouchmove=onMove; active.ontouchend=onUp;
   }
 
   window.mapUndo=function(){
     if(!undoStack.length) return;
     const state=undoStack.pop();
-    const base=document.getElementById('map_base');
-    const fog=document.getElementById('map_fog');
+    const base=document.getElementById('map_base'); const fog=document.getElementById('map_fog');
     if(!base||!fog) return;
-    redoStack.push({
-      base: base.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H),
-      fog:  fog.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H)
-    });
+    redoStack.push({ base:base.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H), fog:fog.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H) });
     base.getContext('2d').putImageData(state.base,0,0);
     fog.getContext('2d').putImageData(state.fog,0,0);
   };
@@ -1665,50 +1943,51 @@ function newSession(){
   window.mapRedo=function(){
     if(!redoStack.length) return;
     const state=redoStack.pop();
-    const base=document.getElementById('map_base');
-    const fog=document.getElementById('map_fog');
+    const base=document.getElementById('map_base'); const fog=document.getElementById('map_fog');
     if(!base||!fog) return;
-    undoStack.push({
-      base: base.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H),
-      fog:  fog.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H)
-    });
+    undoStack.push({ base:base.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H), fog:fog.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H) });
     base.getContext('2d').putImageData(state.base,0,0);
     fog.getContext('2d').putImageData(state.fog,0,0);
   };
 
   window.clearCanvas=function(){
-    if(!confirm('Clear the entire canvas? This cannot be undone.')) return;
+    if(!confirm('Clear the entire canvas?')) return;
     pushUndo();
-    const base=document.getElementById('map_base');
-    const fog=document.getElementById('map_fog');
+    const base=document.getElementById('map_base'); const fog=document.getElementById('map_fog');
     if(!base||!fog) return;
-    base.getContext('2d').clearRect(0,0,CANVAS_W,CANVAS_H);
+    const bctx=base.getContext('2d'); bctx.clearRect(0,0,CANVAS_W,CANVAS_H);
+    bctx.fillStyle='#1a1a1a'; bctx.fillRect(0,0,CANVAS_W,CANVAS_H);
     fog.getContext('2d').clearRect(0,0,CANVAS_W,CANVAS_H);
   };
 
   window.toggleGrid=function(){
     const on=document.getElementById('map_grid')?.checked;
     const type=document.getElementById('map_grid_type')?.value||'square';
+    const sz=parseInt(document.getElementById('map_grid_size')?.value||50);
     const gc=document.getElementById('map_grid_canvas'); if(!gc) return;
     const ctx=gc.getContext('2d');
     ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
     if(!on) return;
-    ctx.strokeStyle='#ffffff'; ctx.lineWidth=0.5; ctx.globalAlpha=1;
-    const sz=40;
+    ctx.strokeStyle='rgba(255,255,255,0.8)'; ctx.lineWidth=0.8;
+
     if(type==='square'){
-      for(let x=0;x<=CANVAS_W;x+=sz){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,CANVAS_H);ctx.stroke();}
-      for(let y=0;y<=CANVAS_H;y+=sz){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(CANVAS_W,y);ctx.stroke();}
+      for(let x=0;x<=CANVAS_W;x+=sz){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,CANVAS_H); ctx.stroke(); }
+      for(let y=0;y<=CANVAS_H;y+=sz){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CANVAS_W,y); ctx.stroke(); }
     } else {
-      // Hex grid
-      const hw=sz, hh=sz*0.866;
-      for(let row=0;row*hh<CANVAS_H+hh;row++){
-        for(let col=0;col*hw*1.5<CANVAS_W+hw;col++){
-          const cx=col*hw*1.5, cy=row*hh+(col%2?hh/2:0);
+      // Proper flat-top hex grid
+      const w=sz, h=sz*Math.sqrt(3);
+      const cols=Math.ceil(CANVAS_W/(w*1.5))+2;
+      const rows=Math.ceil(CANVAS_H/h)+2;
+      for(let row=-1;row<rows;row++){
+        for(let col=-1;col<cols;col++){
+          const cx=col*w*1.5 + w/2;
+          const cy=row*h + (col%2===0?h/2:0);
           ctx.beginPath();
           for(let i=0;i<6;i++){
-            const a=Math.PI/180*(60*i-30);
-            const px=cx+sz*0.5*Math.cos(a), py=cy+sz*0.5*Math.sin(a);
-            i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+            const angle=Math.PI/3*i; // flat-top: 0,60,120,...
+            const hx=cx+(w/2)*Math.cos(angle);
+            const hy=cy+(w/2)*Math.sin(angle);
+            i===0?ctx.moveTo(hx,hy):ctx.lineTo(hx,hy);
           }
           ctx.closePath(); ctx.stroke();
         }
@@ -1726,13 +2005,14 @@ function newSession(){
         const base=document.getElementById('map_base'); if(!base) return;
         const ctx=base.getContext('2d');
         ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
-        // Scale to fit, preserve aspect ratio
-        const scale=Math.min(CANVAS_W/img.width,CANVAS_H/img.height);
+        // Scale to fill canvas preserving aspect
+        const scale=Math.min(CANVAS_W/img.width, CANVAS_H/img.height);
         const w=img.width*scale, h=img.height*scale;
-        const ox=(CANVAS_W-w)/2, oy=(CANVAS_H-h)/2;
-        ctx.drawImage(img,ox,oy,w,h);
-        toast('Image loaded onto base layer');
+        ctx.drawImage(img,(CANVAS_W-w)/2,(CANVAS_H-h)/2,w,h);
+        vpFitToScreen();
+        toast('Image loaded — fit to screen');
       };
+      img.onerror=()=>toast('Failed to load image','error');
       img.src=ev.target.result;
     };
     reader.readAsDataURL(file);
@@ -1744,11 +2024,9 @@ function newSession(){
     if(!cfg.dmId){toast('No session ID — open Setup first','error');return;}
     const base=document.getElementById('map_base'); if(!base) return;
 
-    // Composite: base only (no fog) for players
     const out=document.createElement('canvas');
     out.width=CANVAS_W; out.height=CANVAS_H;
-    const ctx=out.getContext('2d');
-    ctx.drawImage(base,0,0);
+    out.getContext('2d').drawImage(base,0,0);
 
     const status=document.getElementById('map_push_status');
     if(status) status.textContent='Compressing…';
@@ -1762,29 +2040,20 @@ function newSession(){
         const storageRef=window._sRef(window._storage,path);
         await window._uploadBytes(storageRef,blob,{contentType:'image/jpeg'});
         const url=await window._getDownloadURL(storageRef);
-
-        // Save URL to Firestore
         const mapMeta={name,url,path,pushedAt:Date.now()};
-        const fsRef=window._fsDoc(window._db,'maps',cfg.dmId);
-        await window._fsSetDoc(fsRef,{current:mapMeta,_updatedAt:Date.now()});
-
-        // Save to dm.maps list (max 5, remove oldest)
+        await window._fsSetDoc(window._fsDoc(window._db,'maps',cfg.dmId),{current:mapMeta,_updatedAt:Date.now()});
         if(!dm.maps) dm.maps=[];
         dm.maps.unshift(mapMeta);
-        if(dm.maps.length>5){
-          const old=dm.maps.pop();
-          if(old.path) window._deleteObject(window._sRef(window._storage,old.path)).catch(()=>{});
-        }
-        saveAll();
-        refreshMapSelect();
-        if(status) status.textContent='Pushed at '+new Date().toLocaleTimeString();
+        if(dm.maps.length>5){ const old=dm.maps.pop(); if(old.path) window._deleteObject(window._sRef(window._storage,old.path)).catch(()=>{}); }
+        saveAll(); refreshMapSelect();
+        if(status) status.textContent='✓ Pushed '+new Date().toLocaleTimeString();
         toast('Map pushed to players!');
       }catch(err){
         console.error(err);
         if(status) status.textContent='Error: '+err.message;
         toast('Push failed: '+err.message,'error');
       }
-    },'image/jpeg',0.72);
+    },'image/jpeg',0.82);
   };
 
   window.refreshMapSelect=function(){
@@ -1801,19 +2070,16 @@ function newSession(){
     if(idx===''||idx===null) return;
     const m=(dm.maps||[])[parseInt(idx)];
     if(!m||!m.url) return;
-    const img=new Image();
-    img.crossOrigin='anonymous';
+    const img=new Image(); img.crossOrigin='anonymous';
     img.onload=()=>{
       pushUndo();
       const base=document.getElementById('map_base'); if(!base) return;
       const ctx=base.getContext('2d');
       ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
       const scale=Math.min(CANVAS_W/img.width,CANVAS_H/img.height);
-      const w=img.width*scale,h=img.height*scale;
-      ctx.drawImage(img,(CANVAS_W-w)/2,(CANVAS_H-h)/2,w,h);
-      // Also fill in the name field
-      const ni=document.getElementById('map_name_input');
-      if(ni) ni.value=m.name||'';
+      ctx.drawImage(img,(CANVAS_W-img.width*scale)/2,(CANVAS_H-img.height*scale)/2,img.width*scale,img.height*scale);
+      const ni=document.getElementById('map_name_input'); if(ni) ni.value=m.name||'';
+      vpFitToScreen();
       toast('Map loaded: '+m.name);
     };
     img.onerror=()=>toast('Failed to load map image','error');
@@ -1822,29 +2088,25 @@ function newSession(){
 
   window.deleteSavedMap=function(){
     const sel=document.getElementById('map_select'); if(!sel||sel.value==='') return;
-    const idx=parseInt(sel.value);
-    const m=(dm.maps||[])[idx]; if(!m) return;
-    if(!confirm('Delete saved map "'+m.name+'"? The image will be removed from Storage.')) return;
+    const idx=parseInt(sel.value); const m=(dm.maps||[])[idx]; if(!m) return;
+    if(!confirm('Delete "'+m.name+'"?')) return;
     if(m.path) window._deleteObject(window._sRef(window._storage,m.path)).catch(()=>{});
-    dm.maps.splice(idx,1);
-    saveAll();
-    refreshMapSelect();
-    toast('Map deleted.');
+    dm.maps.splice(idx,1); saveAll(); refreshMapSelect(); toast('Map deleted.');
   };
 
-  // Init canvas when map view first opens
+  // Init
   window._mapInitDone=false;
   window.initMapCanvas=function(){
     if(window._mapInitDone) return;
     window._mapInitDone=true;
     const base=document.getElementById('map_base');
-    if(!base) return;
-    const ctx=base.getContext('2d');
-    ctx.fillStyle='#1a1a1a'; ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
+    if(base){ const ctx=base.getContext('2d'); ctx.fillStyle='#1a1a1a'; ctx.fillRect(0,0,CANVAS_W,CANVAS_H); }
     setLayer('base');
-    document.getElementById('map_size')?.addEventListener('input',function(){
-      document.getElementById('map_size_val').textContent=this.value;
-    });
+    document.getElementById('map_size')?.addEventListener('input',function(){ document.getElementById('map_size_val').textContent=this.value; });
+    setupVPEvents();
+    vpFitToScreen();
+    refreshTokenRoster();
+    setupTokenDrag();
   };
 })();
 
@@ -1881,13 +2143,239 @@ document.addEventListener('DOMContentLoaded',async()=>{
       }catch(e){console.warn('DM cloud load failed:',e);}
     }
     setStatus('Live sync ready — Firestore connected','saved');
+    if(cfg.dmId) subscribeTokens(cfg.dmId);
   }
 
   if(!cfg.dmId)setTimeout(showSetup,800);
   setTimeout(updateSyncIndicator, 200);
+
+  // ── AUTOSAVE every 5 seconds ──
+  setInterval(()=>{ collectDM(); saveAll(); }, 5000);
+
+  // ── TOKEN SYSTEM ──
+  if(window._db && cfg.dmId) subscribeTokens(cfg.dmId);
 });
 document.addEventListener('input',markUnsaved);
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();collectDM();saveAll()}});
+
+// ── TOKEN SYSTEM ──
+// tokens/{dmId} = { tokens: [ {id, charId, name, imgUrl, x, y, size} ] }
+let _tokenUnsub=null;
+let _tokens={}; // keyed by token id
+
+function subscribeTokens(dmId){
+  if(_tokenUnsub){ _tokenUnsub(); _tokenUnsub=null; }
+  if(!window._db||!dmId) return;
+  const ref=window._fsDoc(window._db,'tokens',dmId);
+  _tokenUnsub=window._fsOnSnapshot(ref,snap=>{
+    if(!snap.exists()){ _tokens={}; renderTokenCanvas(); return; }
+    const d=snap.data();
+    _tokens={}; (d.tokens||[]).forEach(t=>{ _tokens[t.id]=t; });
+    renderTokenCanvas();
+    refreshPlacedList();
+  },err=>console.warn('Token listener:',err));
+}
+
+async function pushTokens(){
+  if(!window._db||!cfg.dmId) return;
+  const ref=window._fsDoc(window._db,'tokens',cfg.dmId);
+  await window._fsSetDoc(ref,{tokens:Object.values(_tokens),_updatedAt:Date.now()}).catch(e=>console.warn('token push:',e));
+}
+
+function renderTokenCanvas(){
+  const tc=document.getElementById('map_token_canvas'); if(!tc) return;
+  const ctx=tc.getContext('2d');
+  ctx.clearRect(0,0,2048,1536);
+  Object.values(_tokens).forEach(t=>{
+    if(t.imgUrl){
+      const img=new Image(); img.crossOrigin='anonymous';
+      img.onload=()=>{
+        const sz=t.size||50;
+        // Circular clip
+        ctx.save();
+        ctx.beginPath(); ctx.arc(t.x,t.y,sz/2,0,Math.PI*2); ctx.clip();
+        ctx.drawImage(img,t.x-sz/2,t.y-sz/2,sz,sz);
+        ctx.restore();
+        // Border
+        ctx.beginPath(); ctx.arc(t.x,t.y,sz/2,0,Math.PI*2);
+        ctx.strokeStyle=t.color||'#c49a22'; ctx.lineWidth=2; ctx.stroke();
+        // Name label
+        ctx.fillStyle='rgba(0,0,0,0.7)';
+        ctx.fillRect(t.x-sz/2,t.y+sz/2,sz,14);
+        ctx.fillStyle='#ede0c4'; ctx.font='10px Cinzel,serif';
+        ctx.textAlign='center'; ctx.fillText(t.name||'',t.x,t.y+sz/2+10);
+        ctx.textAlign='left';
+      };
+      img.src=t.imgUrl;
+    } else {
+      // Fallback circle with initial
+      const sz=t.size||50;
+      ctx.save();
+      ctx.beginPath(); ctx.arc(t.x,t.y,sz/2,0,Math.PI*2);
+      ctx.fillStyle='#2a1a1a'; ctx.fill();
+      ctx.strokeStyle=t.color||'#c49a22'; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle='#ede0c4'; ctx.font=`${sz*0.4}px Cinzel,serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText((t.name||'?')[0].toUpperCase(),t.x,t.y);
+      ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+      ctx.restore();
+      ctx.fillStyle='rgba(0,0,0,0.7)';
+      ctx.fillRect(t.x-sz/2,t.y+sz/2,sz,14);
+      ctx.fillStyle='#ede0c4'; ctx.font='10px Cinzel,serif';
+      ctx.textAlign='center'; ctx.fillText(t.name||'',t.x,t.y+sz/2+10);
+      ctx.textAlign='left';
+    }
+  });
+}
+
+window.refreshTokenRoster=function(){
+  const roster=document.getElementById('token_roster'); if(!roster) return;
+  const entries=Object.values(chars);
+  if(!entries.length){
+    roster.innerHTML='<div style="font-size:10px;color:var(--subtext);text-align:center;padding:8px 0">No characters loaded.</div>';
+    return;
+  }
+  roster.innerHTML='';
+  entries.forEach(c=>{
+    const id=c.charId||Object.keys(chars).find(k=>chars[k]===c);
+    const name=c.name||'Unknown';
+    const tokenUrl=c.data?._tokenImg||'';
+    const div=document.createElement('div');
+    div.style.cssText='display:flex;align-items:center;gap:6px;padding:4px;border:1px solid var(--border);cursor:grab;background:var(--surface);user-select:none';
+    div.draggable=true;
+    div.dataset.charId=id;
+    div.dataset.name=name;
+    div.dataset.tokenUrl=tokenUrl;
+    // Token preview
+    const preview=document.createElement('div');
+    preview.style.cssText='width:32px;height:32px;border-radius:50%;border:1px solid var(--gold-dim);overflow:hidden;flex-shrink:0;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--gold)';
+    if(tokenUrl){ const img=document.createElement('img'); img.src=tokenUrl; img.style.cssText='width:100%;height:100%;object-fit:cover'; preview.appendChild(img); }
+    else preview.textContent=name[0]?.toUpperCase()||'?';
+    const label=document.createElement('span');
+    label.style.cssText='font-size:10px;font-family:Cinzel,serif;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    label.textContent=name;
+    div.appendChild(preview); div.appendChild(label);
+    roster.appendChild(div);
+  });
+};
+
+function refreshPlacedList(){
+  const list=document.getElementById('token_placed_list'); if(!list) return;
+  const placed=Object.values(_tokens);
+  list.innerHTML='';
+  if(!placed.length){ list.innerHTML='<div style="font-size:10px;color:var(--subtext);text-align:center">None placed</div>'; return; }
+  placed.forEach(t=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;justify-content:space-between;font-size:10px;padding:2px 0;';
+    row.innerHTML=`<span style="font-family:Cinzel,serif;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(t.name||'?')}</span>
+      <button class="btn danger sm" style="padding:1px 5px;font-size:8px" onclick="removeToken('${t.id}')">✕</button>`;
+    list.appendChild(row);
+  });
+}
+
+window.removeToken=function(id){
+  delete _tokens[id]; renderTokenCanvas(); refreshPlacedList(); pushTokens();
+};
+window.clearAllTokens=function(){
+  if(!Object.keys(_tokens).length) return;
+  if(!confirm('Remove all tokens from the map?')) return;
+  _tokens={}; renderTokenCanvas(); refreshPlacedList(); pushTokens();
+};
+
+window.setupTokenDrag=function(){
+  const vp=document.getElementById('map_viewport'); if(!vp) return;
+
+  // Drag from roster onto viewport
+  document.addEventListener('dragstart',e=>{
+    const el=e.target.closest('[data-char-id]'); if(!el) return;
+    e.dataTransfer.setData('charId',el.dataset.charId);
+    e.dataTransfer.setData('name',el.dataset.name);
+    e.dataTransfer.setData('tokenUrl',el.dataset.tokenUrl);
+    e.dataTransfer.effectAllowed='copy';
+  });
+
+  vp.addEventListener('dragover',e=>e.preventDefault());
+  vp.addEventListener('drop',e=>{
+    e.preventDefault();
+    const charId=e.dataTransfer.getData('charId'); if(!charId) return;
+    const name=e.dataTransfer.getData('name');
+    const tokenUrl=e.dataTransfer.getData('tokenUrl');
+    // Convert drop position to canvas coords
+    const vpRect=vp.getBoundingClientRect();
+    const canvasX=(e.clientX-vpRect.left-window._vpPanX||0)/window._vpScale||0;
+    const canvasY=(e.clientY-vpRect.top-window._vpPanY||0)/window._vpScale||0;
+    // Use the exposed pan/scale from the map engine
+    const mc=document.getElementById('map_canvas_wrap');
+    let cx=e.clientX-vpRect.left, cy=e.clientY-vpRect.top;
+    if(mc){
+      const m=new DOMMatrix(getComputedStyle(mc).transform);
+      cx=(e.clientX-vpRect.left-m.m41)/m.m11;
+      cy=(e.clientY-vpRect.top-m.m42)/m.m22;
+    }
+    const id='tok_'+charId+'_'+Date.now();
+    _tokens[id]={id,charId,name,imgUrl:tokenUrl,x:Math.round(cx),y:Math.round(cy),size:60};
+    renderTokenCanvas(); refreshPlacedList(); pushTokens();
+    toast('Token placed: '+name);
+  });
+
+  // DM can drag placed tokens by clicking near them on the token canvas
+  const tc=document.getElementById('map_token_canvas');
+  if(!tc) return;
+  tc.style.pointerEvents='auto';
+  let draggingTok=null, tokDragOx=0, tokDragOy=0;
+
+  function tokFromPos(cx,cy){
+    return Object.values(_tokens).find(t=>{
+      const sz=(t.size||60)/2;
+      return Math.abs(cx-t.x)<sz&&Math.abs(cy-t.y)<sz;
+    });
+  }
+  function tokCanvasPos(e){
+    const r=vp.getBoundingClientRect();
+    const mc=document.getElementById('map_canvas_wrap');
+    const m=new DOMMatrix(getComputedStyle(mc).transform);
+    return {
+      x:(e.clientX-r.left-m.m41)/m.m11,
+      y:(e.clientY-r.top-m.m42)/m.m22
+    };
+  }
+
+  tc.addEventListener('mousedown',e=>{
+    const {x,y}=tokCanvasPos(e);
+    const tok=tokFromPos(x,y); if(!tok) return;
+    e.stopPropagation();
+    draggingTok=tok; tokDragOx=x-tok.x; tokDragOy=y-tok.y;
+    tc.style.cursor='grabbing';
+  });
+  window.addEventListener('mousemove',e=>{
+    if(!draggingTok) return;
+    const {x,y}=tokCanvasPos(e);
+    draggingTok.x=Math.round(x-tokDragOx);
+    draggingTok.y=Math.round(y-tokDragOy);
+    renderTokenCanvas();
+  });
+  window.addEventListener('mouseup',()=>{
+    if(!draggingTok) return;
+    pushTokens(); draggingTok=null; tc.style.cursor='default';
+  });
+};
+
+// Patch addCharTab and removeChar to refresh token roster
+(function(){
+  const origAdd=window.addCharTab;
+  window.addCharTab=function(id,name){
+    origAdd(id,name);
+    setTimeout(refreshTokenRoster,100);
+  };
+  const origRemove=window.removeChar;
+  window.removeChar=function(id,e){
+    origRemove(id,e);
+    // also remove that char's token from map
+    Object.keys(_tokens).forEach(tid=>{ if(_tokens[tid].charId===id){ delete _tokens[tid]; } });
+    renderTokenCanvas(); refreshPlacedList(); pushTokens();
+    setTimeout(refreshTokenRoster,100);
+  };
+})();
 </script>
 </body>
 </html>
