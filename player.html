@@ -555,6 +555,7 @@ select.fi::-ms-expand{display:none;}
       <div style="font-size:12px;margin-top:8px;color:var(--subtext)">Your DM will push a map when ready.</div>
     </div>
     <img id="map_viewer_img" src="" alt="Map" style="display:none;max-width:100%;max-height:100%;object-fit:contain;transform-origin:center center;cursor:grab;user-select:none">
+    <canvas id="map_token_overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:auto;display:none"></canvas>
   </div>
   <div style="padding:8px 16px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;font-size:11px;color:var(--subtext);flex-shrink:0">
     <span>Scroll to zoom · Drag to pan</span>
@@ -562,11 +563,24 @@ select.fi::-ms-expand{display:none;}
   </div>
 </div>
 
-<!-- IDENTITY + CHRONICLE -->
-<div class="grid-2">
+<!-- IDENTITY + CHRONICLE -->\n<div class="grid-2">
   <div class="panel">
     <div class="ph"><span class="ph-left">Identity</span></div>
     <div class="pb">
+      <!-- Character Portrait + Token -->
+      <div style="display:flex;gap:10px;margin-bottom:10px;align-items:flex-start">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div id="char_portrait_preview" onclick="document.getElementById('char_portrait_input').click()" style="width:80px;height:80px;border:1px solid var(--border);background:var(--field-bg);cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--subtext);font-size:10px;font-family:Cinzel,serif;letter-spacing:1px;text-align:center;flex-shrink:0" title="Click to set portrait">Portrait</div>
+          <input type="file" id="char_portrait_input" accept="image/*" style="display:none" onchange="loadCharImage('portrait',event)">
+          <button class="btn sm" style="font-size:7px;padding:2px 6px" onclick="document.getElementById('char_portrait_input').click()">Set Portrait</button>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div id="char_token_preview" onclick="document.getElementById('char_token_input').click()" style="width:60px;height:60px;border-radius:50%;border:2px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--subtext);font-size:9px;font-family:Cinzel,serif;letter-spacing:1px;text-align:center;flex-shrink:0" title="Click to set map token">Token</div>
+          <input type="file" id="char_token_input" accept="image/*" style="display:none" onchange="loadCharImage('token',event)">
+          <button class="btn sm" style="font-size:7px;padding:2px 6px" onclick="document.getElementById('char_token_input').click()">Set Token</button>
+        </div>
+        <div style="font-size:9px;color:var(--subtext);font-style:italic;line-height:1.5;padding-top:4px">Portrait shows on your sheet. Token appears on the DM's map.</div>
+      </div>
       <div class="fr"><span class="fl">Clan</span>
         <select class="fi" id="f_clan">
           <option value="">— Select Clan —</option>
@@ -1179,7 +1193,9 @@ let state = {
   feedLog: [],
   downtime: [],
   coterie: [],
-  npcs: []
+  npcs: [],
+  _portraitImg: '',
+  _tokenImg: ''
 };
 let autoSyncTimer = null;
 
@@ -2240,7 +2256,9 @@ function collectData() {
     trackSizes:{ health:parseInt(document.getElementById('health_count').value)||5, wp:parseInt(document.getElementById('wp_count').value)||5 },
     disciplines: state.disciplines, merits: state.merits, flaws: state.flaws,
     specialties: state.specialties, rituals: state.rituals, xpLog: state.xpLog,
-    feedLog: state.feedLog, downtime: state.downtime, coterie: state.coterie, npcs: state.npcs
+    feedLog: state.feedLog, downtime: state.downtime, coterie: state.coterie, npcs: state.npcs,
+    _portraitImg: state._portraitImg || '',
+    _tokenImg: state._tokenImg || ''
   };
   TEXT_IDS.forEach(id => { const e = document.getElementById(id); if (e) d.text[id] = e.value; });
   DOT_IDS.forEach(id => { d.dots[id] = getDotVal(id); });
@@ -2274,8 +2292,54 @@ function applyData(d) {
   if (d.downtime) { state.downtime = d.downtime; renderDowntime(); }
   if (d.coterie) { state.coterie = d.coterie; renderCoterie(); }
   if (d.npcs) { state.npcs = d.npcs; renderNPCs(); }
+  if (d._portraitImg !== undefined) { state._portraitImg = d._portraitImg; applyCharImagePreview('portrait', d._portraitImg); }
+  if (d._tokenImg !== undefined) { state._tokenImg = d._tokenImg; applyCharImagePreview('token', d._tokenImg); }
   updateHeader();
 }
+
+// ── CHARACTER + TOKEN IMAGES ──
+function applyCharImagePreview(type, dataUrl){
+  const elId = type==='portrait' ? 'char_portrait_preview' : 'char_token_preview';
+  const el = document.getElementById(elId); if(!el) return;
+  if(dataUrl){
+    el.style.backgroundImage = `url(${dataUrl})`;
+    el.style.backgroundSize = 'cover';
+    el.style.backgroundPosition = 'center';
+    el.textContent = '';
+  } else {
+    el.style.backgroundImage = '';
+    el.textContent = type==='portrait'?'Portrait':'Token';
+  }
+}
+
+window.loadCharImage = function(type, e){
+  const file = e.target.files[0]; if(!file) return;
+  // Resize to reasonable size before storing as base64
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const maxDim = type==='portrait' ? 400 : 200;
+      let w=img.width, h=img.height;
+      if(w>maxDim||h>maxDim){
+        const scale=Math.min(maxDim/w,maxDim/h);
+        w=Math.round(w*scale); h=Math.round(h*scale);
+      }
+      const canvas=document.createElement('canvas');
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      const dataUrl=canvas.toDataURL('image/jpeg',0.8);
+      if(type==='portrait') state._portraitImg=dataUrl;
+      else state._tokenImg=dataUrl;
+      applyCharImagePreview(type,dataUrl);
+      saveAll();
+      syncToFirestore(true);
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+};
 
 function saveAll() {
   const id = getActiveCharId();
@@ -2431,7 +2495,7 @@ function switchCharacter(id) {
   // Re-subscribe map for this character's session
   if(window._mapSubscribeForChar) window._mapSubscribeForChar(id);
   // Reset state
-  state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[] };
+  state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[], _portraitImg:'', _tokenImg:'' };
   // Re-init UI
   initAllDots();
   initBoxTrack('health_track', 5);
@@ -2487,7 +2551,7 @@ function deleteCharacter(id) {
     saveCfg();
     renderCharSwitcher();
     // Clear the sheet
-    state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[] };
+    state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[], _portraitImg:'', _tokenImg:'' };
     initAllDots();
     applyData({});
     setStatus('No characters — click ＋ to add one', '');
@@ -2556,7 +2620,7 @@ async function confirmSetup() {
       if (snap.exists()) {
         const cloud = snap.data();
         // Switch UI first
-        state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[] };
+        state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[], _portraitImg:'', _tokenImg:'' };
         initAllDots(); initBPDots();
         applyData(cloud);
         const pSnap = await window._fsGetDoc(window._fsDoc(window._db, 'characters_private', charId));
@@ -2638,7 +2702,7 @@ function resetAll() {
     localStorage.removeItem(charDataKey(id));
     localStorage.removeItem(charPrivKey(id));
   }
-  state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[] };
+  state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[], _portraitImg:'', _tokenImg:'' };
   initAllDots(); initBPDots();
   applyData({});
   setStatus('Reset — ' + name, '');
@@ -2807,6 +2871,192 @@ function populateDropdowns() {
     const dmId = cc?.sessionId;
     if(dmId && dmId !== currentDmId) subscribeToMap(dmId);
   };
+})();
+
+// ── PLAYER TOKEN SYSTEM ──
+(function(){
+  let _tokenUnsub=null;
+  let _tokens={};
+  let _mapImgNaturalW=2048, _mapImgNaturalH=1536;
+  let _draggingTok=null, _dragOx=0, _dragOy=0;
+
+  function getActiveCharId(){
+    return cfg.activeCharId || Object.keys(cfg.chars||{})[0] || null;
+  }
+  function getMyCharId(){
+    const id=getActiveCharId(); if(!id) return null;
+    return id; // charId is same as Firestore key
+  }
+
+  function subscribeTokens(dmId){
+    if(_tokenUnsub){ _tokenUnsub(); _tokenUnsub=null; }
+    if(!window._db||!dmId) return;
+    const ref=window._fsDoc(window._db,'tokens',dmId);
+    _tokenUnsub=window._fsOnSnapshot(ref,snap=>{
+      if(!snap.exists()){ _tokens={}; renderTokenOverlay(); return; }
+      const d=snap.data();
+      _tokens={};
+      (d.tokens||[]).forEach(t=>{ _tokens[t.id]=t; });
+      renderTokenOverlay();
+    },err=>console.warn('Player token listener:',err));
+  }
+
+  async function pushTokens(){
+    const id=getActiveCharId();
+    const cc=cfg.chars?.[id]; if(!cc) return;
+    const dmId=cc.sessionId; if(!window._db||!dmId) return;
+    const ref=window._fsDoc(window._db,'tokens',dmId);
+    await window._fsSetDoc(ref,{tokens:Object.values(_tokens),_updatedAt:Date.now()}).catch(e=>console.warn('player tok push:',e));
+  }
+
+  function getMapScale(){
+    const img=document.getElementById('map_viewer_img');
+    const wrap=document.getElementById('map_viewer_wrap');
+    if(!img||!wrap||!img.naturalWidth) return {sx:1,sy:1,ox:0,oy:0};
+    const ir=img.getBoundingClientRect();
+    const sx=ir.width/2048, sy=ir.height/1536;
+    const wr=wrap.getBoundingClientRect();
+    return {sx,sy,ox:ir.left-wr.left,oy:ir.top-wr.top,iw:ir.width,ih:ir.height};
+  }
+
+  function renderTokenOverlay(){
+    const tc=document.getElementById('map_token_overlay'); if(!tc) return;
+    const img=document.getElementById('map_viewer_img');
+    if(!img||img.style.display==='none'){ tc.style.display='none'; return; }
+
+    const wrap=document.getElementById('map_viewer_wrap');
+    const wr=wrap.getBoundingClientRect();
+    tc.width=wr.width; tc.height=wr.height;
+    tc.style.display='block';
+
+    const {sx,sy,ox,oy}=getMapScale();
+    const ctx=tc.getContext('2d');
+    ctx.clearRect(0,0,tc.width,tc.height);
+
+    const myCharId=getMyCharId();
+
+    Object.values(_tokens).forEach(t=>{
+      const px=ox+t.x*sx, py=oy+t.y*sy;
+      const sz=(t.size||60)*Math.min(sx,sy);
+      const isMe=t.charId===myCharId;
+
+      if(t.imgUrl){
+        const img2=new Image(); img2.crossOrigin='anonymous';
+        img2.onload=()=>{
+          ctx.save();
+          ctx.beginPath(); ctx.arc(px,py,sz/2,0,Math.PI*2); ctx.clip();
+          ctx.drawImage(img2,px-sz/2,py-sz/2,sz,sz);
+          ctx.restore();
+          ctx.beginPath(); ctx.arc(px,py,sz/2,0,Math.PI*2);
+          ctx.strokeStyle=isMe?'#88ff88':t.color||'#c49a22'; ctx.lineWidth=isMe?3:2; ctx.stroke();
+          ctx.fillStyle='rgba(0,0,0,0.7)';
+          ctx.fillRect(px-sz/2,py+sz/2,sz,14);
+          ctx.fillStyle='#ede0c4'; ctx.font='10px Cinzel,serif';
+          ctx.textAlign='center'; ctx.fillText(t.name||'',px,py+sz/2+10); ctx.textAlign='left';
+          if(isMe){ ctx.strokeStyle='rgba(100,255,100,0.3)'; ctx.lineWidth=6; ctx.beginPath(); ctx.arc(px,py,sz/2+4,0,Math.PI*2); ctx.stroke(); }
+        };
+        img2.src=t.imgUrl;
+      } else {
+        ctx.save();
+        ctx.beginPath(); ctx.arc(px,py,sz/2,0,Math.PI*2);
+        ctx.fillStyle='#2a1a1a'; ctx.fill();
+        ctx.strokeStyle=isMe?'#88ff88':t.color||'#c49a22'; ctx.lineWidth=isMe?3:2; ctx.stroke();
+        ctx.fillStyle='#ede0c4'; ctx.font=`${sz*0.4}px Cinzel,serif`;
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText((t.name||'?')[0].toUpperCase(),px,py);
+        ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+        ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.7)';
+        ctx.fillRect(px-sz/2,py+sz/2,sz,14);
+        ctx.fillStyle='#ede0c4'; ctx.font='10px Cinzel,serif';
+        ctx.textAlign='center'; ctx.fillText(t.name||'',px,py+sz/2+10); ctx.textAlign='left';
+        if(isMe){ ctx.strokeStyle='rgba(100,255,100,0.3)'; ctx.lineWidth=6; ctx.beginPath(); ctx.arc(px,py,sz/2+4,0,Math.PI*2); ctx.stroke(); }
+      }
+    });
+  }
+
+  function tokFromViewportPos(vx,vy){
+    const {sx,sy,ox,oy}=getMapScale();
+    const cx=(vx-ox)/sx, cy=(vy-oy)/sy;
+    return Object.values(_tokens).find(t=>{
+      const sz=(t.size||60)/2;
+      return Math.abs(cx-t.x)<sz&&Math.abs(cy-t.y)<sz;
+    });
+  }
+
+  function setupTokenEvents(){
+    const tc=document.getElementById('map_token_overlay'); if(!tc) return;
+    const myCharId=getMyCharId();
+
+    tc.addEventListener('mousedown',e=>{
+      const r=tc.getBoundingClientRect();
+      const tok=tokFromViewportPos(e.clientX-r.left,e.clientY-r.top);
+      if(!tok||tok.charId!==myCharId) return; // only move own token
+      e.stopPropagation();
+      _draggingTok=tok;
+      const {sx,sy,ox,oy}=getMapScale();
+      _dragOx=(e.clientX-r.left-ox)/sx - tok.x;
+      _dragOy=(e.clientY-r.top-oy)/sy - tok.y;
+      tc.style.cursor='grabbing';
+    });
+    window.addEventListener('mousemove',e=>{
+      if(!_draggingTok) return;
+      const r=tc.getBoundingClientRect();
+      const {sx,sy,ox,oy}=getMapScale();
+      _draggingTok.x=Math.round((e.clientX-r.left-ox)/sx - _dragOx);
+      _draggingTok.y=Math.round((e.clientY-r.top-oy)/sy - _dragOy);
+      renderTokenOverlay();
+    });
+    window.addEventListener('mouseup',()=>{
+      if(!_draggingTok) return;
+      pushTokens(); _draggingTok=null; tc.style.cursor='default';
+    });
+
+    // Touch drag
+    tc.addEventListener('touchstart',e=>{
+      const r=tc.getBoundingClientRect();
+      const t=e.touches[0];
+      const tok=tokFromViewportPos(t.clientX-r.left,t.clientY-r.top);
+      if(!tok||tok.charId!==myCharId) return;
+      e.stopPropagation();
+      _draggingTok=tok;
+      const {sx,sy,ox,oy}=getMapScale();
+      _dragOx=(t.clientX-r.left-ox)/sx - tok.x;
+      _dragOy=(t.clientY-r.top-oy)/sy - tok.y;
+    },{passive:true});
+    window.addEventListener('touchmove',e=>{
+      if(!_draggingTok) return;
+      const r=tc.getBoundingClientRect();
+      const t=e.touches[0];
+      const {sx,sy,ox,oy}=getMapScale();
+      _draggingTok.x=Math.round((t.clientX-r.left-ox)/sx - _dragOx);
+      _draggingTok.y=Math.round((t.clientY-r.top-oy)/sy - _dragOy);
+      renderTokenOverlay();
+    },{passive:true});
+    window.addEventListener('touchend',()=>{ if(_draggingTok){pushTokens();_draggingTok=null;} });
+  }
+
+  // Hook into map viewer open to setup tokens
+  const origOpenMapViewer=window.openMapViewer;
+  window.openMapViewer=function(){
+    origOpenMapViewer();
+    // Subscribe to tokens using same dmId as map
+    const id=getActiveCharId();
+    const cc=cfg.chars?.[id];
+    const dmId=cc?.sessionId;
+    if(dmId) subscribeTokens(dmId);
+    setTimeout(()=>{ setupTokenEvents(); renderTokenOverlay(); },200);
+  };
+
+  // Re-render on map img load
+  window.addEventListener('load',()=>{
+    const img=document.getElementById('map_viewer_img');
+    if(img) img.addEventListener('load',()=>setTimeout(renderTokenOverlay,100));
+  });
+
+  // Expose for external trigger
+  window._subscribePlayerTokens=subscribeTokens;
+  window._renderPlayerTokens=renderTokenOverlay;
 })();
 
 // INIT
