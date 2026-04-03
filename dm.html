@@ -47,6 +47,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;o
 .btn.green:hover{background:rgba(58,122,58,.15);}
 .btn.danger{border-color:var(--crimson);color:var(--crimson-lt);}
 .btn.danger:hover{background:rgba(122,21,21,.2);}
+.map-tool{min-width:30px;padding:4px 6px;}
+.active-tool{background:rgba(196,154,34,.2)!important;border-color:var(--gold)!important;color:var(--gold-lt)!important;}
 .btn.dm{border-color:var(--dm-border);color:var(--dm-lt);}
 .btn.dm:hover{background:rgba(80,80,192,.15);}
 .btn.sm{font-size:8px;padding:3px 8px;letter-spacing:1px;}
@@ -227,11 +229,14 @@ select.fi option{background:#0e0b08;color:#d4c898;}
   <div class="sb-divider"></div>
   <div class="sb-sect">
     <div class="sb-label">Campaign</div>
+    <button class="sb-btn dm-nav" id="nav_overview" onclick="showView('overview')"><span class="ti">👁</span><span class="tn">Party Overview</span></button>
+    <button class="sb-btn dm-nav" id="nav_map" onclick="showView('map')"><span class="ti">🗺</span><span class="tn">Map Table</span></button>
     <button class="sb-btn dm-nav" id="nav_prep" onclick="showView('prep')"><span class="ti">📋</span><span class="tn">Session Prep</span></button>
     <button class="sb-btn dm-nav" id="nav_campaign" onclick="showView('campaign')"><span class="ti">📜</span><span class="tn">Campaign Notes</span></button>
     <button class="sb-btn dm-nav" id="nav_npcs" onclick="showView('npcs')"><span class="ti">🎭</span><span class="tn">NPC Roster</span></button>
     <button class="sb-btn dm-nav" id="nav_timeline" onclick="showView('timeline')"><span class="ti">⏳</span><span class="tn">Timeline</span></button>
     <button class="sb-btn dm-nav" id="nav_combat" onclick="showView('combat')"><span class="ti">⚔</span><span class="tn">Combat Tracker</span></button>
+    <button class="sb-btn dm-nav" id="nav_dice" onclick="showView('dice')"><span class="ti">🎲</span><span class="tn">Dice Roller</span></button>
   </div>
   <div class="sb-bottom">
     <button class="btn" style="font-size:8px" onclick="saveAll()">Save (Ctrl+S)</button>
@@ -248,12 +253,8 @@ select.fi option{background:#0e0b08;color:#d4c898;}
   <div class="status-bar">
     <span class="sv-status" id="saveStatus">DM Dashboard</span>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <span id="pollSt" style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;color:var(--subtext)">Live: off</span>
-      <button id="pollBtn" class="btn green sm" onclick="togglePoll()">▶ Live</button>
-      <select id="pollSel" style="background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'Cinzel',serif;font-size:9px;padding:3px 6px;outline:none" onchange="if(pollOn)startPoll(+this.value)">
-        <option value="5">5s</option><option value="10" selected>10s</option><option value="15">15s</option><option value="30">30s</option><option value="60">1m</option>
-      </select>
-      <button class="btn sm" onclick="refreshAll()">↻ Refresh</button>
+      <span id="syncIndicator" style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;color:var(--subtext)">Connecting…</span>
+      <button class="btn sm" onclick="refreshAll()">↻ Refresh All</button>
     </div>
   </div>
 
@@ -283,6 +284,136 @@ select.fi option{background:#0e0b08;color:#d4c898;}
             <div id="codeStatus" style="margin-top:8px;font-size:11px;color:var(--subtext);font-family:'Cinzel',serif"></div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARTY OVERVIEW -->
+  <div id="view_overview" class="tab-content">
+    <div class="mh">
+      <div><div class="mh-title">Party Overview</div><div class="mh-sub">All loaded characters at a glance</div></div>
+      <div class="mh-actions"><button class="btn sm" onclick="renderOverview()">↻ Refresh</button></div>
+    </div>
+    <div id="overview_content"><div class="empty-state"><h2>No Characters Loaded</h2><p style="font-size:13px;color:var(--subtext)">Load characters via the Load Character screen first.</p></div></div>
+  </div>
+
+  <!-- MAP TABLE -->
+  <div id="view_map" class="tab-content">
+    <div class="mh">
+      <div><div class="mh-title">Map Table</div><div class="mh-sub">Draw or upload scene maps — push to players live</div></div>
+      <div class="mh-actions">
+        <select id="map_select" class="fi" style="max-width:160px;font-size:11px" onchange="loadSavedMap(this.value)">
+          <option value="">— Saved Maps —</option>
+        </select>
+        <button class="btn sm" onclick="deleteSavedMap()">🗑</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;padding:12px 16px 0">
+      <!-- Toolbar -->
+      <div class="dm-panel" style="flex:0 0 auto;min-width:160px">
+        <div class="ph dm-ph">Tools</div>
+        <div class="pb" style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;gap:4px;flex-wrap:wrap">
+            <button id="tool_pencil"  class="btn sm map-tool active-tool" onclick="setTool('pencil')"  title="Pencil">✏️</button>
+            <button id="tool_line"    class="btn sm map-tool" onclick="setTool('line')"    title="Line">╱</button>
+            <button id="tool_rect"    class="btn sm map-tool" onclick="setTool('rect')"    title="Rectangle">▭</button>
+            <button id="tool_ellipse" class="btn sm map-tool" onclick="setTool('ellipse')" title="Ellipse">◯</button>
+            <button id="tool_fill"    class="btn sm map-tool" onclick="setTool('fill')"    title="Fill">🪣</button>
+            <button id="tool_text"    class="btn sm map-tool" onclick="setTool('text')"    title="Text">T</button>
+            <button id="tool_eraser"  class="btn sm map-tool" onclick="setTool('eraser')"  title="Eraser">⬜</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+            <label style="font-family:Cinzel,serif;font-size:9px;letter-spacing:1px;color:var(--gold)">COLOR</label>
+            <input type="color" id="map_color" value="#c49a22" style="width:36px;height:24px;border:none;background:none;cursor:pointer;padding:0">
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <label style="font-family:Cinzel,serif;font-size:9px;letter-spacing:1px;color:var(--gold)">SIZE</label>
+            <input type="range" id="map_size" min="1" max="40" value="4" style="flex:1">
+            <span id="map_size_val" style="font-size:11px;color:var(--subtext);min-width:18px">4</span>
+          </div>
+          <div style="display:flex;gap:4px;margin-top:4px">
+            <button class="btn sm" onclick="mapUndo()" title="Undo">↩</button>
+            <button class="btn sm" onclick="mapRedo()" title="Redo">↪</button>
+            <button class="btn danger sm" onclick="clearCanvas()" title="Clear canvas">✕</button>
+          </div>
+          <hr style="border-color:var(--border);margin:4px 0">
+          <div style="font-family:Cinzel,serif;font-size:9px;letter-spacing:1px;color:var(--gold);margin-bottom:3px">LAYER</div>
+          <div style="display:flex;gap:4px">
+            <button id="layer_base" class="btn sm active-tool" onclick="setLayer('base')" style="flex:1">Base</button>
+            <button id="layer_fog"  class="btn sm" onclick="setLayer('fog')"  style="flex:1;color:#e05050">🌫 Fog</button>
+          </div>
+          <div style="font-size:10px;color:var(--subtext);font-style:italic;line-height:1.4">Fog layer hidden from players. Paint over secrets.</div>
+          <hr style="border-color:var(--border);margin:4px 0">
+          <div style="display:flex;align-items:center;gap:6px">
+            <input type="checkbox" id="map_grid" onchange="toggleGrid()" style="cursor:pointer">
+            <label for="map_grid" style="font-size:11px;cursor:pointer">Grid overlay</label>
+            <select id="map_grid_type" onchange="toggleGrid()" style="font-size:10px;background:var(--field-bg);color:var(--input-text);border:1px solid var(--field-border);padding:2px 4px">
+              <option value="square">Square</option>
+              <option value="hex">Hex</option>
+            </select>
+          </div>
+          <hr style="border-color:var(--border);margin:4px 0">
+          <input type="file" id="map_upload" accept="image/*" style="display:none" onchange="uploadMapImage(event)">
+          <button class="btn sm" style="width:100%" onclick="document.getElementById('map_upload').click()">🖼 Upload Image</button>
+          <hr style="border-color:var(--border);margin:4px 0">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <input type="text" id="map_name_input" class="fi" placeholder="Map name…" style="flex:1;font-size:11px">
+          </div>
+          <button class="btn green sm" style="width:100%" onclick="saveAndPushMap()">🚀 Save & Push to Players</button>
+          <div id="map_push_status" style="font-size:10px;color:var(--subtext);font-style:italic;margin-top:4px;min-height:14px"></div>
+        </div>
+      </div>
+      <!-- Canvas area -->
+      <div style="flex:1;min-width:300px">
+        <div style="position:relative;display:inline-block;border:1px solid var(--border);cursor:crosshair" id="map_canvas_wrap">
+          <canvas id="map_base" width="1024" height="768" style="display:block;max-width:100%"></canvas>
+          <canvas id="map_fog"  width="1024" height="768" style="position:absolute;top:0;left:0;max-width:100%;opacity:0.55;pointer-events:none"></canvas>
+          <canvas id="map_grid_canvas" width="1024" height="768" style="position:absolute;top:0;left:0;max-width:100%;pointer-events:none;opacity:0.25"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DICE ROLLER -->
+  <div id="view_dice" class="tab-content">
+    <div class="mh">
+      <div><div class="mh-title">Dice Roller</div><div class="mh-sub">V5 pool roller with Hunger dice</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="dm-panel">
+        <div class="ph dm-ph">Pool Builder</div>
+        <div class="pb">
+          <div class="fr"><span class="fl">Regular Dice</span>
+            <input type="number" id="dice_pool" class="fi" value="5" min="0" max="30" style="max-width:60px">
+          </div>
+          <div class="fr"><span class="fl">Hunger Dice</span>
+            <input type="number" id="dice_hunger" class="fi" value="1" min="0" max="5" style="max-width:60px">
+          </div>
+          <div class="fr"><span class="fl">Difficulty</span>
+            <input type="number" id="dice_diff" class="fi" value="2" min="1" max="10" style="max-width:60px">
+          </div>
+          <div class="fr"><span class="fl">Label</span>
+            <input type="text" id="dice_label" class="fi" placeholder="e.g. Strength + Brawl…" onkeydown="if(event.key==='Enter')rollDice()">
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <button class="btn green" onclick="rollDice()" style="font-size:11px;padding:6px 18px">🎲 Roll</button>
+            <button class="btn sm" onclick="quickRoll(1)">Rouse</button>
+            <button class="btn sm" onclick="quickRoll(2)">Frenzy (2d)</button>
+            <button class="btn danger sm" onclick="clearRollHistory()">Clear</button>
+          </div>
+        </div>
+      </div>
+      <div class="dm-panel">
+        <div class="ph dm-ph">Result</div>
+        <div class="pb" id="dice_result" style="min-height:120px;font-size:14px;line-height:1.8">
+          <span style="color:var(--subtext);font-style:italic">Roll to see results…</span>
+        </div>
+      </div>
+    </div>
+    <div class="dm-panel">
+      <div class="ph dm-ph" style="justify-content:space-between"><span>Roll History</span></div>
+      <div class="pb" style="padding:0;max-height:340px;overflow-y:auto" id="dice_history">
+        <div style="padding:12px;color:var(--subtext);font-style:italic;font-size:13px">No rolls yet.</div>
       </div>
     </div>
   </div>
@@ -441,9 +572,12 @@ select.fi option{background:#0e0b08;color:#d4c898;}
         4. Use Load Character → enter that Character ID to see their sheet live
       </div>
     </div>
-    <div style="padding:10px 16px;border-top:1px solid var(--field-border);display:flex;justify-content:flex-end;gap:8px">
-      <button class="btn" onclick="hideSetup()">Cancel</button>
-      <button class="btn green" onclick="confirmSetup()">Save</button>
+    <div style="padding:10px 16px;border-top:1px solid var(--field-border);display:flex;justify-content:space-between;gap:8px;align-items:center">
+      <button class="btn" style="color:var(--subtext);font-size:11px" onclick="newSession()" title="Wipe current session and start fresh">⚡ New Session</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="hideSetup()">Cancel</button>
+        <button class="btn green" onclick="confirmSetup()">Save</button>
+      </div>
     </div>
   </div>
 </div>
@@ -453,6 +587,7 @@ select.fi option{background:#0e0b08;color:#d4c898;}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD4ZzE-wQ1PT9fkvm4JmJuoYvtsC5rhBkI",
@@ -465,15 +600,21 @@ const firebaseConfig = {
 const _app = initializeApp(firebaseConfig);
 const _db  = getFirestore(_app);
 const _auth = getAuth(_app);
+const _storage = getStorage(_app);
 
-window._db          = _db;
-window._auth        = _auth;
-window._fsDoc       = doc;
-window._fsGetDoc    = getDoc;
-window._fsSetDoc    = setDoc;
-window._fsOnSnapshot = onSnapshot;
-window._fsDocs      = getDocs;
-window._fsCollection = collection;
+window._db             = _db;
+window._auth           = _auth;
+window._storage        = _storage;
+window._sRef           = sRef;
+window._uploadBytes    = uploadBytes;
+window._getDownloadURL = getDownloadURL;
+window._deleteObject   = deleteObject;
+window._fsDoc          = doc;
+window._fsGetDoc       = getDoc;
+window._fsSetDoc       = setDoc;
+window._fsOnSnapshot   = onSnapshot;
+window._fsDocs         = getDocs;
+window._fsCollection   = collection;
 
 signInAnonymously(_auth).catch(e => console.warn('Anon auth failed:', e));
 </script>
@@ -576,7 +717,7 @@ function applyDM(){
 }
 function saveAll(){
   collectDM();
-  localStorage.setItem(SK,JSON.stringify({dm,chars}));
+  localStorage.setItem(SK,JSON.stringify({dm,chars,maps:dm.maps}));
   setStatus('Saved — '+new Date().toLocaleTimeString(),'saved');
   if(window._db && cfg.dmId){
     const ref=window._fsDoc(window._db,'dm_data',cfg.dmId);
@@ -588,8 +729,16 @@ function loadLocal(){
     const raw=localStorage.getItem(SK); if(!raw)return;
     const d=JSON.parse(raw);
     if(d.dm)Object.assign(dm,d.dm);
-    if(d.chars){chars=d.chars;Object.entries(chars).forEach(([id,c])=>addCharTab(id,c.name));}
+    if(d.maps)dm.maps=d.maps;
+    if(d.chars){
+      chars=d.chars;
+      Object.entries(chars).forEach(([id,c])=>{
+        addCharTab(id,c.name);
+        if(c.data) buildCharShell(id);
+      });
+    }
     applyDM();
+    refreshMapSelect();
   }catch(e){console.error(e)}
 }
 
@@ -682,6 +831,8 @@ function subscribeChar(charId){
     if(btn){btn.style.borderLeft='2px solid var(--green-lt)';setTimeout(()=>{if(btn)btn.style.borderLeft='';},2000);}
     if(activeChar===charId)renderChar(charId);
     setStatus('Live update: '+(chars[charId]?.name||charId)+' — '+new Date().toLocaleTimeString(),'saved');
+    updateSyncIndicator();
+    if(document.getElementById('view_overview')?.classList.contains('active')) renderOverview();
   },(err)=>console.warn('Snapshot error:',err));
 }
 function unsubscribeChar(id){if(_unsubs[id]){_unsubs[id]();delete _unsubs[id];}}
@@ -707,9 +858,12 @@ async function refreshChar(id,silent){
 }
 async function refreshAll(silent){
   const ids=Object.keys(chars).filter(id=>chars[id].source==='firestore');
-  if(!ids.length){if(!silent)setStatus('No cloud characters loaded.','');return;}
+  if(!ids.length){if(!silent)setStatus('No cloud characters loaded.','');updateSyncIndicator();return;}
   await Promise.all(ids.map(id=>refreshChar(id,true)));
   if(!silent)setStatus('Checked '+ids.length+' sheet(s) — '+new Date().toLocaleTimeString(),'saved');
+  updateSyncIndicator();
+  // Re-render overview if visible
+  if(document.getElementById('view_overview')?.classList.contains('active')) renderOverview();
 }
 
 // ── NAV ──
@@ -728,6 +882,8 @@ function showView(name){
   document.getElementById('view_'+name)?.classList.add('active');
   document.querySelectorAll('.sb-btn.dm-nav').forEach(b=>b.classList.remove('active'));
   document.getElementById('nav_'+name)?.classList.add('active');
+  if(name==='overview') renderOverview();
+  if(name==='map') initMapCanvas();
 }
 function updateName(){const n=g('dm_name')||'VtM V5 Campaign';document.getElementById('sb_name').textContent=n;document.title=n+' — DM Dashboard'}
 
@@ -1165,33 +1321,146 @@ function importAll(e){
   r.readAsText(file);e.target.value='';
 }
 
-// ── POLLING ──
-let pollTimer=null,pollOn=false,pollSecs=10;
-function startPoll(s){
-  stopPoll();
-  pollSecs=s||10;
-  pollOn=true;
-  updatePollUI();
-  refreshAll(true);
-  pollTimer=setInterval(()=>refreshAll(true), pollSecs*1000);
+// ── SYNC STATUS ──
+function updateSyncIndicator(){
+  const el=document.getElementById('syncIndicator');
+  if(!el)return;
+  const hasFS=!!window._db, hasBC=BC!==null;
+  const count=Object.keys(chars).length;
+  if(hasFS) el.textContent='Firestore live ✓' + (count>0?' · '+count+' character'+(count!==1?'s':''):'');
+  else if(hasBC) el.textContent='Same-browser sync ✓';
+  else el.textContent='No sync active';
 }
-function stopPoll(){clearInterval(pollTimer);pollTimer=null;pollOn=false;updatePollUI();}
-function togglePoll(){pollOn?stopPoll():startPoll(parseInt(document.getElementById('pollSel').value)||10);}
-function updatePollUI(){
-  const btn=document.getElementById('pollBtn');
-  const st=document.getElementById('pollSt');
-  if(!btn)return;
-  const hasFS = !!window._db;
-  const hasBC = BC !== null;
-  if(pollOn){
-    btn.textContent='⏸ Stop Poll';
-    btn.className='btn danger sm';
-    if(st)st.textContent='Fallback poll: every '+pollSecs+'s';
-  }else{
-    btn.textContent='▶ Poll';
-    btn.className='btn green sm';
-    if(st)st.textContent = hasFS ? 'Firestore live ✓' : (hasBC ? 'Same-browser: instant ✓' : 'No sync');
+
+// ── DICE ROLLER ──
+const rollHistory=[];
+function rollDice(){
+  const pool=parseInt(document.getElementById('dice_pool').value)||0;
+  const hunger=Math.min(parseInt(document.getElementById('dice_hunger').value)||0,pool);
+  const diff=parseInt(document.getElementById('dice_diff').value)||2;
+  const label=document.getElementById('dice_label').value.trim()||'Pool';
+  const reg=pool-hunger;
+  const regRolls=Array.from({length:reg},()=>Math.ceil(Math.random()*10));
+  const hungerRolls=Array.from({length:hunger},()=>Math.ceil(Math.random()*10));
+  displayRoll(label,regRolls,hungerRolls,diff);
+}
+function quickRoll(n){
+  const rolls=Array.from({length:n},()=>Math.ceil(Math.random()*10));
+  displayRoll(n===1?'Rouse Check':'Frenzy Check',rolls,[],1);
+}
+function displayRoll(label,regRolls,hungerRolls,diff){
+  const allRolls=[...regRolls.map(v=>({v,hunger:false})),...hungerRolls.map(v=>({v,hunger:true}))];
+  let successes=0,critPairs=0,messyCount=0,bestialCount=0;
+  const tens=[];
+  allRolls.forEach(({v,hunger})=>{
+    if(v>=diff){successes++;if(v===10){tens.push({hunger});}}
+  });
+  // Pair tens for crits (+2 each pair)
+  const regTens=tens.filter(t=>!t.hunger).length;
+  const hungerTens=tens.filter(t=>t.hunger).length;
+  const regCrits=Math.floor(regTens/2);
+  const mixedCrits=regTens%2===1&&hungerTens>0?1:0;
+  const hungerCrits=Math.floor((hungerTens-(mixedCrits?1:0))/2);
+  successes+=((regCrits+mixedCrits+hungerCrits)*2);
+  messyCount=mixedCrits+hungerCrits;
+  // Bestial failure: hunger 1 on failed roll
+  const failed=successes<diff;
+  if(failed) bestialCount=hungerRolls.filter(v=>v===1).length;
+  // Build result
+  const win=successes>=diff;
+  const messy=win&&messyCount>0;
+  const bestial=!win&&bestialCount>0;
+  const critical=(regCrits+mixedCrits+hungerCrits)>0&&win;
+  let outcome='',outcomeColor='var(--text)';
+  if(messy){outcome='MESSY CRITICAL';outcomeColor='#e0c060';}
+  else if(critical){outcome='CRITICAL SUCCESS';outcomeColor='var(--green-lt)';}
+  else if(win){outcome='SUCCESS';outcomeColor='var(--green-lt)';}
+  else if(bestial){outcome='BESTIAL FAILURE';outcomeColor='var(--crimson-lt)';}
+  else{outcome='FAILURE';outcomeColor='var(--crimson-lt)';}
+  // Render dice faces
+  function dieFace(v,hunger){
+    const bg=hunger?(v===1?'rgba(200,20,20,.4)':'rgba(122,21,21,.25)'):'rgba(196,154,34,.08)';
+    const border=hunger?'var(--crimson)':'var(--border)';
+    const color=v>=diff?(hunger?'#ff9090':'var(--gold-lt)'):'var(--subtext)';
+    const bold=(v===10||v===1)?'bold':'normal';
+    return `<div style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:${bg};border:1px solid ${border};font-family:'Cinzel',serif;font-size:12px;color:${color};font-weight:${bold};margin:2px">${v}</div>`;
   }
+  const diceHTML=allRolls.map(({v,hunger})=>dieFace(v,hunger)).join('');
+  const resultEl=document.getElementById('dice_result');
+  if(resultEl) resultEl.innerHTML=`
+    <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--subtext);margin-bottom:6px;letter-spacing:1px">${esc(label)} · Difficulty ${diff}</div>
+    <div style="margin-bottom:10px;flex-wrap:wrap;display:flex;gap:0">${diceHTML}</div>
+    <div style="font-family:'Cinzel Decorative',serif;font-size:20px;color:${outcomeColor};margin-bottom:4px">${outcome}</div>
+    <div style="font-size:14px;color:var(--text)">${successes} success${successes!==1?'es':''} vs difficulty ${diff}
+    ${messy?'<span style="color:#e0c060;font-size:11px;font-family:Cinzel,serif;margin-left:8px">⚠ Messy — Hunger 10</span>':''}
+    ${bestial?'<span style="color:var(--crimson-lt);font-size:11px;font-family:Cinzel,serif;margin-left:8px">☠ Bestial — Hunger 1</span>':''}</div>`;
+  // Add to history
+  const entry={label,regRolls,hungerRolls,successes,outcome,outcomeColor,diff,time:new Date().toLocaleTimeString()};
+  rollHistory.unshift(entry);
+  if(rollHistory.length>30)rollHistory.pop();
+  renderRollHistory();
+}
+function renderRollHistory(){
+  const el=document.getElementById('dice_history');if(!el)return;
+  if(!rollHistory.length){el.innerHTML='<div style="padding:12px;color:var(--subtext);font-style:italic;font-size:13px">No rolls yet.</div>';return;}
+  el.innerHTML=rollHistory.map((r,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:5px 10px;border-bottom:1px solid rgba(122,94,24,.12);font-size:13px${i===0?';background:rgba(196,154,34,.04)':''}">
+      <span style="font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;min-width:60px">${r.time}</span>
+      <span style="flex:1;color:var(--text)">${esc(r.label)}</span>
+      <span style="font-family:'Cinzel',serif;font-size:11px;color:${r.outcomeColor}">${r.outcome}</span>
+      <span style="font-family:'Cinzel',serif;font-size:11px;color:var(--subtext)">${r.successes}✓ / d${r.diff}</span>
+    </div>`).join('');
+}
+function clearRollHistory(){rollHistory.length=0;renderRollHistory();document.getElementById('dice_result').innerHTML='<span style="color:var(--subtext);font-style:italic">Roll to see results…</span>';}
+
+// ── PARTY OVERVIEW ──
+function renderOverview(){
+  const el=document.getElementById('overview_content');if(!el)return;
+  const ids=Object.keys(chars);
+  if(!ids.length){el.innerHTML='<div class="empty-state"><h2>No Characters Loaded</h2><p style="font-size:13px;color:var(--subtext)">Load characters first via the Load Character screen.</p></div>';return;}
+  el.innerHTML=ids.map(id=>{
+    const c=chars[id],d=c?.data||{},t=d.text||{},ld=d.largeDots||{},boxes=d.boxes||{};
+    const hunger=ld.hunger||0,humanity=ld.humanity??7;
+    const health=boxes.health||[],wp=boxes.wp||[];
+    const hSize=d.trackSizes?.health||5,wSize=d.trackSizes?.wp||5;
+    const hAgg=health.filter(x=>x===2).length,hSup=health.filter(x=>x===1).length;
+    const wAgg=wp.filter(x=>x===2).length,wSup=wp.filter(x=>x===1).length;
+    const frenzy=hunger>=4;
+    const lastUp=c.lastChecked?('Updated '+c.lastChecked):'';
+    function miniBoxes(states,size){return Array.from({length:size},(_,i)=>`<div style="display:inline-block;width:14px;height:11px;border:1px solid ${states[i]===2?'var(--crimson)':states[i]===1?'var(--gold-dim)':'var(--border)'};background:${states[i]===2?'rgba(122,21,21,.3)':states[i]===1?'rgba(196,154,34,.1)':'var(--field-bg)'};position:relative;margin-right:2px">${states[i]===2?'<span style="position:absolute;font-size:8px;font-weight:bold;color:var(--crimson-lt);top:-1px;left:1px">X</span>':states[i]===1?'<span style="position:absolute;font-size:10px;color:var(--gold);top:-2px;left:2px">/</span>':''}</div>`).join('');}
+    function miniDots(val,max,fillColor){return Array.from({length:max},(_,i)=>`<div style="display:inline-block;width:10px;height:10px;border-radius:50%;border:1.5px solid ${i<val?fillColor:'var(--gold-dim)'};background:${i<val?fillColor:'var(--field-bg)'};margin-right:2px"></div>`).join('');}
+    return `<div class="dm-panel" style="cursor:pointer" onclick="switchChar('${id}')">
+      <div class="ph dm-ph" style="justify-content:space-between">
+        <span style="font-size:11px">${esc(t.f_name||c.name||'Unknown')} <span style="font-size:9px;color:var(--subtext);font-weight:normal">${esc(t.f_clan||'')} · ${esc(t.f_sect||'')}</span></span>
+        <span style="display:flex;gap:8px;align-items:center">
+          ${frenzy?'<span style="font-family:Cinzel,serif;font-size:8px;letter-spacing:1px;color:var(--crimson-lt);animation:fp 1.8s ease-in-out infinite">⚠ FRENZY RISK</span>':''}
+          <span style="font-size:9px;color:var(--subtext)">${lastUp}</span>
+        </span>
+      </div>
+      <div class="pb" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;padding:10px 12px">
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);margin-bottom:4px">HUNGER</div>
+          <div>${miniDots(hunger,5,'var(--crimson-lt)')}</div>
+          <div style="font-size:11px;color:${frenzy?'var(--crimson-lt)':'var(--subtext)'};margin-top:2px">${hunger}/5${frenzy?' ⚠':''}</div>
+        </div>
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);margin-bottom:4px">HUMANITY</div>
+          <div>${miniDots(humanity,10,'var(--gold)')}</div>
+          <div style="font-size:11px;color:var(--subtext);margin-top:2px">${humanity}/10</div>
+        </div>
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);margin-bottom:4px">HEALTH</div>
+          <div>${miniBoxes(health,hSize)}</div>
+          <div style="font-size:11px;color:var(--subtext);margin-top:2px">${hAgg>0?hAgg+'Agg ':''} ${hSup>0?hSup+'Sup ':''} ${hAgg===0&&hSup===0?'Full':''}</div>
+        </div>
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);margin-bottom:4px">WILLPOWER</div>
+          <div>${miniBoxes(wp,wSize)}</div>
+          <div style="font-size:11px;color:var(--subtext);margin-top:2px">${wAgg>0?wAgg+'Agg ':''} ${wSup>0?wSup+'Sup ':''} ${wAgg===0&&wSup===0?'Full':''}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ── UI ──
@@ -1199,6 +1468,385 @@ function setStatus(msg,type){const el=document.getElementById('saveStatus');if(e
 function markUnsaved(){setStatus('Unsaved changes','')}
 let toastT;
 function toast(msg,type){document.querySelector('.toast')?.remove();const el=document.createElement('div');el.className='toast'+(type==='error'?' error':'');el.textContent=msg;document.body.appendChild(el);clearTimeout(toastT);toastT=setTimeout(()=>el.remove(),4000)}
+
+
+// ── NEW SESSION ──
+function newSession(){
+  if(!confirm('Start a NEW session? This clears all local DM data and loaded characters. Cloud data is NOT deleted.\n\nContinue?')) return;
+  localStorage.removeItem(SK);
+  cfg.dmId='';
+  saveCfg();
+  location.reload();
+}
+
+// ── MAP ENGINE ──
+(function(){
+  const CANVAS_W=1024, CANVAS_H=768;
+  let tool='pencil', activeLayer='base', drawing=false;
+  let startX=0, startY=0, snapshot=null;
+  const undoStack=[], redoStack=[];
+  const MAX_UNDO=25;
+
+  function getScale(){
+    const el=document.getElementById('map_base');
+    if(!el) return 1;
+    return el.getBoundingClientRect().width / CANVAS_W;
+  }
+
+  function getCtx(layer){
+    const id = layer==='fog' ? 'map_fog' : 'map_base';
+    return document.getElementById(id)?.getContext('2d');
+  }
+
+  function activeCtx(){ return getCtx(activeLayer); }
+
+  function pushUndo(){
+    const base=document.getElementById('map_base');
+    const fog=document.getElementById('map_fog');
+    if(!base||!fog) return;
+    undoStack.push({
+      base: base.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H),
+      fog:  fog.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H)
+    });
+    if(undoStack.length>MAX_UNDO) undoStack.shift();
+    redoStack.length=0;
+  }
+
+  function mapPos(e){
+    const wrap=document.getElementById('map_canvas_wrap');
+    if(!wrap) return {x:0,y:0};
+    const r=wrap.getBoundingClientRect();
+    const scaleX=CANVAS_W/r.width, scaleY=CANVAS_H/r.height;
+    const src=e.touches?e.touches[0]:e;
+    return {x:(src.clientX-r.left)*scaleX, y:(src.clientY-r.top)*scaleY};
+  }
+
+  function applyStyle(ctx){
+    const color=document.getElementById('map_color')?.value||'#c49a22';
+    const size=parseInt(document.getElementById('map_size')?.value||4);
+    ctx.strokeStyle = tool==='eraser' ? '#000000' : color;
+    ctx.fillStyle   = color;
+    ctx.lineWidth   = tool==='eraser' ? size*3 : size;
+    ctx.lineCap='round'; ctx.lineJoin='round';
+    if(tool==='eraser') ctx.globalCompositeOperation='destination-out';
+    else ctx.globalCompositeOperation='source-over';
+  }
+
+  function floodFill(ctx, x, y, fillColor){
+    x=Math.round(x); y=Math.round(y);
+    const img=ctx.getImageData(0,0,CANVAS_W,CANVAS_H);
+    const d=img.data;
+    const idx=(y*CANVAS_W+x)*4;
+    const tr=d[idx],tg=d[idx+1],tb=d[idx+2],ta=d[idx+3];
+    const fc=parseInt(fillColor.slice(1),16);
+    const fr=(fc>>16)&255,fg=(fc>>8)&255,fb=fc&255;
+    if(tr===fr&&tg===fg&&tb===fb&&ta===255) return;
+    const stack=[[x,y]];
+    while(stack.length){
+      const [cx,cy]=stack.pop();
+      if(cx<0||cy<0||cx>=CANVAS_W||cy>=CANVAS_H) continue;
+      const i=(cy*CANVAS_W+cx)*4;
+      if(d[i]!==tr||d[i+1]!==tg||d[i+2]!==tb||d[i+3]!==ta) continue;
+      d[i]=fr; d[i+1]=fg; d[i+2]=fb; d[i+3]=255;
+      stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
+    }
+    ctx.putImageData(img,0,0);
+  }
+
+  function onDown(e){
+    e.preventDefault();
+    const {x,y}=mapPos(e);
+    startX=x; startY=y; drawing=true;
+    const ctx=activeCtx(); if(!ctx) return;
+    pushUndo();
+    applyStyle(ctx);
+    if(tool==='pencil'||tool==='eraser'){
+      ctx.beginPath(); ctx.moveTo(x,y);
+    } else if(tool==='fill'){
+      floodFill(ctx,x,y,document.getElementById('map_color')?.value||'#c49a22');
+      drawing=false;
+    } else if(tool==='text'){
+      const txt=prompt('Enter text:');
+      if(txt){
+        applyStyle(ctx);
+        const sz=parseInt(document.getElementById('map_size')?.value||4)*3+8;
+        ctx.font=`${sz}px EB Garamond,serif`;
+        ctx.globalCompositeOperation='source-over';
+        ctx.fillText(txt,x,y);
+      }
+      drawing=false;
+    } else {
+      snapshot=ctx.getImageData(0,0,CANVAS_W,CANVAS_H);
+    }
+  }
+
+  function onMove(e){
+    e.preventDefault();
+    if(!drawing) return;
+    const {x,y}=mapPos(e);
+    const ctx=activeCtx(); if(!ctx) return;
+    applyStyle(ctx);
+    if(tool==='pencil'||tool==='eraser'){
+      ctx.lineTo(x,y); ctx.stroke();
+    } else if(tool==='line'){
+      ctx.putImageData(snapshot,0,0);
+      ctx.beginPath(); ctx.moveTo(startX,startY); ctx.lineTo(x,y); ctx.stroke();
+    } else if(tool==='rect'){
+      ctx.putImageData(snapshot,0,0);
+      ctx.beginPath(); ctx.strokeRect(startX,startY,x-startX,y-startY);
+    } else if(tool==='ellipse'){
+      ctx.putImageData(snapshot,0,0);
+      ctx.beginPath();
+      ctx.ellipse(startX+(x-startX)/2,startY+(y-startY)/2,Math.abs(x-startX)/2,Math.abs(y-startY)/2,0,0,Math.PI*2);
+      ctx.stroke();
+    }
+  }
+
+  function onUp(e){
+    if(!drawing) return;
+    drawing=false; snapshot=null;
+    const ctx=activeCtx(); if(!ctx) return;
+    if(tool==='pencil'||tool==='eraser') ctx.closePath();
+    ctx.globalCompositeOperation='source-over';
+  }
+
+  window.setTool=function(t){
+    tool=t;
+    document.querySelectorAll('.map-tool').forEach(b=>b.classList.remove('active-tool'));
+    document.getElementById('tool_'+t)?.classList.add('active-tool');
+  };
+
+  window.setLayer=function(l){
+    activeLayer=l;
+    const base=document.getElementById('map_base');
+    const fog=document.getElementById('map_fog');
+    if(!base||!fog) return;
+    ['layer_base','layer_fog'].forEach(id=>document.getElementById(id)?.classList.remove('active-tool'));
+    document.getElementById('layer_'+l)?.classList.add('active-tool');
+    // Make active layer interactive, other passthrough
+    if(l==='base'){
+      base.style.pointerEvents='auto'; fog.style.pointerEvents='none';
+      fog.style.opacity='0.45';
+    } else {
+      base.style.pointerEvents='none'; fog.style.pointerEvents='auto';
+      fog.style.opacity='0.65';
+    }
+    // Attach events to whichever canvas is active
+    setupCanvasEvents();
+  };
+
+  function setupCanvasEvents(){
+    ['map_base','map_fog'].forEach(id=>{
+      const c=document.getElementById(id); if(!c) return;
+      c.onmousedown=null; c.onmousemove=null; c.onmouseup=null;
+      c.ontouchstart=null; c.ontouchmove=null; c.ontouchend=null;
+    });
+    const active=document.getElementById(activeLayer==='fog'?'map_fog':'map_base');
+    if(!active) return;
+    active.onmousedown=onDown; active.onmousemove=onMove; active.onmouseup=onUp;
+    active.onmouseleave=onUp;
+    active.ontouchstart=onDown; active.ontouchmove=onMove; active.ontouchend=onUp;
+  }
+
+  window.mapUndo=function(){
+    if(!undoStack.length) return;
+    const state=undoStack.pop();
+    const base=document.getElementById('map_base');
+    const fog=document.getElementById('map_fog');
+    if(!base||!fog) return;
+    redoStack.push({
+      base: base.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H),
+      fog:  fog.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H)
+    });
+    base.getContext('2d').putImageData(state.base,0,0);
+    fog.getContext('2d').putImageData(state.fog,0,0);
+  };
+
+  window.mapRedo=function(){
+    if(!redoStack.length) return;
+    const state=redoStack.pop();
+    const base=document.getElementById('map_base');
+    const fog=document.getElementById('map_fog');
+    if(!base||!fog) return;
+    undoStack.push({
+      base: base.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H),
+      fog:  fog.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H)
+    });
+    base.getContext('2d').putImageData(state.base,0,0);
+    fog.getContext('2d').putImageData(state.fog,0,0);
+  };
+
+  window.clearCanvas=function(){
+    if(!confirm('Clear the entire canvas? This cannot be undone.')) return;
+    pushUndo();
+    const base=document.getElementById('map_base');
+    const fog=document.getElementById('map_fog');
+    if(!base||!fog) return;
+    base.getContext('2d').clearRect(0,0,CANVAS_W,CANVAS_H);
+    fog.getContext('2d').clearRect(0,0,CANVAS_W,CANVAS_H);
+  };
+
+  window.toggleGrid=function(){
+    const on=document.getElementById('map_grid')?.checked;
+    const type=document.getElementById('map_grid_type')?.value||'square';
+    const gc=document.getElementById('map_grid_canvas'); if(!gc) return;
+    const ctx=gc.getContext('2d');
+    ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
+    if(!on) return;
+    ctx.strokeStyle='#ffffff'; ctx.lineWidth=0.5; ctx.globalAlpha=1;
+    const sz=40;
+    if(type==='square'){
+      for(let x=0;x<=CANVAS_W;x+=sz){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,CANVAS_H);ctx.stroke();}
+      for(let y=0;y<=CANVAS_H;y+=sz){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(CANVAS_W,y);ctx.stroke();}
+    } else {
+      // Hex grid
+      const hw=sz, hh=sz*0.866;
+      for(let row=0;row*hh<CANVAS_H+hh;row++){
+        for(let col=0;col*hw*1.5<CANVAS_W+hw;col++){
+          const cx=col*hw*1.5, cy=row*hh+(col%2?hh/2:0);
+          ctx.beginPath();
+          for(let i=0;i<6;i++){
+            const a=Math.PI/180*(60*i-30);
+            const px=cx+sz*0.5*Math.cos(a), py=cy+sz*0.5*Math.sin(a);
+            i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+          }
+          ctx.closePath(); ctx.stroke();
+        }
+      }
+    }
+  };
+
+  window.uploadMapImage=function(e){
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const img=new Image();
+      img.onload=()=>{
+        pushUndo();
+        const base=document.getElementById('map_base'); if(!base) return;
+        const ctx=base.getContext('2d');
+        ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
+        // Scale to fit, preserve aspect ratio
+        const scale=Math.min(CANVAS_W/img.width,CANVAS_H/img.height);
+        const w=img.width*scale, h=img.height*scale;
+        const ox=(CANVAS_W-w)/2, oy=(CANVAS_H-h)/2;
+        ctx.drawImage(img,ox,oy,w,h);
+        toast('Image loaded onto base layer');
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value='';
+  };
+
+  window.saveAndPushMap=function(){
+    if(!window._db){toast('Firebase not ready','error');return;}
+    if(!cfg.dmId){toast('No session ID — open Setup first','error');return;}
+    const base=document.getElementById('map_base'); if(!base) return;
+
+    // Composite: base only (no fog) for players
+    const out=document.createElement('canvas');
+    out.width=CANVAS_W; out.height=CANVAS_H;
+    const ctx=out.getContext('2d');
+    ctx.drawImage(base,0,0);
+
+    const status=document.getElementById('map_push_status');
+    if(status) status.textContent='Compressing…';
+
+    out.toBlob(async blob=>{
+      if(!blob){if(status)status.textContent='Export failed.';return;}
+      const name=document.getElementById('map_name_input')?.value.trim()||'Map '+new Date().toLocaleTimeString();
+      const path=`maps/${cfg.dmId}/${Date.now()}.jpg`;
+      try{
+        if(status) status.textContent='Uploading…';
+        const storageRef=window._sRef(window._storage,path);
+        await window._uploadBytes(storageRef,blob,{contentType:'image/jpeg'});
+        const url=await window._getDownloadURL(storageRef);
+
+        // Save URL to Firestore
+        const mapMeta={name,url,path,pushedAt:Date.now()};
+        const fsRef=window._fsDoc(window._db,'maps',cfg.dmId);
+        await window._fsSetDoc(fsRef,{current:mapMeta,_updatedAt:Date.now()});
+
+        // Save to dm.maps list (max 5, remove oldest)
+        if(!dm.maps) dm.maps=[];
+        dm.maps.unshift(mapMeta);
+        if(dm.maps.length>5){
+          const old=dm.maps.pop();
+          if(old.path) window._deleteObject(window._sRef(window._storage,old.path)).catch(()=>{});
+        }
+        saveAll();
+        refreshMapSelect();
+        if(status) status.textContent='Pushed at '+new Date().toLocaleTimeString();
+        toast('Map pushed to players!');
+      }catch(err){
+        console.error(err);
+        if(status) status.textContent='Error: '+err.message;
+        toast('Push failed: '+err.message,'error');
+      }
+    },'image/jpeg',0.72);
+  };
+
+  window.refreshMapSelect=function(){
+    const sel=document.getElementById('map_select'); if(!sel) return;
+    sel.innerHTML='<option value="">— Saved Maps —</option>';
+    (dm.maps||[]).forEach((m,i)=>{
+      const opt=document.createElement('option');
+      opt.value=i; opt.textContent=m.name||'Map '+(i+1);
+      sel.appendChild(opt);
+    });
+  };
+
+  window.loadSavedMap=function(idx){
+    if(idx===''||idx===null) return;
+    const m=(dm.maps||[])[parseInt(idx)];
+    if(!m||!m.url) return;
+    const img=new Image();
+    img.crossOrigin='anonymous';
+    img.onload=()=>{
+      pushUndo();
+      const base=document.getElementById('map_base'); if(!base) return;
+      const ctx=base.getContext('2d');
+      ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
+      const scale=Math.min(CANVAS_W/img.width,CANVAS_H/img.height);
+      const w=img.width*scale,h=img.height*scale;
+      ctx.drawImage(img,(CANVAS_W-w)/2,(CANVAS_H-h)/2,w,h);
+      // Also fill in the name field
+      const ni=document.getElementById('map_name_input');
+      if(ni) ni.value=m.name||'';
+      toast('Map loaded: '+m.name);
+    };
+    img.onerror=()=>toast('Failed to load map image','error');
+    img.src=m.url;
+  };
+
+  window.deleteSavedMap=function(){
+    const sel=document.getElementById('map_select'); if(!sel||sel.value==='') return;
+    const idx=parseInt(sel.value);
+    const m=(dm.maps||[])[idx]; if(!m) return;
+    if(!confirm('Delete saved map "'+m.name+'"? The image will be removed from Storage.')) return;
+    if(m.path) window._deleteObject(window._sRef(window._storage,m.path)).catch(()=>{});
+    dm.maps.splice(idx,1);
+    saveAll();
+    refreshMapSelect();
+    toast('Map deleted.');
+  };
+
+  // Init canvas when map view first opens
+  window._mapInitDone=false;
+  window.initMapCanvas=function(){
+    if(window._mapInitDone) return;
+    window._mapInitDone=true;
+    const base=document.getElementById('map_base');
+    if(!base) return;
+    const ctx=base.getContext('2d');
+    ctx.fillStyle='#1a1a1a'; ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
+    setLayer('base');
+    document.getElementById('map_size')?.addEventListener('input',function(){
+      document.getElementById('map_size_val').textContent=this.value;
+    });
+  };
+})();
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded',async()=>{
@@ -1236,7 +1884,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
   }
 
   if(!cfg.dmId)setTimeout(showSetup,800);
-  setTimeout(updatePollUI,100);
+  setTimeout(updateSyncIndicator, 200);
 });
 document.addEventListener('input',markUnsaved);
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();collectDM();saveAll()}});
