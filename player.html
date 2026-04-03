@@ -434,6 +434,22 @@ select.fi::-ms-expand{display:none;}
 .sf .hint{font-size:11px;color:var(--subtext);font-style:italic;margin-top:4px;line-height:1.4;}
 .setup-footer{padding:10px 16px;border-top:1px solid var(--field-border);display:flex;justify-content:flex-end;gap:8px;}
 
+/* CHARACTER SWITCHER */
+.char-switcher{display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border);
+  border-top:none;overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.char-tab{display:flex;align-items:center;gap:6px;padding:7px 14px;cursor:pointer;border-right:1px solid var(--border);
+  font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;color:var(--subtext);white-space:nowrap;
+  transition:all .15s;flex-shrink:0;min-width:0;max-width:180px;background:transparent;border-bottom:none;}
+.char-tab:hover{background:rgba(196,154,34,.06);color:var(--text);}
+.char-tab.active{background:var(--panel);color:var(--gold-lt);border-bottom:1px solid var(--panel);margin-bottom:-1px;}
+.char-tab-name{overflow:hidden;text-overflow:ellipsis;flex:1;}
+.char-tab-x{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;
+  padding:0;line-height:1;flex-shrink:0;transition:color .15s;}
+.char-tab-x:hover{color:var(--crimson-lt);}
+.char-tab-add{padding:7px 14px;cursor:pointer;font-family:'Cinzel',serif;font-size:11px;color:var(--gold-dim);
+  border:none;background:transparent;transition:color .15s;flex-shrink:0;}
+.char-tab-add:hover{color:var(--gold-lt);}
+
 /* TOAST */
 .toast{position:fixed;bottom:20px;right:20px;z-index:9800;background:var(--panel);border:1px solid var(--border);
   padding:10px 16px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;color:var(--gold-lt);
@@ -503,6 +519,11 @@ select.fi::-ms-expand{display:none;}
   <div class="header-div"></div>
 </div>
 
+<!-- CHARACTER SWITCHER -->
+<div class="char-switcher" id="charSwitcher">
+  <button class="char-tab-add" onclick="addNewCharacter()" title="Add character">＋</button>
+</div>
+
 <!-- SAVE BAR -->
 <div class="save-bar">
   <span class="save-status" id="saveStatus">Ready</span>
@@ -513,7 +534,32 @@ select.fi::-ms-expand{display:none;}
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
   <span id="shareCodeEl" style="display:none" class="code-badge" onclick="copyCode()" title="Your Character ID — click to copy. Give to your DM."></span>
   <button class="btn" onclick="showSetup()" title="Session Setup">⚙ Setup</button>
+  <button class="btn" onclick="openMapViewer()" title="View DM Map" id="mapBtn">🗺 Map</button>
   <button class="btn danger" onclick="resetAll()" title="Reset all data">✕ Reset</button>
+</div>
+
+<!-- MAP VIEWER OVERLAY -->
+<div id="mapOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:8000;flex-direction:column">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">
+    <div style="font-family:'Cinzel Decorative',serif;font-size:13px;color:var(--gold-lt);letter-spacing:2px">🗺 Map Table</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span id="map_viewer_status" style="font-size:11px;color:var(--subtext);font-style:italic">Waiting for DM…</span>
+      <span id="map_viewer_name" style="font-size:12px;color:var(--gold);font-family:Cinzel,serif;letter-spacing:1px"></span>
+      <button class="btn sm" onclick="closeMapViewer()">✕ Close</button>
+    </div>
+  </div>
+  <div id="map_viewer_wrap" style="flex:1;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:#111">
+    <div id="map_viewer_empty" style="color:var(--subtext);font-style:italic;font-size:14px;text-align:center;padding:40px">
+      <div style="font-size:48px;margin-bottom:16px">🗺</div>
+      <div>No map has been shared yet.</div>
+      <div style="font-size:12px;margin-top:8px;color:var(--subtext)">Your DM will push a map when ready.</div>
+    </div>
+    <img id="map_viewer_img" src="" alt="Map" style="display:none;max-width:100%;max-height:100%;object-fit:contain;transform-origin:center center;cursor:grab;user-select:none">
+  </div>
+  <div style="padding:8px 16px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;font-size:11px;color:var(--subtext);flex-shrink:0">
+    <span>Scroll to zoom · Drag to pan</span>
+    <button class="btn sm" onclick="mapViewerReset()">Reset View</button>
+  </div>
 </div>
 
 <!-- IDENTITY + CHRONICLE -->
@@ -652,14 +698,20 @@ select.fi::-ms-expand{display:none;}
     <div class="pb">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <span class="itl" style="margin:0">Merits / Advantages</span>
-        <button class="add-btn" onclick="openMeritSelector()">+ Add Merit</button>
+        <div style="display:flex;gap:4px">
+          <button class="add-btn" onclick="openMeritSelector()">+ Add Merit</button>
+          <button class="add-btn" onclick="openCustomAdvFlawDirect('merit')" title="Add custom merit directly">+ Custom</button>
+        </div>
       </div>
       <div id="merits_list"></div>
       <div id="merits_empty" style="font-size:11px;color:var(--subtext);font-style:italic;padding:4px 0 8px">No merits added.</div>
       <div class="div"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <span class="itl" style="margin:0">Flaws</span>
-        <button class="add-btn" onclick="openFlawSelector()">+ Add Flaw</button>
+        <div style="display:flex;gap:4px">
+          <button class="add-btn" onclick="openFlawSelector()">+ Add Flaw</button>
+          <button class="add-btn" onclick="openCustomAdvFlawDirect('flaw')" title="Add custom flaw directly">+ Custom</button>
+        </div>
       </div>
       <div id="flaws_list"></div>
       <div id="flaws_empty" style="font-size:11px;color:var(--subtext);font-style:italic;padding:4px 0 8px">No flaws added.</div>
@@ -1033,6 +1085,7 @@ select.fi::-ms-expand{display:none;}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD4ZzE-wQ1PT9fkvm4JmJuoYvtsC5rhBkI",
@@ -1047,8 +1100,10 @@ const _db  = getFirestore(_app);
 const _auth = getAuth(_app);
 
 // Expose to global scope so non-module code can call them
+const _storage = getStorage(_app);
 window._db  = _db;
 window._auth = _auth;
+window._storage = _storage;
 window._fsDoc = doc;
 window._fsSetDoc = setDoc;
 window._fsGetDoc = getDoc;
@@ -1108,9 +1163,11 @@ const VTM = {
 // ════════════════════════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════════════════════════
-const SK = 'vtm_blank_v1';
-const SK_PRIV = 'vtm_blank_priv_v1';
-const SK_CFG = 'vtm_blank_cfg_v1';
+const SK_CFG = 'vtm_blank_cfg_v2';
+// Per-character keys: vtm_char_{charId}, vtm_priv_{charId}
+// cfg.chars = { charId: { charName, sessionId, username, skipCloud } }
+// cfg.activeCharId = currently displayed character
+
 let cfg = {};
 let state = {
   disciplines: [],
@@ -1119,12 +1176,26 @@ let state = {
   specialties: [],
   rituals: [],
   xpLog: [],
-  feedLog: [],      // [{id, resonance, hunger, target, notes, date}]
-  downtime: [],     // [{id, session, activities:[{type,desc}]}]
-  coterie: [],      // [{id, name, clan, player, bp, vinculum, notes}]
-  npcs: []          // [{id, name, type, faction, relation, secrets, notes, open}]
+  feedLog: [],
+  downtime: [],
+  coterie: [],
+  npcs: []
 };
 let autoSyncTimer = null;
+
+// ── Multi-character helpers ──
+function charDataKey(id){ return 'vtm_char_' + id; }
+function charPrivKey(id){ return 'vtm_priv_' + id; }
+
+function getActiveCharId(){ return cfg.activeCharId || null; }
+
+function getActiveCharCfg(){
+  const id = getActiveCharId();
+  return id && cfg.chars ? cfg.chars[id] : null;
+}
+
+// Expose legacy-style cfg props as getters from active char
+Object.defineProperty(window, 'activeCfg', { get: getActiveCharCfg });
 
 // ════════════════════════════════════════════════════════════
 // TOOLTIP
@@ -1234,7 +1305,7 @@ function addPowerToExistingDisc(discKey) {
   const disc = state.disciplines.find(d => d.key === discKey);
   if (!disc) return;
   const d = VTM.disciplines[discKey];
-  if (!d) { openCustomPowerModal(discKey); return; }
+  if (!d) { openCustomPowerForm(discKey); return; }
   let html = '';
   Object.entries(d.powers).forEach(([lvl, powers]) => {
     html += `<div class="power-level-section"><div class="power-level-label">Level ${lvl}</div><div class="power-sel-grid">`;
@@ -1251,32 +1322,75 @@ function addPowerToExistingDisc(discKey) {
   });
   html += `<div class="custom-form"><div class="custom-form-title">Add Custom Power</div>
     <input id="cp_name" placeholder="Power name..." style="margin-bottom:6px">
-    <input id="cp_level" placeholder="Level (1-5)..." type="number" min="1" max="5" style="margin-bottom:6px">
-    <input id="cp_dice" placeholder="Dice pool (e.g. WITS + AUSPEX)..." style="margin-bottom:6px">
+    <div style="display:flex;gap:8px;margin-bottom:6px">
+      <div style="flex:1"><div style="font-size:10px;color:var(--subtext);margin-bottom:3px">Level (1–5)</div>
+        <input id="cp_level" type="number" min="1" max="5" value="1" style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:6px 8px;outline:none"></div>
+      <div style="flex:1"><div style="font-size:10px;color:var(--subtext);margin-bottom:3px">Rouse Cost</div>
+        <input id="cp_rouses" type="number" min="0" max="3" value="0" style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:6px 8px;outline:none"></div>
+    </div>
+    <input id="cp_dice" placeholder="Dice pool (e.g. WITS + AUSPEX) or PASSIVE..." style="margin-bottom:6px">
     <textarea id="cp_desc" placeholder="Description..."></textarea>
-    <button class="btn" style="margin-top:6px" onclick="addCustomPower('${discKey}')">Add Custom Power</button>
+    <button class="btn green" style="margin-top:6px;width:100%" onclick="addCustomPower('${discKey}')">Add Custom Power</button>
   </div>`;
   openModal('Add Power — ' + disc.name, html, true);
+}
+
+function openCustomPowerForm(discKey) {
+  const disc = state.disciplines.find(d => d.key === discKey);
+  if (!disc) return;
+  const html = `<div class="custom-form">
+    <div class="custom-form-title">Add Power — ${disc.name}</div>
+    <input id="cp_name" placeholder="Power name..." style="margin-bottom:6px">
+    <div style="display:flex;gap:8px;margin-bottom:6px">
+      <div style="flex:1">
+        <div style="font-size:10px;color:var(--subtext);margin-bottom:3px">Level (1–5)</div>
+        <input id="cp_level" type="number" min="1" max="5" value="1" style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:6px 8px;outline:none">
+      </div>
+      <div style="flex:1">
+        <div style="font-size:10px;color:var(--subtext);margin-bottom:3px">Rouse Cost</div>
+        <input id="cp_rouses" type="number" min="0" max="3" value="0" style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:6px 8px;outline:none">
+      </div>
+    </div>
+    <input id="cp_dice" placeholder="Dice pool (e.g. WITS + AUSPEX) or PASSIVE..." style="margin-bottom:6px">
+    <textarea id="cp_desc" placeholder="Description..." rows="3"></textarea>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn green" style="flex:1" onclick="addCustomPower('${discKey}')">Add Power</button>
+      <button class="btn sm" onclick="openCustomPowerForm('${discKey}')">Add Another</button>
+    </div>
+  </div>`;
+  openModal('Add Power — ' + disc.name, html, false);
 }
 
 function addCustomPower(discKey) {
   const name = document.getElementById('cp_name')?.value?.trim();
   const level = parseInt(document.getElementById('cp_level')?.value) || 1;
+  const rouses = parseInt(document.getElementById('cp_rouses')?.value) || 0;
   const dice = document.getElementById('cp_dice')?.value?.trim() || 'Custom';
   const desc = document.getElementById('cp_desc')?.value?.trim() || '';
   if (!name) { toast('Enter a power name', 'error'); return; }
   const disc = state.disciplines.find(d => d.key === discKey);
   if (!disc) return;
-  disc.powers.push({ name, level, desc, dice, rouses: 0, custom: true });
-  renderDisciplines(); markUnsaved(); closeModal(); toast('Added: ' + name);
+  if (disc.powers.find(p => p.name === name)) { toast('Power name already used', 'error'); return; }
+  disc.powers.push({ name, level, desc, dice, rouses, custom: true });
+  renderDisciplines(); markUnsaved();
+  toast('Added: ' + name);
+  // Reopen the form to add another power easily
+  setTimeout(() => openCustomPowerForm(discKey), 80);
 }
 
 function openCustomDiscipline() {
+  const icons = ['✏','🌙','🔥','❄','⚡','💀','🌿','👁','🐾','🩸','🌀','🗡','🛡','💫','🌑','🕸','🦇','🐍','🌫','⚙'];
+  const iconBtns = icons.map(ic =>
+    `<button type="button" class="btn sm" onclick="document.querySelectorAll('.cd-icon-btn').forEach(b=>b.classList.remove('active-tool'));this.classList.add('active-tool');document.getElementById('cd_icon_val').value='${ic}'" style="font-size:16px;padding:4px 7px">${ic}</button>`
+  ).join('');
   const html = `<div class="custom-form">
     <div class="custom-form-title">Custom Discipline</div>
-    <input id="cd_name" placeholder="Discipline name...">
-    <input id="cd_desc" placeholder="Brief description...">
-    <button class="btn" style="margin-top:8px" onclick="addCustomDiscipline()">Add Discipline</button>
+    <input id="cd_name" placeholder="Discipline name..." style="margin-bottom:6px">
+    <input id="cd_desc" placeholder="Brief description (optional)..." style="margin-bottom:10px">
+    <div style="font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;color:var(--gold);margin-bottom:6px">ICON</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${iconBtns}</div>
+    <input type="hidden" id="cd_icon_val" value="✏">
+    <button class="btn green" style="margin-top:4px;width:100%" onclick="addCustomDiscipline()">Create Discipline</button>
   </div>`;
   openModal('Custom Discipline', html, false);
 }
@@ -1284,10 +1398,12 @@ function openCustomDiscipline() {
 function addCustomDiscipline() {
   const name = document.getElementById('cd_name')?.value?.trim();
   const desc = document.getElementById('cd_desc')?.value?.trim() || '';
+  const icon = document.getElementById('cd_icon_val')?.value || '✏';
   if (!name) { toast('Enter a name', 'error'); return; }
   const key = 'custom_' + Date.now();
-  state.disciplines.push({ key, name, icon: '✏', powers: [], desc, custom: true });
+  state.disciplines.push({ key, name, icon, powers: [], desc, custom: true });
   renderDisciplines(); markUnsaved(); closeModal();
+  toast('Discipline created — add powers via the + Power button');
 }
 
 function removeDisc(key) {
@@ -1319,14 +1435,14 @@ function renderDisciplines() {
             onmouseenter="showTT(event,'${p.name.replace(/'/g,"\\'")}','Level ${p.level} · ${p.dice || ''} · ${rStr}','${(p.desc||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}','')"
             onmouseleave="hideTT()">
             <span class="power-lvl">${dots}</span>
-            <span class="power-name">${p.name}</span>
+            <span class="power-name">${p.name}${p.custom ? ' <span style="font-size:8px;color:var(--subtext);font-style:italic">(custom)</span>' : ''}</span>
             <button class="power-remove" onclick="removePower('${disc.key}','${p.name.replace(/'/g,"\\'")}')">✕</button>
           </div>`;
         }).join('');
     card.innerHTML = `
       <div class="disc-card-header">
         <span class="disc-icon">${disc.icon}</span>
-        <span class="disc-card-name">${disc.name}</span>
+        <span class="disc-card-name">${disc.name}${disc.custom ? ' <span style="font-size:8px;color:var(--subtext);font-style:italic">(custom)</span>' : ''}</span>
         <button class="add-btn" style="font-size:7px;padding:2px 7px" onclick="addPowerToExistingDisc('${disc.key}')">+ Power</button>
         <button class="disc-remove-btn" onclick="removeDisc('${disc.key}')">✕</button>
       </div>
@@ -1344,9 +1460,10 @@ function openFlawSelector() { openAdvFlawModal('flaw'); }
 function openAdvFlawModal(type) {
   const data = type === 'merit' ? VTM.merits : VTM.flaws;
   const title = type === 'merit' ? 'Select a Merit' : 'Select a Flaw';
+  const typeLabel = type === 'merit' ? 'Merit' : 'Flaw';
   let html = `<div class="merit-tabs">
-    <div class="merit-tab active" onclick="switchMeritTab(this,'standard')">Merits</div>
-    <div class="merit-tab" onclick="switchMeritTab(this,'custom')">Custom</div>
+    <div class="merit-tab active" onclick="switchMeritTab(this,'standard')">${type === 'merit' ? 'Standard Merits' : 'Standard Flaws'}</div>
+    <div class="merit-tab" onclick="switchMeritTab(this,'custom')">Custom ${typeLabel}</div>
   </div>
   <div id="merit-standard">`;
   Object.entries(data).forEach(([catKey, cat]) => {
@@ -1399,6 +1516,25 @@ function addAdvFlaw(type, name, cost, desc) {
     renderFlaws();
   }
   markUnsaved(); toast('Added: ' + name);
+}
+
+// Direct shortcut — opens a focused custom form without going through the full selector
+function openCustomAdvFlawDirect(type) {
+  const typeLabel = type === 'merit' ? 'Merit' : 'Flaw';
+  const accentColor = type === 'merit' ? 'var(--gold)' : 'var(--crimson-lt)';
+  const html = `<div class="custom-form">
+    <div class="custom-form-title" style="color:${accentColor}">Custom ${typeLabel}</div>
+    <input id="caf_name" placeholder="${typeLabel} name..." style="margin-bottom:6px">
+    <div style="display:flex;gap:8px;margin-bottom:6px">
+      <div style="flex:1">
+        <div style="font-size:10px;color:var(--subtext);margin-bottom:3px">Cost / Rating</div>
+        <input id="caf_cost" placeholder="e.g. 2 or 1/2/3..." style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:6px 8px;outline:none">
+      </div>
+    </div>
+    <textarea id="caf_desc" placeholder="Description (optional)..." rows="3"></textarea>
+    <button class="btn green" style="margin-top:8px;width:100%" onclick="addCustomAdvFlaw('${type}')">Add Custom ${typeLabel}</button>
+  </div>`;
+  openModal('Custom ' + typeLabel, html, false);
 }
 
 function addCustomAdvFlaw(type) {
@@ -2142,17 +2278,22 @@ function applyData(d) {
 }
 
 function saveAll() {
+  const id = getActiveCharId();
   const d = collectData();
-  localStorage.setItem(SK, JSON.stringify(d));
-  localStorage.setItem(SK_PRIV, document.getElementById('notes_private')?.value || '');
+  if (id) {
+    localStorage.setItem(charDataKey(id), JSON.stringify(d));
+    localStorage.setItem(charPrivKey(id), document.getElementById('notes_private')?.value || '');
+  }
   setStatus('Saved — ' + new Date().toLocaleTimeString(), 'saved');
 }
 
-function loadLocal() {
+function loadLocal(charId) {
   try {
-    const raw = localStorage.getItem(SK);
+    const id = charId || getActiveCharId();
+    if (!id) return;
+    const raw = localStorage.getItem(charDataKey(id));
     if (raw) applyData(JSON.parse(raw));
-    const priv = localStorage.getItem(SK_PRIV);
+    const priv = localStorage.getItem(charPrivKey(id));
     if (priv) { const el = document.getElementById('notes_private'); if (el) el.value = priv; }
     setStatus('Loaded', 'saved');
   } catch(e) { console.error(e); }
@@ -2164,34 +2305,38 @@ const BC = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('vtm_s
 function broadcastState() {
   if (!BC) return;
   try {
+    const cc = getActiveCharCfg();
+    const id = getActiveCharId();
     const d = collectData();
-    BC.postMessage({ type: 'sheet_update', charId: cfg.charId || ('local_' + (cfg.charName||'char').replace(/\s/g,'_')), data: d, charName: cfg.charName||'Character' });
+    BC.postMessage({ type: 'sheet_update', charId: id || ('local_anon'), data: d, charName: cc?.charName || 'Character' });
   } catch(e) {}
 }
 
 function scheduleAutoSync() {
-  broadcastState(); // instant push to any DM tab in the same browser
-  if (cfg.skipCloud) return;
-  if (!cfg.charId) return; // no Firestore ID yet — wait for setup
+  broadcastState();
+  const cc = getActiveCharCfg();
+  if (!cc || cc.skipCloud) return;
+  if (!getActiveCharId()) return;
   clearTimeout(autoSyncTimer);
-  autoSyncTimer = setTimeout(() => { syncToFirestore(true); }, 1000); // 1s debounce
+  autoSyncTimer = setTimeout(() => { syncToFirestore(true); }, 1000);
 }
 
 // ── Firestore sync ──
 async function syncToFirestore(silent) {
   broadcastState();
+  const cc = getActiveCharCfg();
+  const charId = getActiveCharId();
   if (!window._db) { if (!silent) toast('Firebase not ready yet.', 'error'); return; }
-  if (!cfg.charId) { if (!silent) toast('No character ID — complete setup first. Click ⚙', 'error'); return; }
+  if (!charId || !cc || cc.skipCloud) { if (!silent) toast('No character connected — use ⚙ Setup first.', 'error'); return; }
   if (!silent) setStatus('Syncing...', 'syncing');
   const btn = document.getElementById('syncBtn'); if (btn) btn.disabled = true;
   try {
     const d = collectData();
     const priv = document.getElementById('notes_private')?.value || '';
-    const charRef = window._fsDoc(window._db, 'characters', cfg.charId);
-    const privRef = window._fsDoc(window._db, 'characters_private', cfg.charId);
-    const payload = { ...d, _charName: cfg.charName || 'Character', _updatedAt: Date.now() };
+    const charRef = window._fsDoc(window._db, 'characters', charId);
+    const privRef = window._fsDoc(window._db, 'characters_private', charId);
+    const payload = { ...d, _charName: cc.charName || 'Character', _updatedAt: Date.now() };
     if (silent) {
-      // Fire and forget — don't await, don't block the UI
       window._fsSetDoc(charRef, payload).catch(e => console.warn('Auto-sync err:', e));
     } else {
       await Promise.all([
@@ -2199,8 +2344,8 @@ async function syncToFirestore(silent) {
         window._fsSetDoc(privRef, { notes_private: priv, _updatedAt: Date.now() })
       ]);
     }
-    localStorage.setItem(SK, JSON.stringify(d));
-    localStorage.setItem(SK_PRIV, priv);
+    localStorage.setItem(charDataKey(charId), JSON.stringify(d));
+    localStorage.setItem(charPrivKey(charId), priv);
     updateShareCode();
     if (!silent) { setStatus('Synced to DM — ' + new Date().toLocaleTimeString(), 'saved'); toast('Sheet synced — your DM can see it now'); }
     else setStatus('Live — ' + new Date().toLocaleTimeString(), 'saved');
@@ -2216,110 +2361,262 @@ async function syncToFirestore(silent) {
 
 function exportJSON() {
   const d = collectData();
+  const cc = getActiveCharCfg();
   const blob = new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = (d.text?.f_name||'character').replace(/\s/g,'_')+'_sheet.json';
+  a.download = (cc?.charName || d.text?.f_name || 'character').replace(/\s/g,'_').toLowerCase()+'_sheet.json';
   a.click();
 }
 
 function importJSON(e) {
   const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
-  reader.onload = ev => { try { applyData(JSON.parse(ev.target.result)); saveAll(); toast('Imported'); } catch(err) { toast('Invalid JSON','error'); } };
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      // If no active char, create a local slot first
+      if (!getActiveCharId()) {
+        const id = 'local_import_' + Date.now();
+        if (!cfg.chars) cfg.chars = {};
+        cfg.chars[id] = { charName: data.text?.f_name || 'Imported', skipCloud: true };
+        cfg.activeCharId = id;
+        saveCfg();
+        renderCharSwitcher();
+      }
+      applyData(data); saveAll(); toast('Imported');
+    } catch(err) { toast('Invalid JSON','error'); }
+  };
   reader.readAsText(file); e.target.value = '';
 }
 
 // ════════════════════════════════════════════════════════════
-// SETUP & CONFIG
+// SETUP & CONFIG — multi-character
 // ════════════════════════════════════════════════════════════
-function loadCfg() { try { cfg = JSON.parse(localStorage.getItem(SK_CFG)||'{}'); } catch(e) { cfg={}; } }
+function loadCfg() {
+  try { cfg = JSON.parse(localStorage.getItem(SK_CFG)||'{}'); }
+  catch(e) { cfg={}; }
+  if (!cfg.chars) cfg.chars = {};
+}
 function saveCfg() { localStorage.setItem(SK_CFG, JSON.stringify(cfg)); }
 
-function showSetup() {
-  // Pre-fill from URL param ?session=xxx
+// ── Character switcher rendering ──
+function renderCharSwitcher() {
+  const bar = document.getElementById('charSwitcher');
+  if (!bar) return;
+  bar.innerHTML = '';
+  const chars = cfg.chars || {};
+  Object.entries(chars).forEach(([id, cc]) => {
+    const tab = document.createElement('div');
+    tab.className = 'char-tab' + (id === cfg.activeCharId ? ' active' : '');
+    tab.title = id;
+    tab.innerHTML = `<span class="char-tab-name">${esc(cc.charName || id)}</span>
+      <button class="char-tab-x" onclick="event.stopPropagation();deleteCharacter('${id}')" title="Remove character">✕</button>`;
+    tab.addEventListener('click', () => switchCharacter(id));
+    bar.appendChild(tab);
+  });
+  const addBtn = document.createElement('button');
+  addBtn.className = 'char-tab-add';
+  addBtn.title = 'Add new character';
+  addBtn.textContent = '＋';
+  addBtn.onclick = addNewCharacter;
+  bar.appendChild(addBtn);
+}
+
+function switchCharacter(id) {
+  if (id === cfg.activeCharId) return;
+  // Save current before switching
+  saveAll();
+  cfg.activeCharId = id;
+  saveCfg();
+  // Re-subscribe map for this character's session
+  if(window._mapSubscribeForChar) window._mapSubscribeForChar(id);
+  // Reset state
+  state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[] };
+  // Re-init UI
+  initAllDots();
+  initBoxTrack('health_track', 5);
+  initBoxTrack('wp_track', 5);
+  initLargeDots('humanity_dots', 10, 7, 'h');
+  initLargeDots('hunger_dots', 5, 1, 'hunger');
+  initBPDots();
+  // Clear rendered lists
+  ['disciplines_list','merits_list','flaws_list','specialties_list','rituals_list','xp_log','feed_log','downtime_list','coterie_list','npc_list'].forEach(elId => {
+    const el = document.getElementById(elId); if (el) el.innerHTML = '';
+  });
+  renderCharSwitcher();
+  loadLocal(id);
+  updateShareCode();
+  // Try cloud
+  const cc = cfg.chars[id];
+  if (cc && !cc.skipCloud && window._db) {
+    window._fsGetDoc(window._fsDoc(window._db, 'characters', id)).then(snap => {
+      if (!snap.exists()) return;
+      const cloud = snap.data();
+      const localRaw = localStorage.getItem(charDataKey(id));
+      const localTime = localRaw ? (JSON.parse(localRaw)._updatedAt || 0) : 0;
+      if ((cloud._updatedAt || 0) >= localTime) {
+        applyData(cloud);
+        window._fsGetDoc(window._fsDoc(window._db, 'characters_private', id)).then(ps => {
+          if (ps.exists()) { const el = document.getElementById('notes_private'); if (el) el.value = ps.data().notes_private || ''; }
+        });
+        setStatus('Cloud loaded — ' + cc.charName, 'saved');
+      }
+    }).catch(e => console.warn('Switch cloud load:', e));
+  }
+  document.getElementById('f_name')?.focus();
+}
+
+function addNewCharacter() {
+  showSetup(true);
+}
+
+function deleteCharacter(id) {
+  const cc = cfg.chars?.[id];
+  if (!confirm('Remove "' + (cc?.charName || id) + '" from this device? Cloud data is kept.')) return;
+  delete cfg.chars[id];
+  localStorage.removeItem(charDataKey(id));
+  localStorage.removeItem(charPrivKey(id));
+  // Switch to another char or clear
+  const remaining = Object.keys(cfg.chars);
+  if (remaining.length > 0) {
+    cfg.activeCharId = remaining[0];
+    saveCfg();
+    switchCharacter(remaining[0]);
+  } else {
+    cfg.activeCharId = null;
+    saveCfg();
+    renderCharSwitcher();
+    // Clear the sheet
+    state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[] };
+    initAllDots();
+    applyData({});
+    setStatus('No characters — click ＋ to add one', '');
+  }
+}
+
+function showSetup(isNew) {
   const urlSession = new URLSearchParams(window.location.search).get('session');
-  document.getElementById('setup_sessionid').value = cfg.sessionId || urlSession || '';
-  document.getElementById('setup_username').value = cfg.username || '';
-  document.getElementById('setup_status').textContent = '';
+  const cc = isNew ? null : getActiveCharCfg();
+  document.getElementById('setup_sessionid').value = cc?.sessionId || urlSession || '';
+  document.getElementById('setup_username').value = isNew ? '' : (cc?.username || '');
+  document.getElementById('setup_status').textContent = isNew ? 'Adding a new character…' : '';
+  document.getElementById('setup_status').style.color = 'var(--subtext)';
   document.getElementById('setupOverlay').classList.add('open');
 }
 
 function skipSetup() {
-  cfg.skipCloud = true;
-  saveCfg();
+  // Create a local-only character if none exist
+  if (!cfg.activeCharId) {
+    const id = 'local_' + Date.now();
+    if (!cfg.chars) cfg.chars = {};
+    cfg.chars[id] = { charName: 'Local Character', skipCloud: true };
+    cfg.activeCharId = id;
+    saveCfg();
+    renderCharSwitcher();
+  }
   document.getElementById('setupOverlay').classList.remove('open');
   setStatus('Local only — changes not synced', '');
 }
 
 async function confirmSetup() {
   const sessionId = document.getElementById('setup_sessionid').value.trim();
-  const username  = document.getElementById('setup_username').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+  const rawUser   = document.getElementById('setup_username').value.trim();
+  const username  = rawUser.toLowerCase().replace(/[^a-z0-9_]/g, '_');
   const statusEl  = document.getElementById('setup_status');
 
-  if (!sessionId) { statusEl.textContent = '✕ Enter a Session ID from your DM'; statusEl.style.color='var(--crimson-lt)'; return; }
+  if (!sessionId) { statusEl.textContent = '✕ Enter the Session ID from your DM'; statusEl.style.color='var(--crimson-lt)'; return; }
   if (!username)  { statusEl.textContent = '✕ Enter a username'; statusEl.style.color='var(--crimson-lt)'; return; }
 
   const charId   = sessionId + '_' + username;
-  const charName = username.charAt(0).toUpperCase() + username.slice(1);
+  const charName = rawUser.charAt(0).toUpperCase() + rawUser.slice(1);
+
+  // Check for duplicate
+  if (cfg.chars?.[charId] && charId === cfg.activeCharId) {
+    // Updating existing — just close
+    document.getElementById('setupOverlay').classList.remove('open');
+    return;
+  }
 
   statusEl.textContent = 'Connecting…';
   statusEl.style.color = 'var(--gold)';
 
-  cfg = { sessionId, username, charId, charName, skipCloud: false };
+  if (!cfg.chars) cfg.chars = {};
+  cfg.chars[charId] = { sessionId, username, charId, charName, skipCloud: false };
+
+  // If this is a brand new character being added, save current first
+  if (cfg.activeCharId && cfg.activeCharId !== charId) saveAll();
+
+  cfg.activeCharId = charId;
   saveCfg();
+  if(window._mapSubscribeForChar) window._mapSubscribeForChar(charId);
 
   if (window._db) {
     try {
       const snap = await window._fsGetDoc(window._fsDoc(window._db, 'characters', charId));
       if (snap.exists()) {
-        applyData(snap.data());
+        const cloud = snap.data();
+        // Switch UI first
+        state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[] };
+        initAllDots(); initBPDots();
+        applyData(cloud);
         const pSnap = await window._fsGetDoc(window._fsDoc(window._db, 'characters_private', charId));
-        if (pSnap.exists()) {
-          const el = document.getElementById('notes_private');
-          if (el) el.value = pSnap.data().notes_private || '';
-        }
-        saveAll();
+        if (pSnap.exists()) { const el = document.getElementById('notes_private'); if (el) el.value = pSnap.data().notes_private || ''; }
+        localStorage.setItem(charDataKey(charId), JSON.stringify(cloud));
         statusEl.textContent = '✓ Welcome back, ' + charName + '!';
         statusEl.style.color = 'var(--green-lt)';
-        setTimeout(() => document.getElementById('setupOverlay').classList.remove('open'), 900);
         toast('Sheet loaded — ' + charName);
       } else {
-        statusEl.textContent = '✓ New character — sync to upload your sheet';
+        statusEl.textContent = '✓ New character created!';
         statusEl.style.color = 'var(--green-lt)';
-        setTimeout(() => document.getElementById('setupOverlay').classList.remove('open'), 900);
-        toast('Connected as ' + charName + '. Fill in your sheet and hit ☁ Sync to DM.');
+        toast('Connected as ' + charName + '. Fill in your sheet and ☁ Sync to DM.');
       }
     } catch(e) {
       statusEl.textContent = '✕ Connection failed: ' + e.message;
       statusEl.style.color = 'var(--crimson-lt)';
-      console.warn('Cloud connect failed:', e);
+      console.warn('Cloud connect:', e);
+      return;
     }
-  } else {
-    statusEl.textContent = '✕ Firebase not ready — try again in a moment';
-    statusEl.style.color = 'var(--crimson-lt)';
   }
 
+  setTimeout(() => document.getElementById('setupOverlay').classList.remove('open'), 800);
+  renderCharSwitcher();
   updateShareCode();
   setStatus('Connected — ' + charName, 'saved');
 }
 
 function updateShareCode() {
   const el = document.getElementById('shareCodeEl');
-  if (cfg.charId && cfg.username) {
-    el.textContent = cfg.charId;
-    el.title = 'Your Character ID — give to DM. Click to copy.';
+  const cc = getActiveCharCfg();
+  const id = getActiveCharId();
+  if (id && cc && !cc.skipCloud) {
+    el.textContent = id;
+    el.title = 'Character ID: ' + id + ' — click to copy for DM';
     el.style.display = 'inline-block';
   } else el.style.display = 'none';
 }
 
 function copyCode() {
-  const el = document.getElementById('shareCodeEl');
-  navigator.clipboard.writeText(el.textContent).then(() => toast('Character ID copied: ' + el.textContent + ' — give this to your DM'));
+  const id = getActiveCharId();
+  if (!id) return;
+  navigator.clipboard.writeText(id).then(() => toast('Character ID copied: ' + id + ' — give this to your DM'));
 }
 
 // ════════════════════════════════════════════════════════════
 // UI
 // ════════════════════════════════════════════════════════════
+function initAllDots() {
+  initDots('attr_str',5,1);initDots('attr_dex',5,1);initDots('attr_sta',5,1);
+  initDots('attr_cha',5,1);initDots('attr_man',5,1);initDots('attr_com',5,1);
+  initDots('attr_int',5,1);initDots('attr_wit',5,1);initDots('attr_res',5,1);
+  ['sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel','sk_ste','sk_sur',
+   'sk_ani','sk_eti','sk_ins','sk_imi','sk_lea','sk_per','sk_prs','sk_str','sk_sub',
+   'sk_aca','sk_awa','sk_fin','sk_inv','sk_med','sk_occ','sk_pol','sk_sci','sk_tec']
+  .forEach(id => initDots(id,5,0));
+  initBoxTrack('health_track',5);
+  initBoxTrack('wp_track',5);
+  initLargeDots('humanity_dots',10,7,'h');
+  initLargeDots('hunger_dots',5,1,'hunger');
+}
 function setStatus(msg, type) {
   const el = document.getElementById('saveStatus');
   el.textContent = msg; el.className = 'save-status'+(type?' '+type:'');
@@ -2333,9 +2630,19 @@ function updateHeader() {
   document.title = (n||'Character') + ' — VtM Sheet';
 }
 function resetAll() {
-  if (!confirm('Reset all data? This cannot be undone.')) return;
-  localStorage.removeItem(SK); localStorage.removeItem(SK_PRIV);
-  location.reload();
+  const cc = getActiveCharCfg();
+  const id = getActiveCharId();
+  const name = cc?.charName || 'this character';
+  if (!confirm('Reset all data for ' + name + '? This cannot be undone.')) return;
+  if (id) {
+    localStorage.removeItem(charDataKey(id));
+    localStorage.removeItem(charPrivKey(id));
+  }
+  state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[] };
+  initAllDots(); initBPDots();
+  applyData({});
+  setStatus('Reset — ' + name, '');
+  toast('Sheet reset.');
 }
 
 let toastTimer;
@@ -2358,61 +2665,195 @@ function populateDropdowns() {
 }
 
 // ════════════════════════════════════════════════════════════
+
+// ── MAP VIEWER ──
+(function(){
+  let mapUnsub = null;
+  let scale = 1, panX = 0, panY = 0;
+  let dragging = false, dragStartX = 0, dragStartY = 0, panStartX = 0, panStartY = 0;
+  let currentDmId = null;
+
+  function getImg(){ return document.getElementById('map_viewer_img'); }
+  function applyTransform(){
+    const img = getImg(); if(!img) return;
+    img.style.transform = `translate(${panX}px,${panY}px) scale(${scale})`;
+  }
+
+  window.mapViewerReset = function(){
+    scale=1; panX=0; panY=0; applyTransform();
+  };
+
+  // Zoom on scroll
+  document.addEventListener('wheel', e=>{
+    const overlay = document.getElementById('mapOverlay');
+    if(!overlay || overlay.style.display==='none') return;
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    scale = Math.min(8, Math.max(0.2, scale * delta));
+    applyTransform();
+  }, {passive:false});
+
+  // Pan on drag
+  document.addEventListener('mousedown', e=>{
+    const img = getImg();
+    if(!img || !img.contains(e.target)) return;
+    dragging=true; dragStartX=e.clientX; dragStartY=e.clientY;
+    panStartX=panX; panStartY=panY;
+    img.style.cursor='grabbing';
+  });
+  document.addEventListener('mousemove', e=>{
+    if(!dragging) return;
+    panX = panStartX + (e.clientX - dragStartX);
+    panY = panStartY + (e.clientY - dragStartY);
+    applyTransform();
+  });
+  document.addEventListener('mouseup', ()=>{
+    dragging=false;
+    const img=getImg(); if(img) img.style.cursor='grab';
+  });
+
+  // Touch pinch-zoom + pan
+  let lastTouchDist = null;
+  document.addEventListener('touchstart', e=>{
+    const overlay = document.getElementById('mapOverlay');
+    if(!overlay || overlay.style.display==='none') return;
+    if(e.touches.length===2){
+      lastTouchDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+    } else if(e.touches.length===1){
+      dragging=true;
+      dragStartX=e.touches[0].clientX; dragStartY=e.touches[0].clientY;
+      panStartX=panX; panStartY=panY;
+    }
+  },{passive:true});
+  document.addEventListener('touchmove', e=>{
+    const overlay = document.getElementById('mapOverlay');
+    if(!overlay || overlay.style.display==='none') return;
+    if(e.touches.length===2 && lastTouchDist!==null){
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      scale = Math.min(8, Math.max(0.2, scale * (dist/lastTouchDist)));
+      lastTouchDist = dist;
+      applyTransform();
+    } else if(e.touches.length===1 && dragging){
+      panX = panStartX + (e.touches[0].clientX - dragStartX);
+      panY = panStartY + (e.touches[0].clientY - dragStartY);
+      applyTransform();
+    }
+  },{passive:true});
+  document.addEventListener('touchend', ()=>{ dragging=false; lastTouchDist=null; });
+
+  function subscribeToMap(dmId){
+    if(!window._db || !dmId) return;
+    if(mapUnsub){ mapUnsub(); mapUnsub=null; }
+    currentDmId = dmId;
+    const ref = window._fsDoc(window._db, 'maps', dmId);
+    mapUnsub = window._fsOnSnapshot(ref, snap=>{
+      if(!snap.exists()){ return; }
+      const d = snap.data();
+      const map = d.current;
+      if(!map || !map.url) return;
+      const img = document.getElementById('map_viewer_img');
+      const empty = document.getElementById('map_viewer_empty');
+      const status = document.getElementById('map_viewer_status');
+      const nameEl = document.getElementById('map_viewer_name');
+      if(!img) return;
+      // Only flash notification if overlay is closed
+      const overlay = document.getElementById('mapOverlay');
+      if(overlay && overlay.style.display==='none'){
+        const btn = document.getElementById('mapBtn');
+        if(btn){ btn.style.borderColor='var(--gold)'; btn.style.color='var(--gold-lt)'; btn.textContent='🗺 Map ●'; }
+        toast('DM pushed a new map — click 🗺 Map to view');
+      }
+      img.src = map.url;
+      img.style.display = 'block';
+      if(empty) empty.style.display = 'none';
+      if(status) status.textContent = 'Live — updated '+new Date(map.pushedAt).toLocaleTimeString();
+      if(nameEl) nameEl.textContent = map.name || '';
+      mapViewerReset();
+    }, err=>{ console.warn('Map listener error:', err); });
+  }
+
+  window.openMapViewer = function(){
+    const overlay = document.getElementById('mapOverlay');
+    if(!overlay) return;
+    overlay.style.display = 'flex';
+    // Reset the map button notification dot
+    const btn = document.getElementById('mapBtn');
+    if(btn){ btn.style.borderColor=''; btn.style.color=''; btn.textContent='🗺 Map'; }
+    // Subscribe if not already
+    const cc = (cfg.chars && cfg.activeCharId) ? cfg.chars[cfg.activeCharId] : null;
+    const dmId = cc?.sessionId;
+    if(dmId && dmId !== currentDmId){
+      document.getElementById('map_viewer_status').textContent = 'Connecting…';
+      subscribeToMap(dmId);
+    } else if(!dmId){
+      document.getElementById('map_viewer_status').textContent = 'No session connected — use ⚙ Setup first';
+    }
+  };
+
+  window.closeMapViewer = function(){
+    const overlay = document.getElementById('mapOverlay');
+    if(overlay) overlay.style.display = 'none';
+  };
+
+  // Auto-subscribe when setup completes or character switches
+  window._mapSubscribeForChar = function(charId){
+    const cc = cfg.chars?.[charId];
+    const dmId = cc?.sessionId;
+    if(dmId && dmId !== currentDmId) subscribeToMap(dmId);
+  };
+})();
+
 // INIT
 // ════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async () => {
-  loadCfg(); populateDropdowns();
-  initDots('attr_str',5,1);initDots('attr_dex',5,1);initDots('attr_sta',5,1);
-  initDots('attr_cha',5,1);initDots('attr_man',5,1);initDots('attr_com',5,1);
-  initDots('attr_int',5,1);initDots('attr_wit',5,1);initDots('attr_res',5,1);
-  ['sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel','sk_ste','sk_sur',
-   'sk_ani','sk_eti','sk_ins','sk_imi','sk_lea','sk_per','sk_prs','sk_str','sk_sub',
-   'sk_aca','sk_awa','sk_fin','sk_inv','sk_med','sk_occ','sk_pol','sk_sci','sk_tec']
-  .forEach(id => initDots(id,5,0));
-  initBoxTrack('health_track',5);
-  initBoxTrack('wp_track',5);
-  initLargeDots('humanity_dots',10,7,'h');
-  initLargeDots('hunger_dots',5,1,'hunger');
+  loadCfg();
+  populateDropdowns();
+  initAllDots();
   initBPDots();
-  renderXPLog();
-  renderFeedLog();
-  renderDowntime();
-  renderCoterie();
-  renderNPCs();
-  loadLocal(); // always restore from localStorage first for instant load
-  // Then try to pull fresher data from Firestore if we have a charId
-  if (cfg.charId && !cfg.skipCloud) {
-    try {
-      // Wait a moment for Firebase auth to settle
-      await new Promise(r => setTimeout(r, 800));
-      if (window._db) {
-        const snap = await window._fsGetDoc(window._fsDoc(window._db, 'characters', cfg.charId));
-        if (snap.exists()) {
-          const cloud = snap.data();
-          // Only override local if cloud is newer
-          const localRaw = localStorage.getItem(SK);
-          const localTime = localRaw ? (JSON.parse(localRaw)._updatedAt || 0) : 0;
-          if ((cloud._updatedAt || 0) >= localTime) {
-            applyData(cloud);
-            const pSnap = await window._fsGetDoc(window._fsDoc(window._db, 'characters_private', cfg.charId));
-            if (pSnap.exists()) {
-              const el = document.getElementById('notes_private');
-              if (el) el.value = pSnap.data().notes_private || '';
+  renderXPLog(); renderFeedLog(); renderDowntime(); renderCoterie(); renderNPCs();
+  renderCharSwitcher();
+
+  const activeId = getActiveCharId();
+
+  if (activeId) {
+    // Load local data for active character instantly
+    loadLocal(activeId);
+    updateShareCode();
+    // Subscribe to DM map updates
+    if(window._mapSubscribeForChar) window._mapSubscribeForChar(activeId);
+    // Then try cloud if connected
+    const cc = cfg.chars?.[activeId];
+    if (cc && !cc.skipCloud) {
+      try {
+        await new Promise(r => setTimeout(r, 800)); // let Firebase auth settle
+        if (window._db) {
+          const snap = await window._fsGetDoc(window._fsDoc(window._db, 'characters', activeId));
+          if (snap.exists()) {
+            const cloud = snap.data();
+            const localRaw = localStorage.getItem(charDataKey(activeId));
+            const localTime = localRaw ? (JSON.parse(localRaw)._updatedAt || 0) : 0;
+            if ((cloud._updatedAt || 0) >= localTime) {
+              applyData(cloud);
+              const pSnap = await window._fsGetDoc(window._fsDoc(window._db, 'characters_private', activeId));
+              if (pSnap.exists()) { const el = document.getElementById('notes_private'); if (el) el.value = pSnap.data().notes_private || ''; }
+              setStatus('Cloud loaded — ' + new Date().toLocaleTimeString(), 'saved');
             }
-            setStatus('Loaded from cloud — ' + new Date().toLocaleTimeString(), 'saved');
           }
         }
-      }
-    } catch(e) { console.warn('Firestore load error:', e); }
+      } catch(e) { console.warn('Firestore load error:', e); }
+    }
+  } else {
+    // No characters yet — show setup after a beat
+    const urlSession = new URLSearchParams(window.location.search).get('session');
+    if (urlSession) { cfg.sessionId = urlSession; }
+    setTimeout(() => showSetup(), 500);
   }
-  updateShareCode();
-  // Auto-fill session from URL param, then show setup if not configured
-  const urlSession = new URLSearchParams(window.location.search).get('session');
-  if (urlSession && !cfg.sessionId) {
-    // Pre-seed the sessionId from URL so setup modal pre-fills it
-    cfg.sessionId = urlSession;
-  }
-  if (!cfg.charId && !cfg.skipCloud) setTimeout(() => { showSetup(); }, 500);
 });
 
 document.addEventListener('input', markUnsaved);
