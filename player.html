@@ -640,20 +640,20 @@ select.fi::-ms-expand{display:none;}
   <div class="panel">
     <div class="ph"><span class="ph-left">Identity</span></div>
     <div class="pb" style="display:flex;gap:0;padding:0">
-      <!-- Vertical portrait column -->
-      <div style="flex:0 0 120px;display:flex;flex-direction:column;border-right:1px solid var(--border)">
-        <!-- Portrait fills column vertically -->
-        <div style="position:relative;flex:1;min-height:220px;background:#000;cursor:pointer;overflow:hidden" onclick="document.getElementById('char_portrait_input').click()" title="Click to set portrait">
-          <div id="char_portrait_preview" style="width:100%;height:100%;min-height:220px;background:var(--field-bg);display:flex;align-items:center;justify-content:center;color:var(--subtext);font-size:9px;font-family:Cinzel,serif;letter-spacing:1px;text-align:center;background-size:cover;background-position:center top">Portrait</div>
-          <div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-family:Cinzel,serif;font-size:6px;letter-spacing:2px;color:rgba(232,201,106,.4)">PORTRAIT</div>
+      <!-- Vertical portrait column — matches green box proportions from screenshot -->
+      <div style="flex:0 0 110px;display:flex;flex-direction:column;border-right:1px solid var(--border)">
+        <!-- Portrait: fills most of the column height -->
+        <div style="position:relative;height:260px;background:#000;cursor:pointer;overflow:hidden;flex-shrink:0" onclick="document.getElementById('char_portrait_input').click()" title="Click to set portrait">
+          <div id="char_portrait_preview" style="width:100%;height:100%;background:var(--field-bg);display:flex;align-items:center;justify-content:center;color:var(--subtext);font-size:9px;font-family:Cinzel,serif;letter-spacing:1px;text-align:center;background-size:cover;background-position:center top">Portrait</div>
+          <div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-family:Cinzel,serif;font-size:6px;letter-spacing:2px;color:rgba(232,201,106,.35)">PORTRAIT</div>
         </div>
-        <!-- Token circle below portrait -->
-        <div style="border-top:1px solid var(--border);padding:8px;display:flex;flex-direction:column;align-items:center;gap:5px;background:rgba(0,0,0,.3)">
-          <div id="char_token_preview" onclick="document.getElementById('char_token_input').click()" style="width:56px;height:56px;border-radius:50%;border:2px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--subtext);font-size:8px;font-family:Cinzel,serif;text-align:center" title="Click to set map token">Token</div>
-          <span style="font-family:Cinzel,serif;font-size:6px;letter-spacing:2px;color:var(--subtext)">TOKEN</span>
+        <!-- Token: square-ish box below portrait -->
+        <div style="border-top:1px solid var(--border);height:100px;background:rgba(0,0,0,.4);cursor:pointer;overflow:hidden;position:relative;flex-shrink:0;display:flex;align-items:center;justify-content:center" onclick="document.getElementById('char_token_input').click()" title="Click to set token">
+          <div id="char_token_preview" style="width:72px;height:72px;border-radius:50%;border:2px solid var(--gold-dim);background:var(--field-bg);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--subtext);font-size:8px;font-family:Cinzel,serif;text-align:center;background-size:cover;background-position:center">Token</div>
+          <div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-family:Cinzel,serif;font-size:6px;letter-spacing:2px;color:rgba(232,201,106,.35)">TOKEN</div>
         </div>
         <!-- Buttons -->
-        <div style="border-top:1px solid var(--border);display:flex;flex-direction:column;gap:3px;padding:5px">
+        <div style="border-top:1px solid var(--border);display:flex;flex-direction:column;gap:3px;padding:4px">
           <button class="btn sm" style="font-size:6px;padding:2px 4px;width:100%" onclick="document.getElementById('char_portrait_input').click()">Portrait</button>
           <button class="btn sm" style="font-size:6px;padding:2px 4px;width:100%" onclick="document.getElementById('char_token_input').click()">Token</button>
         </div>
@@ -3185,7 +3185,17 @@ function populateDropdowns() {
 let _rollReqUnsub=null;
 function subscribeRollRequests(charId){
   if(_rollReqUnsub){ _rollReqUnsub(); _rollReqUnsub=null; }
-  if(!window._db||!charId) return;
+  if(!charId) return;
+  // Poll until Firebase is ready (ESM module loads async)
+  if(!window._db){
+    let tries=0;
+    const wait=setInterval(()=>{
+      tries++;
+      if(window._db){ clearInterval(wait); subscribeRollRequests(charId); }
+      else if(tries>50){ clearInterval(wait); } // give up after 5s
+    },100);
+    return;
+  }
   const ref=window._fsDoc(window._db,'roll_requests',charId);
   _rollReqUnsub=window._fsOnSnapshot(ref,snap=>{
     if(!snap.exists()) return;
@@ -3229,66 +3239,54 @@ function subscribeRollRequests(charId){
   window.showDiceHelp = function(){
     const modal = document.getElementById('diceHelpModal');
     if(!modal) return;
-    // The help image is the VtM Basic Mechanics infographic
-    // We embed it as a data-src populated from the stored base64 or a placeholder message
     const img = document.getElementById('diceHelpImg');
-    if(img && !img.src){
-      // Show a styled reference card instead of the uploaded image (can't store it)
-      img.style.display = 'none';
-      const parent = img.parentElement;
-      if(!parent.querySelector('#diceHelpCard')){
-        const card = document.createElement('div');
-        card.id = 'diceHelpCard';
-        card.style.cssText = 'background:var(--surface);border:1px solid var(--border);padding:20px;font-size:13px;line-height:1.8;color:var(--text)';
-        card.innerHTML = `
-          <div style="font-family:'Cinzel Decorative',serif;font-size:16px;color:var(--gold-lt);text-align:center;margin-bottom:16px;letter-spacing:3px">VtM V5 — BASIC MECHANICS</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
-            <div>
-              <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px">DICE RESULTS</div>
-              <div>🎲 <b>1–5</b> on d10 → <span style="color:var(--crimson-lt)">FAIL</span></div>
-              <div>🎲 <b>6–9</b> on d10 → <span style="color:var(--green-lt)">SUCCESS</span></div>
-              <div>🎲 <b>10</b> on d10 → <span style="color:var(--green-lt)">SUCCESS +2 per pair of 10s</span></div>
-              <div>🩸 <b>1</b> on Hunger die → <span style="color:var(--crimson-lt)">BESTIAL FAILURE (if roll fails)</span></div>
-              <div>🩸 <b>10</b> on Hunger die → <span style="color:#e0c060">MESSY CRITICAL (if roll wins)</span></div>
-              <hr style="border-color:var(--border);margin:10px 0">
-              <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px">ROUSE CHECK (1d10)</div>
-              <div>6–10 → No Hunger gained</div>
-              <div>1–5 → Gain 1 Hunger</div>
-              <hr style="border-color:var(--border);margin:10px 0">
-              <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px">WILLPOWER RE-ROLL</div>
-              <div>Spend 1 Willpower → Re-roll up to 3 non-Hunger dice</div>
-            </div>
-            <div>
-              <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px">COMMON TESTS</div>
-              <div><b>Alertness</b> — Wits + Awareness</div>
-              <div><b>Dodging</b> — Dexterity + Athletics</div>
-              <div><b>Lying</b> — Manipulation + Subterfuge</div>
-              <div><b>Convincing</b> — Manipulation + Persuasion</div>
-              <div><b>Punching</b> — Strength + Brawl</div>
-              <div><b>Reading emotions</b> — Wits + Insight</div>
-              <div><b>Sneaking</b> — Dexterity + Stealth</div>
-              <hr style="border-color:var(--border);margin:10px 0">
-              <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px">MESSY CRITICAL OUTCOMES</div>
-              <div>Compulsion: Paranoia / Hunger / Clan</div>
-              <div>Masquerade Breach</div>
-              <div>Merit dot loss (Status, Influence, Herd)</div>
-              <div>Gain a Stain for cruel/inhuman behavior</div>
-            </div>
-          </div>`;
-        parent.appendChild(card);
-      }
+    if(img) img.style.display = 'none';
+    const parent = img ? img.parentElement : modal.querySelector('div');
+    if(parent && !parent.querySelector('#diceHelpCard')){
+      const card = document.createElement('div');
+      card.id = 'diceHelpCard';
+      card.style.cssText = 'background:var(--surface);border:1px solid var(--border);padding:20px;font-size:13px;line-height:1.8;color:var(--text)';
+      card.innerHTML = `
+        <div style="font-family:'Cinzel Decorative',serif;font-size:16px;color:var(--gold-lt);text-align:center;margin-bottom:16px;letter-spacing:3px">VtM V5 — BASIC MECHANICS</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div>
+            <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px">DICE RESULTS</div>
+            <div>🎲 <b>1–5</b> → <span style="color:var(--crimson-lt)">Failure</span></div>
+            <div>🎲 <b>6–9</b> → <span style="color:var(--green-lt)">Success (1)</span></div>
+            <div>🎲 <b>10</b> → Success — pair two 10s for <b>+2 extra</b></div>
+            <hr style="border-color:var(--border);margin:8px 0">
+            <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--crimson-lt);margin-bottom:6px">🩸 RED (HUNGER) DICE</div>
+            <div>Red dice represent your <b>Hunger</b> — the Beast's pull.</div>
+            <div style="margin-top:4px">🩸 <b>1</b> on red die + fail → <span style="color:var(--crimson-lt)">BESTIAL FAILURE</span></div>
+            <div>🩸 <b>10</b> on red die + win → <span style="color:#e0c060">MESSY CRITICAL</span></div>
+            <div style="margin-top:4px;font-size:11px;color:var(--subtext)">Red 10s still pair for crits — but success comes with horrifying consequences.</div>
+            <hr style="border-color:var(--border);margin:8px 0">
+            <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:6px">ROUSE CHECK</div>
+            <div>Roll 1d10 vs 6 — fail → gain 1 Hunger</div>
+          </div>
+          <div>
+            <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px">OUTCOMES EXPLAINED</div>
+            <div style="margin-bottom:8px;padding:6px 8px;border-left:2px solid var(--green-lt)"><b style="color:var(--green-lt)">SUCCESS</b><br><span style="font-size:11px">You meet or beat difficulty. Action succeeds cleanly.</span></div>
+            <div style="margin-bottom:8px;padding:6px 8px;border-left:2px solid var(--green-lt)"><b style="color:var(--green-lt)">CRITICAL SUCCESS</b><br><span style="font-size:11px">Two or more 10s paired. +2 successes per pair. Exceptional result — narrate something spectacular.</span></div>
+            <div style="margin-bottom:8px;padding:6px 8px;border-left:2px solid #e0c060"><b style="color:#e0c060">MESSY CRITICAL</b><br><span style="font-size:11px">Critical success but a Hunger die hit 10. You succeed — violently. The Beast bleeds through. Expect collateral damage, Masquerade risk, or a Stain.</span></div>
+            <div style="margin-bottom:8px;padding:6px 8px;border-left:2px solid var(--crimson-lt)"><b style="color:var(--crimson-lt)">FAILURE</b><br><span style="font-size:11px">Successes fall short of difficulty. Action fails — no special consequences.</span></div>
+            <div style="padding:6px 8px;border-left:2px solid var(--crimson-lt)"><b style="color:var(--crimson-lt)">BESTIAL FAILURE</b><br><span style="font-size:11px">Failed roll AND a Hunger die showed 1. The Beast claws forward — you fail and act against your own nature. Lose Humanity or harm someone you care about.</span></div>
+          </div>
+        </div>`;
+      parent.appendChild(card);
     }
     modal.style.display = 'flex';
   };
 
   document.addEventListener('keydown', e=>{
     if(e.key==='Escape'){
-      document.getElementById('diceHelpModal').style.display='none';
-      document.getElementById('dicePanelOverlay').style.display='none';
+      const dh = document.getElementById('diceHelpModal');
+      const dp = document.getElementById('dicePanelOverlay');
+      if(dh && dh.style.display!=='none'){ dh.style.display='none'; return; }
+      if(dp && dp.style.display==='flex') toggleDicePanel();
     }
   });
 
-  // Close panel on backdrop click
   document.getElementById('dicePanelOverlay')?.addEventListener('click', e=>{
     if(e.target.id === 'dicePanelOverlay') toggleDicePanel();
   });
@@ -3296,7 +3294,7 @@ function subscribeRollRequests(charId){
     if(e.target.id === 'diceHelpModal') document.getElementById('diceHelpModal').style.display='none';
   });
 
-  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   window.playerRollDice = function(){
     const pool = parseInt(document.getElementById('p_dice_pool')?.value)||0;
@@ -3314,13 +3312,11 @@ function subscribeRollRequests(charId){
     displayPRoll(label, rolls, [], diff||1);
   };
 
-  function displayPRoll(label, regRolls, hungerRolls, diff){
+  function calcOutcome(regRolls, hungerRolls, diff){
     const allRolls = [...regRolls.map(v=>({v,hunger:false})), ...hungerRolls.map(v=>({v,hunger:true}))];
     let successes=0;
     const tens=[];
-    allRolls.forEach(({v,hunger})=>{
-      if(v>=6){ successes++; if(v===10) tens.push({hunger}); }
-    });
+    allRolls.forEach(({v,hunger})=>{ if(v>=6){ successes++; if(v===10) tens.push({hunger}); } });
     const regTens = tens.filter(t=>!t.hunger).length;
     const hungerTens = tens.filter(t=>t.hunger).length;
     const regCrits = Math.floor(regTens/2);
@@ -3334,36 +3330,59 @@ function subscribeRollRequests(charId){
     const messy = win && messyCount > 0;
     const bestial = !win && bestialCount > 0;
     const critical = (regCrits+mixedCrits+hungerCrits) > 0 && win;
-    let outcome, outcomeColor;
-    if(messy){outcome='MESSY CRITICAL';outcomeColor='#e0c060';}
-    else if(critical){outcome='CRITICAL SUCCESS';outcomeColor='var(--green-lt)';}
-    else if(win){outcome='SUCCESS';outcomeColor='var(--green-lt)';}
-    else if(bestial){outcome='BESTIAL FAILURE';outcomeColor='var(--crimson-lt)';}
-    else{outcome='FAILURE';outcomeColor='var(--crimson-lt)';}
-
-    function dieFace(v, hunger){
-      const bg = hunger ? (v===1?'rgba(200,20,20,.4)':'rgba(122,21,21,.25)') : 'rgba(196,154,34,.08)';
-      const border = hunger ? 'var(--crimson)' : 'var(--border)';
-      const color = v>=6 ? (hunger?'#ff9090':'var(--gold-lt)') : 'var(--subtext)';
-      const bold = (v===10||v===1) ? 'bold' : 'normal';
-      let ttip = v>=6 ? 'Success' : 'Fail';
-      if(v===10 && !hunger) ttip='Critical (pair for +2)';
-      if(v===10 && hunger) ttip='Messy! (pair for +2 but messy)';
-      if(v===1 && hunger) ttip='Bestial! (failure becomes bestial)';
-      if(hunger) ttip = '🩸 Hunger die — '+ttip;
-      return `<div title="${ttip}" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:${bg};border:1px solid ${border};font-family:'Cinzel',serif;font-size:12px;color:${color};font-weight:${bold};margin:2px;cursor:help">${v}</div>`;
+    let outcome, outcomeColor, outcomeTooltip;
+    if(messy){
+      outcome='MESSY CRITICAL'; outcomeColor='#e0c060';
+      outcomeTooltip='You succeed — but the Beast bleeds through. Expect collateral damage, Masquerade risk, or a Stain on your Humanity.';
+    } else if(critical){
+      outcome='CRITICAL SUCCESS'; outcomeColor='var(--green-lt)';
+      outcomeTooltip='Two or more 10s paired for +2 extra successes each. Exceptional result — narrate something spectacular.';
+    } else if(win){
+      outcome='SUCCESS'; outcomeColor='var(--green-lt)';
+      outcomeTooltip='You meet or beat the difficulty. Action succeeds cleanly.';
+    } else if(bestial){
+      outcome='BESTIAL FAILURE'; outcomeColor='var(--crimson-lt)';
+      outcomeTooltip='Failed AND a Hunger die showed 1. The Beast claws forward — you fail and act against your nature. Risk Humanity loss or harming someone you care about.';
+    } else {
+      outcome='FAILURE'; outcomeColor='var(--crimson-lt)';
+      outcomeTooltip='Successes fall short of difficulty. Action fails with no special consequences.';
     }
-    const diceHTML = allRolls.map(({v,hunger})=>dieFace(v,hunger)).join('');
+    return {successes, outcome, outcomeColor, outcomeTooltip, messy, bestial, critical};
+  }
+
+  function buildDiceHTML(regRolls, hungerRolls, diff){
+    const allRolls = [...regRolls.map(v=>({v,hunger:false})), ...hungerRolls.map(v=>({v,hunger:true}))];
+    return allRolls.map(({v,hunger})=>{
+      const bg = hunger ? (v===1?'rgba(200,20,20,.5)':'rgba(122,21,21,.35)') : 'rgba(196,154,34,.08)';
+      const border = hunger ? '#c02020' : 'var(--border)';
+      const color = v>=6 ? (hunger?'#ffaaaa':'var(--gold-lt)') : 'var(--subtext)';
+      const bold = (v===10||v===1) ? 'bold' : 'normal';
+      let tip = hunger ? '🩸 HUNGER DIE — ' : '';
+      if(v>=6 && v<10) tip += 'Success';
+      else if(v===10 && !hunger) tip += 'Critical! Pair with another 10 for +2 successes';
+      else if(v===10 && hunger) tip += 'Messy 10! Pairs for crits but triggers Messy Critical';
+      else if(v===1 && hunger) tip += 'Bestial 1! If roll fails → Bestial Failure';
+      else tip += 'Failure';
+      if(hunger) tip += '\nRed dice = your Hunger. Higher Hunger = more risk of Messy/Bestial results.';
+      return `<div title="${tip}" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;background:${bg};border:1px solid ${border};font-family:'Cinzel',serif;font-size:13px;color:${color};font-weight:${bold};margin:2px;cursor:help;border-radius:3px">${v}</div>`;
+    }).join('');
+  }
+
+  function displayPRoll(label, regRolls, hungerRolls, diff){
+    const {successes, outcome, outcomeColor, outcomeTooltip, messy, bestial} = calcOutcome(regRolls, hungerRolls, diff);
+    const diceHTML = buildDiceHTML(regRolls, hungerRolls, diff);
     const resultEl = document.getElementById('p_dice_result');
     if(resultEl) resultEl.innerHTML = `
       <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--subtext);margin-bottom:6px;letter-spacing:1px">${esc(label)} · Difficulty ${diff}</div>
       <div style="margin-bottom:8px;display:flex;flex-wrap:wrap">${diceHTML}</div>
-      <div style="font-family:'Cinzel Decorative',serif;font-size:18px;color:${outcomeColor}">${outcome}</div>
-      <div style="font-size:13px;color:var(--text);margin-top:4px">${successes} success${successes!==1?'es':''} vs difficulty ${diff}
-        ${messy?'<span style="color:#e0c060;font-size:10px;font-family:Cinzel,serif;margin-left:8px">⚠ Messy Critical</span>':''}
-        ${bestial?'<span style="color:var(--crimson-lt);font-size:10px;font-family:Cinzel,serif;margin-left:8px">☠ Bestial Failure</span>':''}</div>`;
+      ${hungerRolls.length ? '<div style="font-size:10px;color:#c02020;font-family:Cinzel,serif;letter-spacing:1px;margin-bottom:6px">🩸 Red dice = Hunger dice — hover for details</div>' : ''}
+      <div style="font-family:'Cinzel Decorative',serif;font-size:18px;color:${outcomeColor};cursor:help" title="${outcomeTooltip}">${outcome} ⓘ</div>
+      <div style="font-size:13px;color:var(--text);margin-top:4px">${successes} success${successes!==1?'es':''} vs difficulty ${diff}</div>
+      <div style="font-size:11px;color:var(--subtext);margin-top:6px;font-style:italic">${outcomeTooltip}</div>
+      ${messy?'<div style="color:#e0c060;font-size:11px;font-family:Cinzel,serif;margin-top:4px">⚠ Messy Critical — Beast bleeds through your success</div>':''}
+      ${bestial?'<div style="color:var(--crimson-lt);font-size:11px;font-family:Cinzel,serif;margin-top:4px">☠ Bestial Failure — the Beast acts through you</div>':''}`;
 
-    const entry = {label, regRolls, hungerRolls, successes, outcome, outcomeColor, diff, time: new Date().toLocaleTimeString()};
+    const entry = {label, regRolls, hungerRolls, successes, outcome, outcomeColor, outcomeTooltip, diff, time: new Date().toLocaleTimeString()};
     pRollHistory.unshift(entry);
     if(pRollHistory.length > MAX_HIST) pRollHistory.pop();
     renderPRollHistory();
@@ -3374,42 +3393,69 @@ function subscribeRollRequests(charId){
       const charName = charId ? (cfg.chars?.[charId]?.charName || charId) : 'Player';
       BC.postMessage({ type:'dice_roll', charId, charName, label, regRolls, hungerRolls, successes, outcome, diff, time: entry.time });
     }
-    // Task 1: Also push to Firestore dice_rolls for cross-computer DM sync
-    (function(){
+    // Push to Firestore for cross-computer DM sync — wait for _db if not ready yet
+    (function pushToFirestore(){
       const charId = (typeof getActiveCharId === 'function') ? getActiveCharId() : null;
       const cc = charId && cfg.chars ? cfg.chars[charId] : null;
       const dmId = cc?.sessionId;
-      if(!window._db||!dmId) return;
+      if(!dmId) return;
       const charName = cc?.charName || charId || 'Player';
       const rollEntry = {label, regRolls, hungerRolls, successes, outcome, diff, time:entry.time, charId, charName, _ts:Date.now()};
-      const ref = window._fsDoc(window._db,'dice_rolls',dmId+'_players');
-      // Read existing, prepend new roll, cap at 30
-      window._fsGetDoc(ref).then(snap=>{
-        const existing = snap.exists() ? (snap.data().rolls||[]) : [];
-        const updated = [rollEntry,...existing].slice(0,30);
-        window._fsSetDoc(ref,{rolls:updated,_updatedAt:Date.now()}).catch(()=>{});
-      }).catch(()=>{
-        window._fsSetDoc(ref,{rolls:[rollEntry],_updatedAt:Date.now()}).catch(()=>{});
-      });
+      function doWrite(){
+        if(!window._db) return;
+        const ref = window._fsDoc(window._db,'dice_rolls',dmId+'_players');
+        window._fsGetDoc(ref).then(snap=>{
+          const existing = snap.exists() ? (snap.data().rolls||[]) : [];
+          const updated = [rollEntry,...existing].slice(0,30);
+          window._fsSetDoc(ref,{rolls:updated,_updatedAt:Date.now()}).catch(()=>{});
+        }).catch(()=>{
+          window._fsSetDoc(ref,{rolls:[rollEntry],_updatedAt:Date.now()}).catch(()=>{});
+        });
+      }
+      if(window._db){ doWrite(); }
+      else {
+        // Firebase not ready yet — wait up to 3s then write
+        let tries=0;
+        const wait=setInterval(()=>{ tries++; if(window._db||tries>30){ clearInterval(wait); doWrite(); }},100);
+      }
     })();
   }
 
   let _histExpanded = false;
+  let _expandedIdx = null; // which history row is expanded
+
   function renderPRollHistory(){
     const el = document.getElementById('p_dice_history'); if(!el) return;
-    if(!pRollHistory.length){ el.innerHTML='<div style="color:var(--subtext);font-style:italic">No rolls yet.</div>'; return; }
+    if(!pRollHistory.length){ el.innerHTML='<div style="color:var(--subtext);font-style:italic;padding:8px 0">No rolls yet.</div>'; return; }
     const shown = _histExpanded ? pRollHistory : pRollHistory.slice(0,5);
-    el.innerHTML = shown.map((r,i)=>`
-      <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(122,94,24,.12);${i===0?'background:rgba(196,154,34,.04)':''}">
-        <span style="font-size:9px;color:var(--subtext);font-family:Cinzel,serif;min-width:52px">${r.time}</span>
-        <span style="flex:1;font-size:11px">${esc(r.label)}</span>
-        <span style="font-family:Cinzel,serif;font-size:10px;color:${r.outcomeColor}">${r.outcome}</span>
-        <span style="font-size:10px;color:var(--subtext)">${r.successes}✓/d${r.diff}</span>
-      </div>`).join('');
+    el.innerHTML = shown.map((r,i)=>{
+      const isExpanded = _expandedIdx === i;
+      const diceHTML = buildDiceHTML(r.regRolls||[], r.hungerRolls||[], r.diff||2);
+      const expandedSection = isExpanded ? `
+        <div style="padding:8px 0 4px;border-top:1px solid rgba(122,94,24,.15);margin-top:4px">
+          <div style="display:flex;flex-wrap:wrap;margin-bottom:6px">${diceHTML}</div>
+          <div style="font-size:11px;color:var(--subtext);font-style:italic">${esc(r.outcomeTooltip||'')}</div>
+        </div>` : '';
+      return `<div style="padding:5px 4px;border-bottom:1px solid rgba(122,94,24,.12);cursor:pointer;${i===0?'background:rgba(196,154,34,.04)':''}" onclick="window._expandHistRow(${i})">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:9px;color:var(--subtext);font-family:Cinzel,serif;min-width:52px">${r.time}</span>
+          <span style="flex:1;font-size:11px">${esc(r.label)}</span>
+          <span style="font-family:Cinzel,serif;font-size:10px;color:${r.outcomeColor}">${r.outcome}</span>
+          <span style="font-size:10px;color:var(--subtext)">${r.successes}✓/d${r.diff}</span>
+          <span style="font-size:9px;color:var(--subtext)">${isExpanded?'▲':'▼'}</span>
+        </div>
+        ${expandedSection}
+      </div>`;
+    }).join('');
     if(pRollHistory.length > 5){
-      el.innerHTML += `<div style="text-align:center;padding:4px 0"><button class="btn sm" style="font-size:8px" onclick="window._toggleDiceHist()">${_histExpanded?'▲ Show less':'▼ Show all ('+pRollHistory.length+')' }</button></div>`;
+      el.innerHTML += `<div style="text-align:center;padding:4px 0"><button class="btn sm" style="font-size:8px" onclick="window._toggleDiceHist()">${_histExpanded?'▲ Show less':'▼ Show all ('+pRollHistory.length+')'}</button></div>`;
     }
   }
+
+  window._expandHistRow = function(i){
+    _expandedIdx = (_expandedIdx === i) ? null : i;
+    renderPRollHistory();
+  };
   window._toggleDiceHist = function(){ _histExpanded = !_histExpanded; renderPRollHistory(); };
 })();
 
