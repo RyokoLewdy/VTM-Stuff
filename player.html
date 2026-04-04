@@ -436,7 +436,10 @@ select.fi::-ms-expand{display:none;}
 
 /* CHARACTER SWITCHER */
 .char-switcher{display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border);
-  border-top:none;overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+  border-top:2px solid var(--gold-dim);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+  min-height:36px;position:relative;}
+.char-switcher::before{content:'CHARACTERS';font-family:Cinzel,serif;font-size:7px;letter-spacing:3px;
+  color:var(--subtext);padding:0 12px;white-space:nowrap;flex-shrink:0;}
 .char-tab{display:flex;align-items:center;gap:6px;padding:7px 14px;cursor:pointer;border-right:1px solid var(--border);
   font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;color:var(--subtext);white-space:nowrap;
   transition:all .15s;flex-shrink:0;min-width:0;max-width:180px;background:transparent;border-bottom:none;}
@@ -535,6 +538,7 @@ select.fi::-ms-expand{display:none;}
   <span id="shareCodeEl" style="display:none" class="code-badge" onclick="copyCode()" title="Your Character ID — click to copy. Give to your DM."></span>
   <button class="btn" onclick="showSetup()" title="Session Setup">⚙ Setup</button>
   <button class="btn" onclick="openMapViewer()" title="View DM Map" id="mapBtn">🗺 Map</button>
+  <button class="btn" onclick="toggleDicePanel()" title="Dice Roller" id="diceBtn">🎲 Dice</button>
   <button class="btn danger" onclick="resetAll()" title="Reset all data">✕ Reset</button>
 </div>
 
@@ -560,10 +564,57 @@ select.fi::-ms-expand{display:none;}
   <div style="padding:8px 16px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;font-size:11px;color:var(--subtext);flex-shrink:0">
     <span>Scroll to zoom · Drag to pan</span>
     <button class="btn sm" onclick="mapViewerReset()">Reset View</button>
+    <button class="btn sm" onclick="toggleMapMeasure()" id="mapMeasureBtn">📏 Measure</button>
+    <span id="mapMeasureResult" style="color:var(--gold);font-style:italic"></span>
   </div>
 </div>
 
-<!-- IDENTITY + CHRONICLE -->\n<div class="grid-2">
+<!-- PLAYER DICE PANEL -->
+<div id="dicePanelOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:7000;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);max-width:480px;width:90%;max-height:80vh;overflow-y:auto;position:relative">
+    <div class="ph" style="display:flex;align-items:center;justify-content:space-between">
+      <span>🎲 Dice Roller</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn sm" onclick="showDiceHelp()" title="How dice work">? Help</button>
+        <button class="btn sm danger" onclick="toggleDicePanel()">✕</button>
+      </div>
+    </div>
+    <div class="pb">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+        <div>
+          <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin-bottom:4px">POOL</div>
+          <input type="number" id="p_dice_pool" class="fi" value="5" min="0" max="30" style="max-width:60px">
+        </div>
+        <div>
+          <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin-bottom:4px">HUNGER</div>
+          <input type="number" id="p_dice_hunger" class="fi" value="1" min="0" max="5" style="max-width:60px">
+        </div>
+        <div>
+          <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin-bottom:4px">DIFF</div>
+          <input type="number" id="p_dice_diff" class="fi" value="2" min="1" max="10" style="max-width:60px">
+        </div>
+      </div>
+      <input type="text" id="p_dice_label" class="fi" placeholder="Label (e.g. Strength + Brawl)…" style="margin-bottom:8px" onkeydown="if(event.key==='Enter')playerRollDice()">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+        <button class="btn green sm" onclick="playerRollDice()">Roll</button>
+        <button class="btn sm" onclick="playerQuickRoll(1,'Rouse Check')">Rouse (1d)</button>
+        <button class="btn sm" onclick="playerQuickRoll(2,'Frenzy Check')">Frenzy (2d)</button>
+        <button class="btn sm" onclick="playerQuickRoll(1,'Remorse Check')">Remorse</button>
+      </div>
+      <div id="p_dice_result" class="panel" style="min-height:80px;padding:10px;font-size:13px;line-height:1.8;margin-bottom:8px"></div>
+      <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin-bottom:6px">HISTORY</div>
+      <div id="p_dice_history" style="max-height:200px;overflow-y:auto;font-size:11px;color:var(--subtext)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DICE HELP MODAL (shows the reference image) -->
+<div id="diceHelpModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9000;align-items:center;justify-content:center;flex-direction:column;gap:10px">
+  <div style="max-width:900px;width:95%;position:relative">
+    <button class="btn danger sm" onclick="document.getElementById('diceHelpModal').style.display='none'" style="position:absolute;top:-36px;right:0">✕ Close</button>
+    <img id="diceHelpImg" src="" alt="VtM Basic Mechanics" style="width:100%;border:1px solid var(--border)">
+  </div>
+</div>\n<div class="grid-2">
   <div class="panel">
     <div class="ph"><span class="ph-left">Identity</span></div>
     <div class="pb">
@@ -3057,6 +3108,273 @@ function populateDropdowns() {
   // Expose for external trigger
   window._subscribePlayerTokens=subscribeTokens;
   window._renderPlayerTokens=renderTokenOverlay;
+})();
+
+// ── PLAYER DICE ROLLER ──
+(function(){
+  const pRollHistory = [];
+  const MAX_HIST = 30;
+
+  window.toggleDicePanel = function(){
+    const el = document.getElementById('dicePanelOverlay');
+    if(!el) return;
+    const open = el.style.display === 'flex';
+    el.style.display = open ? 'none' : 'flex';
+    if(!open) renderPRollHistory();
+  };
+
+  window.showDiceHelp = function(){
+    const modal = document.getElementById('diceHelpModal');
+    if(!modal) return;
+    // The help image is the VtM Basic Mechanics infographic
+    // We embed it as a data-src populated from the stored base64 or a placeholder message
+    const img = document.getElementById('diceHelpImg');
+    if(img && !img.src){
+      // Show a styled reference card instead of the uploaded image (can't store it)
+      img.style.display = 'none';
+      const parent = img.parentElement;
+      if(!parent.querySelector('#diceHelpCard')){
+        const card = document.createElement('div');
+        card.id = 'diceHelpCard';
+        card.style.cssText = 'background:var(--surface);border:1px solid var(--border);padding:20px;font-size:13px;line-height:1.8;color:var(--text)';
+        card.innerHTML = `
+          <div style="font-family:'Cinzel Decorative',serif;font-size:16px;color:var(--gold-lt);text-align:center;margin-bottom:16px;letter-spacing:3px">VtM V5 — BASIC MECHANICS</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+            <div>
+              <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px">DICE RESULTS</div>
+              <div>🎲 <b>1–5</b> on d10 → <span style="color:var(--crimson-lt)">FAIL</span></div>
+              <div>🎲 <b>6–9</b> on d10 → <span style="color:var(--green-lt)">SUCCESS</span></div>
+              <div>🎲 <b>10</b> on d10 → <span style="color:var(--green-lt)">SUCCESS +2 per pair of 10s</span></div>
+              <div>🩸 <b>1</b> on Hunger die → <span style="color:var(--crimson-lt)">BESTIAL FAILURE (if roll fails)</span></div>
+              <div>🩸 <b>10</b> on Hunger die → <span style="color:#e0c060">MESSY CRITICAL (if roll wins)</span></div>
+              <hr style="border-color:var(--border);margin:10px 0">
+              <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px">ROUSE CHECK (1d10)</div>
+              <div>6–10 → No Hunger gained</div>
+              <div>1–5 → Gain 1 Hunger</div>
+              <hr style="border-color:var(--border);margin:10px 0">
+              <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px">WILLPOWER RE-ROLL</div>
+              <div>Spend 1 Willpower → Re-roll up to 3 non-Hunger dice</div>
+            </div>
+            <div>
+              <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px">COMMON TESTS</div>
+              <div><b>Alertness</b> — Wits + Awareness</div>
+              <div><b>Dodging</b> — Dexterity + Athletics</div>
+              <div><b>Lying</b> — Manipulation + Subterfuge</div>
+              <div><b>Convincing</b> — Manipulation + Persuasion</div>
+              <div><b>Punching</b> — Strength + Brawl</div>
+              <div><b>Reading emotions</b> — Wits + Insight</div>
+              <div><b>Sneaking</b> — Dexterity + Stealth</div>
+              <hr style="border-color:var(--border);margin:10px 0">
+              <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px">MESSY CRITICAL OUTCOMES</div>
+              <div>Compulsion: Paranoia / Hunger / Clan</div>
+              <div>Masquerade Breach</div>
+              <div>Merit dot loss (Status, Influence, Herd)</div>
+              <div>Gain a Stain for cruel/inhuman behavior</div>
+            </div>
+          </div>`;
+        parent.appendChild(card);
+      }
+    }
+    modal.style.display = 'flex';
+  };
+
+  document.addEventListener('keydown', e=>{
+    if(e.key==='Escape'){
+      document.getElementById('diceHelpModal').style.display='none';
+      document.getElementById('dicePanelOverlay').style.display='none';
+    }
+  });
+
+  // Close panel on backdrop click
+  document.getElementById('dicePanelOverlay')?.addEventListener('click', e=>{
+    if(e.target.id === 'dicePanelOverlay') toggleDicePanel();
+  });
+  document.getElementById('diceHelpModal')?.addEventListener('click', e=>{
+    if(e.target.id === 'diceHelpModal') document.getElementById('diceHelpModal').style.display='none';
+  });
+
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  window.playerRollDice = function(){
+    const pool = parseInt(document.getElementById('p_dice_pool')?.value)||0;
+    const hunger = Math.min(parseInt(document.getElementById('p_dice_hunger')?.value)||0, pool);
+    const diff = parseInt(document.getElementById('p_dice_diff')?.value)||2;
+    const label = document.getElementById('p_dice_label')?.value.trim()||'Roll';
+    const reg = pool - hunger;
+    const regRolls = Array.from({length:reg}, ()=>Math.ceil(Math.random()*10));
+    const hungerRolls = Array.from({length:hunger}, ()=>Math.ceil(Math.random()*10));
+    displayPRoll(label, regRolls, hungerRolls, diff);
+  };
+
+  window.playerQuickRoll = function(n, label){
+    const rolls = Array.from({length:n}, ()=>Math.ceil(Math.random()*10));
+    displayPRoll(label, rolls, [], 1);
+  };
+
+  function displayPRoll(label, regRolls, hungerRolls, diff){
+    const allRolls = [...regRolls.map(v=>({v,hunger:false})), ...hungerRolls.map(v=>({v,hunger:true}))];
+    let successes=0;
+    const tens=[];
+    allRolls.forEach(({v,hunger})=>{
+      if(v>=6){ successes++; if(v===10) tens.push({hunger}); }
+    });
+    const regTens = tens.filter(t=>!t.hunger).length;
+    const hungerTens = tens.filter(t=>t.hunger).length;
+    const regCrits = Math.floor(regTens/2);
+    const mixedCrits = (regTens%2===1 && hungerTens>0) ? 1 : 0;
+    const hungerCrits = Math.floor((hungerTens-(mixedCrits?1:0))/2);
+    successes += (regCrits + mixedCrits + hungerCrits) * 2;
+    const messyCount = mixedCrits + hungerCrits;
+    const failed = successes < diff;
+    const bestialCount = failed ? hungerRolls.filter(v=>v===1).length : 0;
+    const win = successes >= diff;
+    const messy = win && messyCount > 0;
+    const bestial = !win && bestialCount > 0;
+    const critical = (regCrits+mixedCrits+hungerCrits) > 0 && win;
+    let outcome, outcomeColor;
+    if(messy){outcome='MESSY CRITICAL';outcomeColor='#e0c060';}
+    else if(critical){outcome='CRITICAL SUCCESS';outcomeColor='var(--green-lt)';}
+    else if(win){outcome='SUCCESS';outcomeColor='var(--green-lt)';}
+    else if(bestial){outcome='BESTIAL FAILURE';outcomeColor='var(--crimson-lt)';}
+    else{outcome='FAILURE';outcomeColor='var(--crimson-lt)';}
+
+    function dieFace(v, hunger){
+      const bg = hunger ? (v===1?'rgba(200,20,20,.4)':'rgba(122,21,21,.25)') : 'rgba(196,154,34,.08)';
+      const border = hunger ? 'var(--crimson)' : 'var(--border)';
+      const color = v>=6 ? (hunger?'#ff9090':'var(--gold-lt)') : 'var(--subtext)';
+      const bold = (v===10||v===1) ? 'bold' : 'normal';
+      return `<div style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:${bg};border:1px solid ${border};font-family:'Cinzel',serif;font-size:12px;color:${color};font-weight:${bold};margin:2px">${v}</div>`;
+    }
+    const diceHTML = allRolls.map(({v,hunger})=>dieFace(v,hunger)).join('');
+    const resultEl = document.getElementById('p_dice_result');
+    if(resultEl) resultEl.innerHTML = `
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--subtext);margin-bottom:6px;letter-spacing:1px">${esc(label)} · Difficulty ${diff}</div>
+      <div style="margin-bottom:8px;display:flex;flex-wrap:wrap">${diceHTML}</div>
+      <div style="font-family:'Cinzel Decorative',serif;font-size:18px;color:${outcomeColor}">${outcome}</div>
+      <div style="font-size:13px;color:var(--text);margin-top:4px">${successes} success${successes!==1?'es':''} vs difficulty ${diff}
+        ${messy?'<span style="color:#e0c060;font-size:10px;font-family:Cinzel,serif;margin-left:8px">⚠ Messy Critical</span>':''}
+        ${bestial?'<span style="color:var(--crimson-lt);font-size:10px;font-family:Cinzel,serif;margin-left:8px">☠ Bestial Failure</span>':''}</div>`;
+
+    const entry = {label, regRolls, hungerRolls, successes, outcome, outcomeColor, diff, time: new Date().toLocaleTimeString()};
+    pRollHistory.unshift(entry);
+    if(pRollHistory.length > MAX_HIST) pRollHistory.pop();
+    renderPRollHistory();
+
+    // Broadcast to DM via BroadcastChannel
+    if(typeof BC !== 'undefined' && BC){
+      const charId = (typeof getActiveCharId === 'function') ? getActiveCharId() : null;
+      const charName = charId ? (cfg.chars?.[charId]?.charName || charId) : 'Player';
+      BC.postMessage({ type:'dice_roll', charId, charName, label, regRolls, hungerRolls, successes, outcome, diff, time: entry.time });
+    }
+  }
+
+  function renderPRollHistory(){
+    const el = document.getElementById('p_dice_history'); if(!el) return;
+    if(!pRollHistory.length){ el.innerHTML='<div style="color:var(--subtext);font-style:italic">No rolls yet.</div>'; return; }
+    el.innerHTML = pRollHistory.map((r,i)=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(122,94,24,.12);${i===0?'background:rgba(196,154,34,.04)':''}">
+        <span style="font-size:9px;color:var(--subtext);font-family:Cinzel,serif;min-width:52px">${r.time}</span>
+        <span style="flex:1;font-size:11px">${esc(r.label)}</span>
+        <span style="font-family:Cinzel,serif;font-size:10px;color:${r.outcomeColor}">${r.outcome}</span>
+        <span style="font-size:10px;color:var(--subtext)">${r.successes}✓</span>
+      </div>`).join('');
+  }
+})();
+
+// ── PLAYER MAP MEASURE TOOL ──
+(function(){
+  let measuring = false;
+  let measStart = null;
+  let measCanvas = null;
+
+  window.toggleMapMeasure = function(){
+    measuring = !measuring;
+    const btn = document.getElementById('mapMeasureBtn');
+    const result = document.getElementById('mapMeasureResult');
+    if(btn) btn.style.color = measuring ? 'var(--gold-lt)' : '';
+    if(!measuring){
+      if(result) result.textContent = '';
+      if(measCanvas){ measCanvas.getContext('2d').clearRect(0,0,measCanvas.width,measCanvas.height); }
+      measStart = null;
+    }
+  };
+
+  // Piggyback on the map token overlay canvas for drawing the measure line
+  function getMeasCanvas(){
+    // Create a dedicated measure canvas in the viewer wrap
+    let c = document.getElementById('map_measure_canvas');
+    if(!c){
+      const wrap = document.getElementById('map_viewer_wrap');
+      if(!wrap) return null;
+      c = document.createElement('canvas');
+      c.id = 'map_measure_canvas';
+      c.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10';
+      wrap.appendChild(c);
+    }
+    const wr = document.getElementById('map_viewer_wrap').getBoundingClientRect();
+    c.width = wr.width; c.height = wr.height;
+    return c;
+  }
+
+  document.addEventListener('mousedown', e=>{
+    if(!measuring) return;
+    const overlay = document.getElementById('mapOverlay');
+    if(!overlay || overlay.style.display==='none') return;
+    const wrap = document.getElementById('map_viewer_wrap');
+    if(!wrap || !wrap.contains(e.target)) return;
+    const r = wrap.getBoundingClientRect();
+    measStart = {x: e.clientX - r.left, y: e.clientY - r.top};
+  });
+
+  document.addEventListener('mousemove', e=>{
+    if(!measuring || !measStart) return;
+    const overlay = document.getElementById('mapOverlay');
+    if(!overlay || overlay.style.display==='none') return;
+    const wrap = document.getElementById('map_viewer_wrap');
+    if(!wrap) return;
+    const r = wrap.getBoundingClientRect();
+    const ex = e.clientX - r.left, ey = e.clientY - r.top;
+    measCanvas = getMeasCanvas();
+    if(!measCanvas) return;
+    const ctx = measCanvas.getContext('2d');
+    ctx.clearRect(0,0,measCanvas.width,measCanvas.height);
+    ctx.save();
+    ctx.strokeStyle = '#ff4444'; ctx.lineWidth = 2; ctx.setLineDash([8,4]);
+    ctx.beginPath(); ctx.moveTo(measStart.x, measStart.y); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.setLineDash([]);
+    // Dots at endpoints
+    ctx.fillStyle = '#ff4444';
+    ctx.beginPath(); ctx.arc(measStart.x,measStart.y,4,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(ex,ey,4,0,Math.PI*2); ctx.fill();
+    // Distance label
+    const pxDist = Math.sqrt((ex-measStart.x)**2+(ey-measStart.y)**2);
+    // Approximate: 50px on screen ≈ 1 square (rough, depends on zoom)
+    const img = document.getElementById('map_viewer_img');
+    let squaresStr = '';
+    if(img && img.naturalWidth){
+      const ir = img.getBoundingClientRect();
+      const pxPerCanvasPx = ir.width / 2048;
+      const gridSqPx = 50 * pxPerCanvasPx; // 50 canvas-px per square
+      const squares = (pxDist / gridSqPx).toFixed(1);
+      squaresStr = `${squares} sq`;
+    } else {
+      squaresStr = `${Math.round(pxDist)}px`;
+    }
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect((measStart.x+ex)/2-28,(measStart.y+ey)/2-18,56,20);
+    ctx.fillStyle = '#ff9999'; ctx.font = '11px Cinzel,serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(squaresStr,(measStart.x+ex)/2,(measStart.y+ey)/2-4);
+    ctx.textAlign = 'left';
+    ctx.restore();
+    const result = document.getElementById('mapMeasureResult');
+    if(result) result.textContent = squaresStr;
+  });
+
+  document.addEventListener('mouseup', e=>{
+    if(!measuring) return;
+    measStart = null;
+  });
 })();
 
 // INIT
