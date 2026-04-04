@@ -437,9 +437,10 @@ select.fi::-ms-expand{display:none;}
 /* CHARACTER SWITCHER */
 .char-switcher{display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border);
   border-top:2px solid var(--gold-dim);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;
-  min-height:36px;position:relative;}
-.char-switcher::before{content:'CHARACTERS';font-family:Cinzel,serif;font-size:7px;letter-spacing:3px;
-  color:var(--subtext);padding:0 12px;white-space:nowrap;flex-shrink:0;}
+  min-height:36px;}
+.char-switcher-label{font-family:Cinzel,serif;font-size:7px;letter-spacing:3px;color:var(--subtext);
+  padding:0 12px;white-space:nowrap;flex-shrink:0;border-right:1px solid var(--border);
+  height:36px;display:flex;align-items:center;}
 .char-tab{display:flex;align-items:center;gap:6px;padding:7px 14px;cursor:pointer;border-right:1px solid var(--border);
   font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;color:var(--subtext);white-space:nowrap;
   transition:all .15s;flex-shrink:0;min-width:0;max-width:180px;background:transparent;border-bottom:none;}
@@ -449,9 +450,10 @@ select.fi::-ms-expand{display:none;}
 .char-tab-x{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;
   padding:0;line-height:1;flex-shrink:0;transition:color .15s;}
 .char-tab-x:hover{color:var(--crimson-lt);}
-.char-tab-add{padding:7px 14px;cursor:pointer;font-family:'Cinzel',serif;font-size:11px;color:var(--gold-dim);
-  border:none;background:transparent;transition:color .15s;flex-shrink:0;}
-.char-tab-add:hover{color:var(--gold-lt);}
+.char-tab-add{padding:5px 12px;cursor:pointer;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;
+  color:var(--gold-lt);border:1px solid var(--gold-dim);background:rgba(196,154,34,.08);
+  transition:all .15s;flex-shrink:0;margin:4px 8px;}
+.char-tab-add:hover{color:#fff;background:rgba(196,154,34,.2);border-color:var(--gold);}
 
 /* TOAST */
 .toast{position:fixed;bottom:20px;right:20px;z-index:9800;background:var(--panel);border:1px solid var(--border);
@@ -475,25 +477,28 @@ select.fi::-ms-expand{display:none;}
 <div class="setup-overlay" id="setupOverlay">
   <div class="setup-box">
     <div class="setup-hdr">
-      <h2>Connect to Campaign</h2>
-      <p>Enter your session details — no account needed</p>
+      <h2 id="setup_title">Connect to Campaign</h2>
+      <p id="setup_subtitle">Enter your session details — no account needed</p>
     </div>
     <div class="setup-body">
       <div class="sf">
         <label>Session ID <span style="color:var(--crimson-lt);font-size:9px">(get this from your DM)</span></label>
-        <input type="text" id="setup_sessionid" placeholder="e.g. dm_abc123xyz" autocomplete="off" spellcheck="false">
-        <div class="hint">Your DM sees this in their ⚙ Setup panel. Everyone in the same campaign uses the same Session ID.</div>
+        <input type="text" id="setup_sessionid" placeholder="e.g. dm_abc123xyz" autocomplete="off" spellcheck="false"
+          onkeydown="if(event.key==='Enter')document.getElementById('setup_username').focus()">
+        <div class="hint">Your DM's session ID — find it in their ⚙ Setup panel. Everyone in the same campaign uses the same one.</div>
       </div>
       <div class="sf">
-        <label>Your Username <span style="color:var(--subtext);font-size:9px">(becomes your character ID)</span></label>
-        <input type="text" id="setup_username" placeholder="e.g. ryoko" autocomplete="off" spellcheck="false">
-        <div class="hint">Pick something simple and memorable — this is how your DM loads your sheet. Letters and numbers only, no spaces.</div>
+        <label>Character Name / Username <span style="color:var(--subtext);font-size:9px">(unique per campaign)</span></label>
+        <input type="text" id="setup_username" placeholder="e.g. ryoko" autocomplete="off" spellcheck="false"
+          onkeydown="if(event.key==='Enter')confirmSetup()">
+        <div class="hint">This becomes your Character ID — how your DM loads your sheet. Letters and numbers only.</div>
       </div>
       <div id="setup_status" style="min-height:18px;font-size:11px;font-family:'Cinzel',serif;letter-spacing:1px;color:var(--gold);margin-top:4px"></div>
     </div>
     <div class="setup-footer">
-      <button class="btn" onclick="skipSetup()">Local Only</button>
-      <button class="btn green" onclick="confirmSetup()">Connect</button>
+      <button class="btn" onclick="skipSetup()" id="setup_skip_btn">Play Offline</button>
+      <button class="btn" onclick="closeSetupNoSave()" id="setup_cancel_btn" style="display:none">Cancel</button>
+      <button class="btn green" onclick="confirmSetup()">Connect ✓</button>
     </div>
   </div>
 </div>
@@ -524,6 +529,7 @@ select.fi::-ms-expand{display:none;}
 
 <!-- CHARACTER SWITCHER -->
 <div class="char-switcher" id="charSwitcher">
+  <span class="char-switcher-label">CHARACTERS</span>
   <button class="char-tab-add" onclick="addNewCharacter()" title="Add character">＋</button>
 </div>
 
@@ -558,8 +564,11 @@ select.fi::-ms-expand{display:none;}
       <div>No map has been shared yet.</div>
       <div style="font-size:12px;margin-top:8px;color:var(--subtext)">Your DM will push a map when ready.</div>
     </div>
-    <img id="map_viewer_img" src="" alt="Map" style="display:none;max-width:100%;max-height:100%;object-fit:contain;transform-origin:center center;cursor:grab;user-select:none">
-    <canvas id="map_token_overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:auto;display:none"></canvas>
+    <!-- transform-container: image + token canvas move together -->
+    <div id="map_viewer_container" style="position:relative;display:none;transform-origin:center center;cursor:grab">
+      <img id="map_viewer_img" src="" alt="Map" style="display:block;max-width:none;user-select:none">
+      <canvas id="map_token_overlay" style="position:absolute;top:0;left:0;pointer-events:auto"></canvas>
+    </div>
   </div>
   <div style="padding:8px 16px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;font-size:11px;color:var(--subtext);flex-shrink:0">
     <span>Scroll to zoom · Drag to pan</span>
@@ -614,7 +623,8 @@ select.fi::-ms-expand{display:none;}
     <button class="btn danger sm" onclick="document.getElementById('diceHelpModal').style.display='none'" style="position:absolute;top:-36px;right:0">✕ Close</button>
     <img id="diceHelpImg" src="" alt="VtM Basic Mechanics" style="width:100%;border:1px solid var(--border)">
   </div>
-</div>\n<div class="grid-2">
+</div>
+<div class="grid-2">
   <div class="panel">
     <div class="ph"><span class="ph-left">Identity</span></div>
     <div class="pb">
@@ -2518,21 +2528,28 @@ function saveCfg() { localStorage.setItem(SK_CFG, JSON.stringify(cfg)); }
 function renderCharSwitcher() {
   const bar = document.getElementById('charSwitcher');
   if (!bar) return;
-  bar.innerHTML = '';
+  // Preserve label, rebuild the rest
+  bar.innerHTML = '<span class="char-switcher-label">CHARACTERS</span>';
   const chars = cfg.chars || {};
-  Object.entries(chars).forEach(([id, cc]) => {
+  const entries = Object.entries(chars);
+
+  entries.forEach(([id, cc]) => {
     const tab = document.createElement('div');
-    tab.className = 'char-tab' + (id === cfg.activeCharId ? ' active' : '');
-    tab.title = id;
+    const isActive = id === cfg.activeCharId;
+    tab.className = 'char-tab' + (isActive ? ' active' : '');
+    tab.title = isActive ? id + ' (active)' : 'Switch to ' + (cc.charName || id);
     tab.innerHTML = `<span class="char-tab-name">${esc(cc.charName || id)}</span>
-      <button class="char-tab-x" onclick="event.stopPropagation();deleteCharacter('${id}')" title="Remove character">✕</button>`;
-    tab.addEventListener('click', () => switchCharacter(id));
+      <button class="char-tab-x" onclick="event.stopPropagation();deleteCharacter('${id}')" title="Remove">✕</button>`;
+    if (!isActive) tab.addEventListener('click', () => switchCharacter(id));
     bar.appendChild(tab);
   });
+
   const addBtn = document.createElement('button');
   addBtn.className = 'char-tab-add';
-  addBtn.title = 'Add new character';
-  addBtn.textContent = '＋';
+  addBtn.title = entries.length
+    ? 'Add another character — current one saves first'
+    : 'Create your first character';
+  addBtn.textContent = '＋ New';
   addBtn.onclick = addNewCharacter;
   bar.appendChild(addBtn);
 }
@@ -2612,11 +2629,36 @@ function deleteCharacter(id) {
 function showSetup(isNew) {
   const urlSession = new URLSearchParams(window.location.search).get('session');
   const cc = isNew ? null : getActiveCharCfg();
-  document.getElementById('setup_sessionid').value = cc?.sessionId || urlSession || '';
+  const hasExisting = Object.keys(cfg.chars || {}).length > 0;
+
+  document.getElementById('setup_sessionid').value = cc?.sessionId || urlSession || cfg.lastSessionId || '';
   document.getElementById('setup_username').value = isNew ? '' : (cc?.username || '');
-  document.getElementById('setup_status').textContent = isNew ? 'Adding a new character…' : '';
-  document.getElementById('setup_status').style.color = 'var(--subtext)';
+  document.getElementById('setup_status').textContent = '';
+
+  // Context-aware title & buttons
+  const titleEl = document.getElementById('setup_title');
+  const subEl = document.getElementById('setup_subtitle');
+  const skipBtn = document.getElementById('setup_skip_btn');
+  const cancelBtn = document.getElementById('setup_cancel_btn');
+
+  if (isNew) {
+    if (titleEl) titleEl.textContent = '＋ New Character';
+    if (subEl) subEl.textContent = 'Connect another character to this campaign, or play offline.';
+    if (skipBtn) skipBtn.style.display = hasExisting ? 'none' : '';
+    if (cancelBtn) cancelBtn.style.display = hasExisting ? '' : 'none';
+  } else {
+    if (titleEl) titleEl.textContent = 'Connect to Campaign';
+    if (subEl) subEl.textContent = 'Enter your session details — no account needed';
+    if (skipBtn) skipBtn.style.display = '';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+  }
+
   document.getElementById('setupOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('setup_sessionid').focus(), 100);
+}
+
+function closeSetupNoSave() {
+  document.getElementById('setupOverlay').classList.remove('open');
 }
 
 function skipSetup() {
@@ -2657,6 +2699,7 @@ async function confirmSetup() {
 
   if (!cfg.chars) cfg.chars = {};
   cfg.chars[charId] = { sessionId, username, charId, charName, skipCloud: false };
+  cfg.lastSessionId = sessionId; // pre-fill for next new character
 
   // If this is a brand new character being added, save current first
   if (cfg.activeCharId && cfg.activeCharId !== charId) saveAll();
@@ -2789,32 +2832,59 @@ function populateDropdowns() {
   let currentDmId = null;
 
   function getImg(){ return document.getElementById('map_viewer_img'); }
+  function getContainer(){ return document.getElementById('map_viewer_container'); }
+
   function applyTransform(){
-    const img = getImg(); if(!img) return;
-    img.style.transform = `translate(${panX}px,${panY}px) scale(${scale})`;
+    const con = getContainer(); if(!con) return;
+    con.style.transform = `translate(${panX}px,${panY}px) scale(${scale})`;
+  }
+
+  // Fit image to viewport on load
+  function fitToViewport(){
+    const img = getImg();
+    const wrap = document.getElementById('map_viewer_wrap');
+    if(!img || !wrap || !img.naturalWidth) return;
+    const ww = wrap.clientWidth, wh = wrap.clientHeight;
+    const iw = img.naturalWidth, ih = img.naturalHeight;
+    scale = Math.min(ww/iw, wh/ih) * 0.95;
+    panX = 0; panY = 0;
+    applyTransform();
   }
 
   window.mapViewerReset = function(){
-    scale=1; panX=0; panY=0; applyTransform();
+    fitToViewport();
   };
 
-  // Zoom on scroll
+  // Zoom toward cursor
   document.addEventListener('wheel', e=>{
     const overlay = document.getElementById('mapOverlay');
     if(!overlay || overlay.style.display==='none') return;
     e.preventDefault();
+    const wrap = document.getElementById('map_viewer_wrap');
+    if(!wrap) return;
+    const r = wrap.getBoundingClientRect();
+    const mx = e.clientX - r.left - r.width/2;
+    const my = e.clientY - r.top - r.height/2;
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    scale = Math.min(8, Math.max(0.2, scale * delta));
+    const newScale = Math.min(8, Math.max(0.1, scale * delta));
+    // Adjust pan so zoom is toward cursor
+    panX = mx - (mx - panX) * (newScale / scale);
+    panY = my - (my - panY) * (newScale / scale);
+    scale = newScale;
     applyTransform();
   }, {passive:false});
 
-  // Pan on drag
+  // Pan on drag (only on the container, not on tokens)
   document.addEventListener('mousedown', e=>{
-    const img = getImg();
-    if(!img || !img.contains(e.target)) return;
+    const con = getContainer();
+    if(!con) return;
+    // Only pan if not clicking a token (token canvas handles token drag)
+    const tc = document.getElementById('map_token_overlay');
+    if(tc && tc.contains(e.target) && window._playerTokDragging) return;
+    if(!con.contains(e.target)) return;
     dragging=true; dragStartX=e.clientX; dragStartY=e.clientY;
     panStartX=panX; panStartY=panY;
-    img.style.cursor='grabbing';
+    con.style.cursor='grabbing';
   });
   document.addEventListener('mousemove', e=>{
     if(!dragging) return;
@@ -2823,8 +2893,9 @@ function populateDropdowns() {
     applyTransform();
   });
   document.addEventListener('mouseup', ()=>{
+    if(!dragging) return;
     dragging=false;
-    const img=getImg(); if(img) img.style.cursor='grab';
+    const con=getContainer(); if(con) con.style.cursor='grab';
   });
 
   // Touch pinch-zoom + pan
@@ -2851,7 +2922,7 @@ function populateDropdowns() {
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
       );
-      scale = Math.min(8, Math.max(0.2, scale * (dist/lastTouchDist)));
+      scale = Math.min(8, Math.max(0.1, scale * (dist/lastTouchDist)));
       lastTouchDist = dist;
       applyTransform();
     } else if(e.touches.length===1 && dragging){
@@ -2873,23 +2944,29 @@ function populateDropdowns() {
       const map = d.current;
       if(!map || !map.url) return;
       const img = document.getElementById('map_viewer_img');
+      const con = document.getElementById('map_viewer_container');
       const empty = document.getElementById('map_viewer_empty');
       const status = document.getElementById('map_viewer_status');
       const nameEl = document.getElementById('map_viewer_name');
-      if(!img) return;
-      // Only flash notification if overlay is closed
+      if(!img || !con) return;
       const overlay = document.getElementById('mapOverlay');
       if(overlay && overlay.style.display==='none'){
         const btn = document.getElementById('mapBtn');
         if(btn){ btn.style.borderColor='var(--gold)'; btn.style.color='var(--gold-lt)'; btn.textContent='🗺 Map ●'; }
         toast('DM pushed a new map — click 🗺 Map to view');
       }
+      img.onload = () => {
+        // Size the token canvas to match image exactly
+        const tc = document.getElementById('map_token_overlay');
+        if(tc){ tc.width = img.naturalWidth; tc.height = img.naturalHeight; tc.style.width = img.naturalWidth+'px'; tc.style.height = img.naturalHeight+'px'; }
+        fitToViewport();
+        if(window._renderPlayerTokens) window._renderPlayerTokens();
+      };
       img.src = map.url;
-      img.style.display = 'block';
+      con.style.display = 'block';
       if(empty) empty.style.display = 'none';
       if(status) status.textContent = 'Live — updated '+new Date(map.pushedAt).toLocaleTimeString();
       if(nameEl) nameEl.textContent = map.name || '';
-      mapViewerReset();
     }, err=>{ console.warn('Map listener error:', err); });
   }
 
@@ -2897,10 +2974,8 @@ function populateDropdowns() {
     const overlay = document.getElementById('mapOverlay');
     if(!overlay) return;
     overlay.style.display = 'flex';
-    // Reset the map button notification dot
     const btn = document.getElementById('mapBtn');
     if(btn){ btn.style.borderColor=''; btn.style.color=''; btn.textContent='🗺 Map'; }
-    // Subscribe if not already
     const cc = (cfg.chars && cfg.activeCharId) ? cfg.chars[cfg.activeCharId] : null;
     const dmId = cc?.sessionId;
     if(dmId && dmId !== currentDmId){
@@ -2909,6 +2984,8 @@ function populateDropdowns() {
     } else if(!dmId){
       document.getElementById('map_viewer_status').textContent = 'No session connected — use ⚙ Setup first';
     }
+    // Fit to viewport if already loaded
+    setTimeout(fitToViewport, 50);
   };
 
   window.closeMapViewer = function(){
@@ -2916,11 +2993,15 @@ function populateDropdowns() {
     if(overlay) overlay.style.display = 'none';
   };
 
-  // Auto-subscribe when setup completes or character switches
   window._mapSubscribeForChar = function(charId){
     const cc = cfg.chars?.[charId];
     const dmId = cc?.sessionId;
     if(dmId && dmId !== currentDmId) subscribeToMap(dmId);
+  };
+
+  // Expose scale/pan for token system
+  window._mapViewerGetTransform = function(){
+    return {scale, panX, panY};
   };
 })();
 
@@ -2928,107 +3009,73 @@ function populateDropdowns() {
 (function(){
   let _tokenUnsub=null;
   let _tokens={};
-  let _mapImgNaturalW=2048, _mapImgNaturalH=1536;
   let _draggingTok=null, _dragOx=0, _dragOy=0;
 
-  function getActiveCharId(){
-    return cfg.activeCharId || Object.keys(cfg.chars||{})[0] || null;
-  }
-  function getMyCharId(){
-    const id=getActiveCharId(); if(!id) return null;
-    return id; // charId is same as Firestore key
-  }
+  function getActiveCharId(){ return cfg.activeCharId || Object.keys(cfg.chars||{})[0] || null; }
+  function getMyCharId(){ return getActiveCharId(); }
 
   function subscribeTokens(dmId){
     if(_tokenUnsub){ _tokenUnsub(); _tokenUnsub=null; }
     if(!window._db||!dmId) return;
-    const ref=window._fsDoc(window._db,'tokens',dmId);
-    _tokenUnsub=window._fsOnSnapshot(ref,snap=>{
-      if(!snap.exists()){ _tokens={}; renderTokenOverlay(); return; }
-      const d=snap.data();
+    _tokenUnsub=window._fsOnSnapshot(window._fsDoc(window._db,'tokens',dmId),snap=>{
       _tokens={};
-      (d.tokens||[]).forEach(t=>{ _tokens[t.id]=t; });
+      if(snap.exists()) (snap.data().tokens||[]).forEach(t=>{ _tokens[t.id]=t; });
       renderTokenOverlay();
     },err=>console.warn('Player token listener:',err));
   }
 
   async function pushTokens(){
-    const id=getActiveCharId();
-    const cc=cfg.chars?.[id]; if(!cc) return;
+    const id=getActiveCharId(); const cc=cfg.chars?.[id]; if(!cc) return;
     const dmId=cc.sessionId; if(!window._db||!dmId) return;
-    const ref=window._fsDoc(window._db,'tokens',dmId);
-    await window._fsSetDoc(ref,{tokens:Object.values(_tokens),_updatedAt:Date.now()}).catch(e=>console.warn('player tok push:',e));
+    await window._fsSetDoc(window._fsDoc(window._db,'tokens',dmId),
+      {tokens:Object.values(_tokens),_updatedAt:Date.now()}).catch(()=>{});
   }
 
-  function getMapScale(){
-    const img=document.getElementById('map_viewer_img');
-    const wrap=document.getElementById('map_viewer_wrap');
-    if(!img||!wrap||!img.naturalWidth) return {sx:1,sy:1,ox:0,oy:0};
-    const ir=img.getBoundingClientRect();
-    const sx=ir.width/2048, sy=ir.height/1536;
-    const wr=wrap.getBoundingClientRect();
-    return {sx,sy,ox:ir.left-wr.left,oy:ir.top-wr.top,iw:ir.width,ih:ir.height};
-  }
-
+  // Token canvas lives INSIDE the transform container, sized to the image.
+  // Token x/y are image-pixel coordinates — no scale math needed for rendering.
   function renderTokenOverlay(){
     const tc=document.getElementById('map_token_overlay'); if(!tc) return;
     const img=document.getElementById('map_viewer_img');
-    if(!img||img.style.display==='none'){ tc.style.display='none'; return; }
-
-    const wrap=document.getElementById('map_viewer_wrap');
-    const wr=wrap.getBoundingClientRect();
-    tc.width=wr.width; tc.height=wr.height;
-    tc.style.display='block';
-
-    const {sx,sy,ox,oy}=getMapScale();
+    const con=document.getElementById('map_viewer_container');
+    if(!img||!img.naturalWidth||!con||con.style.display==='none'){
+      tc.getContext('2d').clearRect(0,0,tc.width||1,tc.height||1); return;
+    }
+    const W=img.naturalWidth, H=img.naturalHeight;
+    if(tc.width!==W||tc.height!==H){ tc.width=W; tc.height=H;
+      tc.style.width=W+'px'; tc.style.height=H+'px'; }
     const ctx=tc.getContext('2d');
-    ctx.clearRect(0,0,tc.width,tc.height);
-
+    ctx.clearRect(0,0,W,H);
     const myCharId=getMyCharId();
-
     Object.values(_tokens).forEach(t=>{
-      const px=ox+t.x*sx, py=oy+t.y*sy;
-      const sz=(t.size||60)*Math.min(sx,sy);
-      const isMe=t.charId===myCharId;
-
-      if(t.imgUrl){
-        const img2=new Image(); img2.crossOrigin='anonymous';
-        img2.onload=()=>{
-          ctx.save();
-          ctx.beginPath(); ctx.arc(px,py,sz/2,0,Math.PI*2); ctx.clip();
-          ctx.drawImage(img2,px-sz/2,py-sz/2,sz,sz);
-          ctx.restore();
-          ctx.beginPath(); ctx.arc(px,py,sz/2,0,Math.PI*2);
-          ctx.strokeStyle=isMe?'#88ff88':t.color||'#c49a22'; ctx.lineWidth=isMe?3:2; ctx.stroke();
-          ctx.fillStyle='rgba(0,0,0,0.7)';
-          ctx.fillRect(px-sz/2,py+sz/2,sz,14);
-          ctx.fillStyle='#ede0c4'; ctx.font='10px Cinzel,serif';
-          ctx.textAlign='center'; ctx.fillText(t.name||'',px,py+sz/2+10); ctx.textAlign='left';
-          if(isMe){ ctx.strokeStyle='rgba(100,255,100,0.3)'; ctx.lineWidth=6; ctx.beginPath(); ctx.arc(px,py,sz/2+4,0,Math.PI*2); ctx.stroke(); }
-        };
-        img2.src=t.imgUrl;
-      } else {
-        ctx.save();
+      const px=t.x, py=t.y, sz=t.size||60, isMe=t.charId===myCharId;
+      function finishDraw(){
         ctx.beginPath(); ctx.arc(px,py,sz/2,0,Math.PI*2);
-        ctx.fillStyle='#2a1a1a'; ctx.fill();
-        ctx.strokeStyle=isMe?'#88ff88':t.color||'#c49a22'; ctx.lineWidth=isMe?3:2; ctx.stroke();
-        ctx.fillStyle='#ede0c4'; ctx.font=`${sz*0.4}px Cinzel,serif`;
+        ctx.strokeStyle=isMe?'#88ff88':'#c49a22'; ctx.lineWidth=isMe?4:2; ctx.stroke();
+        if(isMe){ctx.strokeStyle='rgba(100,255,100,0.2)';ctx.lineWidth=12;
+          ctx.beginPath();ctx.arc(px,py,sz/2+8,0,Math.PI*2);ctx.stroke();}
+        ctx.fillStyle='rgba(0,0,0,0.75)'; ctx.fillRect(px-sz/2,py+sz/2,sz,16);
+        ctx.fillStyle='#ede0c4'; ctx.font='bold 11px Cinzel,serif';
+        ctx.textAlign='center'; ctx.fillText(t.name||'',px,py+sz/2+12); ctx.textAlign='left';
+      }
+      if(t.imgUrl){
+        const i2=new Image(); i2.crossOrigin='anonymous';
+        i2.onload=()=>{
+          ctx.save(); ctx.beginPath(); ctx.arc(px,py,sz/2,0,Math.PI*2); ctx.clip();
+          ctx.drawImage(i2,px-sz/2,py-sz/2,sz,sz); ctx.restore(); finishDraw();
+        }; i2.src=t.imgUrl;
+      } else {
+        ctx.save(); ctx.beginPath(); ctx.arc(px,py,sz/2,0,Math.PI*2);
+        ctx.fillStyle='#1a0a0a'; ctx.fill(); ctx.restore();
+        ctx.fillStyle='#ede0c4'; ctx.font=`bold ${sz*0.4}px Cinzel,serif`;
         ctx.textAlign='center'; ctx.textBaseline='middle';
         ctx.fillText((t.name||'?')[0].toUpperCase(),px,py);
         ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-        ctx.restore();
-        ctx.fillStyle='rgba(0,0,0,0.7)';
-        ctx.fillRect(px-sz/2,py+sz/2,sz,14);
-        ctx.fillStyle='#ede0c4'; ctx.font='10px Cinzel,serif';
-        ctx.textAlign='center'; ctx.fillText(t.name||'',px,py+sz/2+10); ctx.textAlign='left';
-        if(isMe){ ctx.strokeStyle='rgba(100,255,100,0.3)'; ctx.lineWidth=6; ctx.beginPath(); ctx.arc(px,py,sz/2+4,0,Math.PI*2); ctx.stroke(); }
+        finishDraw();
       }
     });
   }
 
-  function tokFromViewportPos(vx,vy){
-    const {sx,sy,ox,oy}=getMapScale();
-    const cx=(vx-ox)/sx, cy=(vy-oy)/sy;
+  function tokAtPoint(cx,cy){
     return Object.values(_tokens).find(t=>{
       const sz=(t.size||60)/2;
       return Math.abs(cx-t.x)<sz&&Math.abs(cy-t.y)<sz;
@@ -3038,74 +3085,55 @@ function populateDropdowns() {
   function setupTokenEvents(){
     const tc=document.getElementById('map_token_overlay'); if(!tc) return;
     const myCharId=getMyCharId();
-
+    // offsetX/Y are in canvas (image-pixel) space because canvas=image size
     tc.addEventListener('mousedown',e=>{
-      const r=tc.getBoundingClientRect();
-      const tok=tokFromViewportPos(e.clientX-r.left,e.clientY-r.top);
-      if(!tok||tok.charId!==myCharId) return; // only move own token
-      e.stopPropagation();
-      _draggingTok=tok;
-      const {sx,sy,ox,oy}=getMapScale();
-      _dragOx=(e.clientX-r.left-ox)/sx - tok.x;
-      _dragOy=(e.clientY-r.top-oy)/sy - tok.y;
+      const tok=tokAtPoint(e.offsetX,e.offsetY);
+      if(!tok||tok.charId!==myCharId) return;
+      e.stopPropagation(); window._playerTokDragging=true;
+      _draggingTok=tok; _dragOx=e.offsetX-tok.x; _dragOy=e.offsetY-tok.y;
       tc.style.cursor='grabbing';
     });
     window.addEventListener('mousemove',e=>{
       if(!_draggingTok) return;
       const r=tc.getBoundingClientRect();
-      const {sx,sy,ox,oy}=getMapScale();
-      _draggingTok.x=Math.round((e.clientX-r.left-ox)/sx - _dragOx);
-      _draggingTok.y=Math.round((e.clientY-r.top-oy)/sy - _dragOy);
+      const sx=tc.width/r.width, sy=tc.height/r.height;
+      _draggingTok.x=Math.round((e.clientX-r.left)*sx-_dragOx);
+      _draggingTok.y=Math.round((e.clientY-r.top)*sy-_dragOy);
       renderTokenOverlay();
     });
     window.addEventListener('mouseup',()=>{
       if(!_draggingTok) return;
+      window._playerTokDragging=false;
       pushTokens(); _draggingTok=null; tc.style.cursor='default';
     });
-
-    // Touch drag
     tc.addEventListener('touchstart',e=>{
-      const r=tc.getBoundingClientRect();
-      const t=e.touches[0];
-      const tok=tokFromViewportPos(t.clientX-r.left,t.clientY-r.top);
+      const r=tc.getBoundingClientRect(); const t=e.touches[0];
+      const sx=tc.width/r.width, sy=tc.height/r.height;
+      const cx=(t.clientX-r.left)*sx, cy=(t.clientY-r.top)*sy;
+      const tok=tokAtPoint(cx,cy);
       if(!tok||tok.charId!==myCharId) return;
-      e.stopPropagation();
-      _draggingTok=tok;
-      const {sx,sy,ox,oy}=getMapScale();
-      _dragOx=(t.clientX-r.left-ox)/sx - tok.x;
-      _dragOy=(t.clientY-r.top-oy)/sy - tok.y;
+      e.stopPropagation(); _draggingTok=tok; _dragOx=cx-tok.x; _dragOy=cy-tok.y;
     },{passive:true});
     window.addEventListener('touchmove',e=>{
       if(!_draggingTok) return;
-      const r=tc.getBoundingClientRect();
-      const t=e.touches[0];
-      const {sx,sy,ox,oy}=getMapScale();
-      _draggingTok.x=Math.round((t.clientX-r.left-ox)/sx - _dragOx);
-      _draggingTok.y=Math.round((t.clientY-r.top-oy)/sy - _dragOy);
+      const tc2=document.getElementById('map_token_overlay'); if(!tc2) return;
+      const r=tc2.getBoundingClientRect(); const t=e.touches[0];
+      const sx=tc2.width/r.width, sy=tc2.height/r.height;
+      _draggingTok.x=Math.round((t.clientX-r.left)*sx-_dragOx);
+      _draggingTok.y=Math.round((t.clientY-r.top)*sy-_dragOy);
       renderTokenOverlay();
     },{passive:true});
     window.addEventListener('touchend',()=>{ if(_draggingTok){pushTokens();_draggingTok=null;} });
   }
 
-  // Hook into map viewer open to setup tokens
-  const origOpenMapViewer=window.openMapViewer;
+  const _origOpen=window.openMapViewer;
   window.openMapViewer=function(){
-    origOpenMapViewer();
-    // Subscribe to tokens using same dmId as map
-    const id=getActiveCharId();
-    const cc=cfg.chars?.[id];
-    const dmId=cc?.sessionId;
-    if(dmId) subscribeTokens(dmId);
-    setTimeout(()=>{ setupTokenEvents(); renderTokenOverlay(); },200);
+    _origOpen();
+    const id=getActiveCharId(); const cc=cfg.chars?.[id];
+    if(cc?.sessionId) subscribeTokens(cc.sessionId);
+    setTimeout(()=>{ setupTokenEvents(); renderTokenOverlay(); },150);
   };
 
-  // Re-render on map img load
-  window.addEventListener('load',()=>{
-    const img=document.getElementById('map_viewer_img');
-    if(img) img.addEventListener('load',()=>setTimeout(renderTokenOverlay,100));
-  });
-
-  // Expose for external trigger
   window._subscribePlayerTokens=subscribeTokens;
   window._renderPlayerTokens=renderTokenOverlay;
 })();
