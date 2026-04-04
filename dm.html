@@ -16,7 +16,7 @@
   --dm:#0e0a2a;--dm-border:#5050c0;--dm-lt:#9090e8;--dm-dim:#2a2060;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:14px;min-height:100vh;}
+body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:16px;min-height:100vh;}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;opacity:.3;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");}
 .layout{display:flex;min-height:100vh;}
@@ -220,7 +220,7 @@ select.fi option{background:#0e0b08;color:#d4c898;}
     <div class="sb-sub">DM DASHBOARD</div>
   </div>
   <div class="sb-sect">
-    <div class="sb-label">Characters</div>
+    <div class="sb-label">Players</div>
     <div id="charTabs"></div>
     <div style="padding:6px 12px">
       <button class="btn" style="width:100%;font-size:8px" onclick="showView('load')">+ Load Character</button>
@@ -460,9 +460,10 @@ select.fi option{background:#0e0b08;color:#d4c898;}
           </div>
           <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
             <button class="btn green" onclick="rollDice()" style="font-size:11px;padding:6px 18px">🎲 Roll</button>
-            <button class="btn sm" onclick="quickRoll(1)">Rouse</button>
-            <button class="btn sm" onclick="quickRoll(2)">Frenzy (2d)</button>
+            <button class="btn sm" onclick="quickRoll(1,'Rouse Check',6)">Rouse</button>
+            <button class="btn sm" onclick="quickRoll(2,'Frenzy Check',1)">Frenzy (2d)</button>
             <button class="btn danger sm" onclick="clearRollHistory()">Clear</button>
+            <button class="btn dm sm" onclick="openRollRequest()" title="Ask a player to roll">📨 Request Roll</button>
           </div>
         </div>
       </div>
@@ -555,17 +556,114 @@ select.fi option{background:#0e0b08;color:#d4c898;}
   <!-- NPCS -->
   <div id="view_npcs" class="tab-content">
     <div class="mh">
-      <div><div class="mh-title">NPC Roster</div><div class="mh-sub">Named characters in the chronicle</div></div>
-      <div class="mh-actions">
+      <div><div class="mh-title">NPC Roster</div><div class="mh-sub">Mortals, Kindred &amp; named chronicle characters</div></div>
+      <div class="mh-actions" style="flex-wrap:wrap;gap:6px">
         <select id="npc_filter" onchange="renderNPCs()" style="background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'Cinzel',serif;font-size:9px;padding:4px 8px;outline:none">
-          <option value="">All</option><option value="friendly">Friendly</option><option value="neutral">Neutral</option>
+          <option value="">All Types</option><option value="kindred">Kindred</option><option value="mortal">Mortal</option>
+          <option value="ghoul">Ghoul</option><option value="other">Other Supernatural</option>
+        </select>
+        <select id="npc_att_filter" onchange="renderNPCs()" style="background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'Cinzel',serif;font-size:9px;padding:4px 8px;outline:none">
+          <option value="">All Attitudes</option><option value="friendly">Friendly</option><option value="neutral">Neutral</option>
           <option value="hostile">Hostile</option><option value="complicated">Complicated</option><option value="unknown">Unknown</option>
         </select>
-        <button class="btn" onclick="addNPC()">+ Add NPC</button>
+        <button class="btn green" onclick="openNPCCreator()">+ Create NPC</button>
       </div>
     </div>
     <div id="npc_list"></div>
-    <div class="empty-msg" id="npc_empty" style="display:none">No NPCs yet.</div>
+    <div class="empty-msg" id="npc_empty" style="display:none;padding:20px;text-align:center">No NPCs yet. Click <b>+ Create NPC</b> to add one.</div>
+  </div>
+
+  <!-- NPC CREATOR MODAL -->
+  <div id="npcCreatorModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:8000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0">
+    <div style="background:var(--surface);border:1px solid var(--border);max-width:780px;width:95%;margin:auto">
+      <div class="ph" style="display:flex;align-items:center;justify-content:space-between">
+        <span id="npcModalTitle">Create NPC</span>
+        <button class="btn danger sm" onclick="closeNPCCreator()">✕ Close</button>
+      </div>
+      <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div class="itl dm" style="margin-top:0">Name</div>
+          <input class="ri-input" id="nc_name" placeholder="NPC name..." style="width:100%;margin-bottom:8px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <div><div class="itl dm">Type</div>
+              <select class="ri-select" id="nc_type" style="width:100%" onchange="npcTypeChanged()">
+                <option value="kindred">Kindred</option><option value="mortal">Mortal</option>
+                <option value="ghoul">Ghoul</option><option value="other">Other Supernatural</option>
+              </select></div>
+            <div><div class="itl dm">Attitude</div>
+              <select class="ri-select" id="nc_attitude" style="width:100%">
+                <option value="neutral">Neutral</option><option value="friendly">Friendly</option>
+                <option value="hostile">Hostile</option><option value="complicated">Complicated</option>
+                <option value="unknown">Unknown</option>
+              </select></div>
+          </div>
+          <div id="nc_kindred_fields">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+              <div><div class="itl dm">Clan</div>
+                <select class="ri-select" id="nc_clan" style="width:100%">
+                  <option value="">— Select —</option>
+                  <option>Banu Haqim</option><option>Brujah</option><option>Gangrel</option>
+                  <option>Hecata</option><option>Lasombra</option><option>Malkavian</option>
+                  <option>Ministry</option><option>Nosferatu</option><option>Ravnos</option>
+                  <option>Salubri</option><option>Toreador</option><option>Tremere</option>
+                  <option>Tzimisce</option><option>Ventrue</option><option>Caitiff</option><option>Thin-Blood</option>
+                </select></div>
+              <div><div class="itl dm">Generation</div><input class="ri-input" id="nc_gen" placeholder="e.g. 9th" style="width:100%"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+              <div><div class="itl dm">Blood Potency</div><input class="ri-input" id="nc_bp" type="number" min="0" max="10" value="1" style="width:100%"></div>
+              <div><div class="itl dm">Sect / Faction</div><input class="ri-input" id="nc_sect" placeholder="Camarilla, Anarch..." style="width:100%"></div>
+            </div>
+            <div class="itl dm">Disciplines (e.g. Dominate 3, Presence 2)</div>
+            <input class="ri-input" id="nc_discs" style="width:100%;margin-bottom:8px">
+          </div>
+          <div id="nc_mortal_fields" style="display:none">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+              <div><div class="itl dm">Occupation</div><input class="ri-input" id="nc_occ" style="width:100%"></div>
+              <div><div class="itl dm">Organisation</div><input class="ri-input" id="nc_org" style="width:100%"></div>
+            </div>
+          </div>
+          <div class="itl dm">Status</div>
+          <select class="ri-select" id="nc_status" style="width:100%;margin-bottom:8px">
+            <option>Active</option><option>Dead</option><option>Missing</option><option>Unknown</option>
+          </select>
+        </div>
+        <div>
+          <div class="itl dm" style="margin-top:0">Key Attributes (1–5)</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px">
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">STR</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_str" style="width:100%"></div>
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">DEX</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_dex" style="width:100%"></div>
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">STA</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_sta" style="width:100%"></div>
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">CHA</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_cha" style="width:100%"></div>
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">MAN</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_man" style="width:100%"></div>
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">COM</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_com" style="width:100%"></div>
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">INT</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_int" style="width:100%"></div>
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">WIT</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_wit" style="width:100%"></div>
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">RES</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_res" style="width:100%"></div>
+          </div>
+          <div class="itl dm">Key Skills (e.g. Brawl:3, Stealth:2)</div>
+          <input class="ri-input" id="nc_skills" style="width:100%;margin-bottom:8px">
+          <div id="nc_kindred_trackers">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
+              <div><div class="itl dm">Humanity</div><input class="ri-input" type="number" id="nc_humanity" min="0" max="10" value="7" style="width:100%"></div>
+              <div><div class="itl dm">Hunger</div><input class="ri-input" type="number" id="nc_hunger" min="0" max="5" value="1" style="width:100%"></div>
+              <div><div class="itl dm">Willpower</div><input class="ri-input" type="number" id="nc_wp" min="0" max="10" value="3" style="width:100%"></div>
+            </div>
+          </div>
+          <div class="itl dm">Health Boxes</div>
+          <input class="ri-input" type="number" id="nc_health" min="3" max="15" value="5" style="width:80px;margin-bottom:8px">
+          <div class="itl dm">Description &amp; Role</div>
+          <textarea class="fta dm" id="nc_desc" style="min-height:70px;width:100%;margin-bottom:8px" placeholder="Who are they, what do they want..."></textarea>
+          <div class="itl dm">Secrets &amp; Agenda (DM only)</div>
+          <textarea class="fta dm" id="nc_secrets" style="min-height:60px;width:100%" placeholder="Hidden motivations, true allegiances..."></textarea>
+        </div>
+      </div>
+      <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end">
+        <input type="hidden" id="nc_editing_id" value="">
+        <button class="btn" onclick="closeNPCCreator()">Cancel</button>
+        <button class="btn green" onclick="saveNPCFromCreator()">✓ Save NPC</button>
+      </div>
+    </div>
   </div>
 
   <!-- TIMELINE -->
@@ -694,17 +792,18 @@ if (BC) {
     const msg = event.data;
     if (!msg) return;
 
-    // Handle player dice rolls broadcast
+    // Handle player dice rolls broadcast (same-browser only)
     if(msg.type === 'dice_roll'){
       const { charName, label, regRolls, hungerRolls, successes, outcome, diff, time } = msg;
-      // Add to DM dice history with player attribution
+      // Add to DM dice history with player attribution — tag as 'bc' so Firestore dedup can skip it
       const entry = {
         label: `[${charName}] ${label}`,
         regRolls: regRolls||[], hungerRolls: hungerRolls||[],
         successes: successes||0, outcome: outcome||'',
         outcomeColor: outcome==='SUCCESS'||outcome==='CRITICAL SUCCESS' ? 'var(--green-lt)' :
                       outcome==='MESSY CRITICAL' ? '#e0c060' : 'var(--crimson-lt)',
-        diff: diff||2, time: time||new Date().toLocaleTimeString()
+        diff: diff||2, time: time||new Date().toLocaleTimeString(),
+        source: 'bc', _bcTime: time  // used to dedup Firestore delivery
       };
       rollHistory.unshift(entry);
       if(rollHistory.length>30) rollHistory.pop();
@@ -956,9 +1055,14 @@ async function refreshAll(silent){
 function addCharTab(id,name){
   if(document.getElementById('ct_'+id))return;
   const tabs=document.getElementById('charTabs');
+  const username=id.includes('_')?id.split('_').pop():id;
   const btn=document.createElement('button'); btn.className='sb-btn'; btn.id='ct_'+id;
-  btn.innerHTML=`<span class="ti">🧛</span><span class="tn">${esc(name)}</span><span class="tc" onclick="removeChar('${id}',event)">✕</span>`;
-  btn.onclick=e=>{if(!e.target.classList.contains('tc'))switchChar(id)};
+  btn.innerHTML=`<span class="ti">🧛</span><span class="tn" style="text-transform:capitalize">${esc(username)}</span>
+    <span style="display:flex;gap:3px;margin-left:auto;flex-shrink:0">
+      <span class="tc" title="View ${esc(name)}" onclick="event.stopPropagation();switchChar('${id}')">👁</span>
+      <span class="tc" onclick="removeChar('${id}',event)">✕</span>
+    </span>`;
+  btn.onclick=e=>{if(!e.target.classList.contains('tc')&&!e.target.closest('[class="tc"]'))switchChar(id)};
   tabs.appendChild(btn);
 }
 function removeChar(id,e){if(e)e.stopPropagation();unsubscribeChar(id);delete chars[id];document.getElementById('ct_'+id)?.remove();if(activeChar===id){activeChar=null;showView('load')}}
@@ -1296,53 +1400,157 @@ function renderPrepList(list){
 }
 
 // ── NPC ROSTER ──
+function openNPCCreator(id){
+  const modal=document.getElementById('npcCreatorModal'); if(!modal) return;
+  const editId=id||'';
+  document.getElementById('nc_editing_id').value=editId;
+  const fields=['str','dex','sta','cha','man','com','int','wit','res'];
+  if(editId){
+    const n=dm.npcs.find(n=>n.id==editId); if(!n) return;
+    document.getElementById('npcModalTitle').textContent='Edit NPC';
+    document.getElementById('nc_name').value=n.name||'';
+    document.getElementById('nc_type').value=n.type||'kindred';
+    document.getElementById('nc_attitude').value=n.attitude||'neutral';
+    document.getElementById('nc_status').value=n.status||'Active';
+    document.getElementById('nc_clan').value=n.clan||'';
+    document.getElementById('nc_gen').value=n.gen||'';
+    document.getElementById('nc_bp').value=n.bp||1;
+    document.getElementById('nc_sect').value=n.sect||'';
+    document.getElementById('nc_discs').value=n.discs||'';
+    document.getElementById('nc_occ').value=n.occ||'';
+    document.getElementById('nc_org').value=n.org||'';
+    document.getElementById('nc_skills').value=n.skills||'';
+    document.getElementById('nc_humanity').value=n.humanity||7;
+    document.getElementById('nc_hunger').value=n.hunger||1;
+    document.getElementById('nc_wp').value=n.wp||3;
+    document.getElementById('nc_health').value=n.health||5;
+    document.getElementById('nc_desc').value=n.desc||'';
+    document.getElementById('nc_secrets').value=n.secrets||'';
+    fields.forEach(a=>{ const el=document.getElementById('nc_attr_'+a); if(el)el.value=n.attrs?.[a]||2; });
+  } else {
+    document.getElementById('npcModalTitle').textContent='Create NPC';
+    document.getElementById('nc_name').value='';
+    document.getElementById('nc_type').value='kindred';
+    document.getElementById('nc_attitude').value='neutral';
+    document.getElementById('nc_status').value='Active';
+    ['nc_clan','nc_gen','nc_sect','nc_discs','nc_occ','nc_org','nc_skills','nc_desc','nc_secrets'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    document.getElementById('nc_bp').value=1;
+    document.getElementById('nc_humanity').value=7;
+    document.getElementById('nc_hunger').value=1;
+    document.getElementById('nc_wp').value=3;
+    document.getElementById('nc_health').value=5;
+    fields.forEach(a=>{ const el=document.getElementById('nc_attr_'+a); if(el)el.value=2; });
+  }
+  npcTypeChanged();
+  modal.style.display='flex';
+  setTimeout(()=>document.getElementById('nc_name').focus(),100);
+}
+
+function closeNPCCreator(){
+  const modal=document.getElementById('npcCreatorModal');
+  if(modal) modal.style.display='none';
+}
+
+function npcTypeChanged(){
+  const type=document.getElementById('nc_type')?.value||'kindred';
+  const isKindred=(type==='kindred'||type==='ghoul');
+  document.getElementById('nc_kindred_fields').style.display=isKindred?'':'none';
+  document.getElementById('nc_mortal_fields').style.display=isKindred?'none':'';
+  const trackers=document.getElementById('nc_kindred_trackers');
+  if(trackers) trackers.style.display=(type==='kindred')?'':'none';
+}
+
+function saveNPCFromCreator(){
+  const name=document.getElementById('nc_name').value.trim();
+  if(!name){toast('Enter a name first','error');return;}
+  const editId=document.getElementById('nc_editing_id').value;
+  const attrs={};
+  ['str','dex','sta','cha','man','com','int','wit','res'].forEach(a=>{
+    attrs[a]=parseInt(document.getElementById('nc_attr_'+a)?.value||2);
+  });
+  const n={
+    id:editId?parseInt(editId):Date.now(),
+    name,
+    type:document.getElementById('nc_type').value,
+    attitude:document.getElementById('nc_attitude').value,
+    status:document.getElementById('nc_status').value,
+    clan:document.getElementById('nc_clan').value,
+    gen:document.getElementById('nc_gen').value,
+    bp:parseInt(document.getElementById('nc_bp').value||1),
+    sect:document.getElementById('nc_sect').value,
+    discs:document.getElementById('nc_discs').value,
+    occ:document.getElementById('nc_occ').value,
+    org:document.getElementById('nc_org').value,
+    skills:document.getElementById('nc_skills').value,
+    humanity:parseInt(document.getElementById('nc_humanity').value||7),
+    hunger:parseInt(document.getElementById('nc_hunger').value||1),
+    wp:parseInt(document.getElementById('nc_wp').value||3),
+    health:parseInt(document.getElementById('nc_health').value||5),
+    desc:document.getElementById('nc_desc').value,
+    secrets:document.getElementById('nc_secrets').value,
+    attrs, open:false
+  };
+  if(editId){
+    const idx=dm.npcs.findIndex(x=>x.id==parseInt(editId));
+    if(idx>=0) dm.npcs[idx]=n; else dm.npcs.push(n);
+  } else { dm.npcs.push(n); }
+  closeNPCCreator(); renderNPCs(); markUnsaved(); toast('NPC saved: '+name);
+}
+
 function addNPC(data){
-  const n=data||{id:Date.now(),name:'New NPC',faction:'',attitude:'neutral',status:'Active',desc:'',secrets:'',open:false};
-  if(!data)dm.npcs.push(n);
+  const n=data||{id:Date.now(),name:'New NPC',type:'kindred',attitude:'neutral',status:'Active',desc:'',secrets:'',open:false};
+  if(!data) dm.npcs.push(n);
   renderNPCs(); markUnsaved();
 }
-function deleteNPC(id){dm.npcs=dm.npcs.filter(n=>n.id!==id);renderNPCs();markUnsaved()}
-function toggleNPC(id){const n=dm.npcs.find(n=>n.id===id);if(n){collectNPCF(id);n.open=!n.open;renderNPCs()}}
-function collectNPCF(id){const n=dm.npcs.find(n=>n.id===id);if(!n)return;['name','faction','attitude','status','desc','secrets'].forEach(k=>{const el=document.getElementById('nf_'+k+'_'+id);if(el)n[k]=el.value})}
-function saveNPC(id){collectNPCF(id);renderNPCs();markUnsaved();toast('NPC saved')}
+function deleteNPC(id){if(!confirm('Delete this NPC?'))return;dm.npcs=dm.npcs.filter(n=>n.id!==id);renderNPCs();markUnsaved();}
+function toggleNPC(id){const n=dm.npcs.find(n=>n.id===id);if(n){n.open=!n.open;renderNPCs();}}
+function collectNPCF(id){const n=dm.npcs.find(n=>n.id===id);if(!n)return;['name','faction','attitude','status','desc','secrets'].forEach(k=>{const el=document.getElementById('nf_'+k+'_'+id);if(el)n[k]=el.value;})}
+function saveNPC(id){collectNPCF(id);renderNPCs();markUnsaved();toast('NPC saved');}
+
 function renderNPCs(){
   const list=document.getElementById('npc_list');
   const empty=document.getElementById('npc_empty');
-  if(!list)return; list.innerHTML='';
-  const filter=document.getElementById('npc_filter')?.value||'';
-  const filtered=filter?dm.npcs.filter(n=>n.attitude===filter):dm.npcs;
+  if(!list) return; list.innerHTML='';
+  const typeFilter=document.getElementById('npc_filter')?.value||'';
+  const attFilter=document.getElementById('npc_att_filter')?.value||'';
+  let filtered=dm.npcs;
+  if(typeFilter) filtered=filtered.filter(n=>(n.type||'kindred')===typeFilter);
+  if(attFilter) filtered=filtered.filter(n=>(n.attitude||'neutral')===attFilter);
   empty.style.display=filtered.length?'none':'block';
+  const ATTRS=['str','dex','sta','cha','man','com','int','wit','res'];
+  const ATTR_L=['STR','DEX','STA','CHA','MAN','COM','INT','WIT','RES'];
   filtered.forEach(n=>{
     const card=document.createElement('div'); card.className='npc-card-dm';
+    const isKindred=(n.type==='kindred'||n.type==='ghoul');
+    const attColor={friendly:'var(--green-lt)',neutral:'var(--subtext)',hostile:'var(--crimson-lt)',complicated:'#e0c060',unknown:'var(--subtext)'}[n.attitude]||'var(--subtext)';
+    const typeLabel={kindred:'Kindred',mortal:'Mortal',ghoul:'Ghoul',other:'Supernatural'}[n.type||'kindred']||'';
+    const attrStr=n.attrs?ATTRS.map((a,i)=>`<span title="${ATTR_L[i]}" style="font-size:10px;margin-right:4px;color:${(n.attrs[a]||2)>=4?'var(--gold-lt)':'var(--text)'}">${ATTR_L[i]}${n.attrs[a]||2}</span>`).join(''):'';
     card.innerHTML=`
-      <div class="npc-card-dm-hdr" onclick="toggleNPC(${n.id})">
+      <div class="npc-card-dm-hdr" onclick="toggleNPC(${n.id})" style="cursor:pointer">
         <span class="npc-name-dm${n.status==='Dead'?' npc-status-dead':''}">${esc(n.name)}</span>
-        ${n.faction?`<span style="font-size:10px;color:var(--subtext)">${esc(n.faction)}</span>`:''}
-        <span class="npc-attitude ${n.attitude||'neutral'}">${cap(n.attitude||'neutral')}</span>
-        ${n.status&&n.status!=='Active'?`<span style="font-family:'Cinzel',serif;font-size:8px;padding:2px 6px;border:1px solid var(--gold-dim);color:var(--subtext)">${esc(n.status)}</span>`:''}
-        <button class="rm-btn" onclick="event.stopPropagation();deleteNPC(${n.id})">✕</button>
+        <span style="font-size:10px;color:var(--subtext);font-family:Cinzel,serif">${typeLabel}${n.clan?' · '+esc(n.clan):''}</span>
+        <span style="font-size:10px;color:${attColor};font-family:Cinzel,serif;letter-spacing:1px">${cap(n.attitude||'neutral')}</span>
+        ${n.status&&n.status!=='Active'?`<span style="font-family:'Cinzel',serif;font-size:8px;padding:2px 5px;border:1px solid var(--gold-dim);color:var(--subtext)">${esc(n.status)}</span>`:''}
+        <div style="margin-left:auto;display:flex;gap:4px">
+          <button class="btn sm" onclick="event.stopPropagation();openNPCCreator(${n.id})" style="padding:1px 7px;font-size:7px">Edit</button>
+          <button class="rm-btn" onclick="event.stopPropagation();deleteNPC(${n.id})">✕</button>
+        </div>
       </div>
       <div class="npc-card-dm-body${n.open?' open':''}">
         <div>
-          <div class="itl dm" style="margin-top:0">Name</div>
-          <input class="ri-input" id="nf_name_${n.id}" value="${esc(n.name)}">
-          <div class="itl dm">Faction / Clan</div>
-          <input class="ri-input" id="nf_faction_${n.id}" value="${esc(n.faction||'')}" placeholder="e.g. Tremere, Camarilla...">
-          <div class="itl dm">Attitude</div>
-          <select class="ri-select" id="nf_attitude_${n.id}">
-            ${['friendly','neutral','hostile','complicated','unknown'].map(a=>`<option value="${a}"${n.attitude===a?' selected':''}>${cap(a)}</option>`).join('')}
-          </select>
-          <div class="itl dm">Status</div>
-          <select class="ri-select" id="nf_status_${n.id}">
-            ${['Active','Dead','Missing','Unknown'].map(s=>`<option${n.status===s?' selected':''}>${s}</option>`).join('')}
-          </select>
-          <button class="btn sm" style="margin-top:8px" onclick="saveNPC(${n.id})">Save</button>
+          ${isKindred?`<div style="flex-wrap:wrap;display:flex;gap:2px;margin-bottom:6px">${attrStr}</div>
+            ${n.discs?`<div style="font-size:11px;margin-bottom:4px"><span style="font-family:Cinzel,serif;font-size:8px;color:var(--subtext)">DISCIPLINES: </span>${esc(n.discs)}</div>`:''}
+            ${n.skills?`<div style="font-size:11px;margin-bottom:4px"><span style="font-family:Cinzel,serif;font-size:8px;color:var(--subtext)">SKILLS: </span>${esc(n.skills)}</div>`:''}
+            <div style="font-size:11px;margin-bottom:4px">❤ ${n.health||5}hp · 🩸 ${n.hunger||1}/5 · 🫀 ${n.humanity||7}/10 · WP ${n.wp||3}</div>
+            ${n.sect?`<div style="font-size:10px;color:var(--subtext)">${esc(n.sect)}</div>`:''}`
+          :`<div style="font-size:11px">${esc(n.occ||'')}${n.org?' — '+esc(n.org):''}</div>
+            ${n.skills?`<div style="font-size:11px;margin-top:4px"><span style="font-family:Cinzel,serif;font-size:8px;color:var(--subtext)">SKILLS: </span>${esc(n.skills)}</div>`:''}`}
+          ${n.desc?`<div class="itl dm" style="margin-top:6px">Description</div><div style="font-size:12px;line-height:1.6;white-space:pre-wrap">${esc(n.desc)}</div>`:''}
         </div>
         <div>
-          <div class="itl dm" style="margin-top:0">Description & Role</div>
-          <textarea class="fta dm" id="nf_desc_${n.id}" style="min-height:80px" placeholder="Who are they, what do they want...">${esc(n.desc||'')}</textarea>
-          <div class="itl dm">Secrets & Agenda</div>
-          <textarea class="fta dm" id="nf_secrets_${n.id}" style="min-height:80px" placeholder="Hidden motivations...">${esc(n.secrets||'')}</textarea>
+          ${n.secrets?`<div class="itl dm" style="color:var(--crimson-lt);margin-top:0">Secrets</div><div style="font-size:12px;line-height:1.6;white-space:pre-wrap;color:var(--crimson-lt)">${esc(n.secrets)}</div>`:'<div style="color:var(--subtext);font-style:italic;font-size:11px">No secrets recorded.</div>'}
         </div>
       </div>`;
     list.appendChild(card);
@@ -1446,18 +1654,17 @@ function rollDice(){
   const hungerRolls=Array.from({length:hunger},()=>Math.ceil(Math.random()*10));
   displayRoll(label,regRolls,hungerRolls,diff);
 }
-function quickRoll(n){
+function quickRoll(n,label,diff){
   const rolls=Array.from({length:n},()=>Math.ceil(Math.random()*10));
-  displayRoll(n===1?'Rouse Check':'Frenzy Check',rolls,[],1);
+  displayRoll(label||(n===1?'Rouse Check':'Frenzy Check'),rolls,[],diff||1);
 }
 function displayRoll(label,regRolls,hungerRolls,diff){
   const allRolls=[...regRolls.map(v=>({v,hunger:false})),...hungerRolls.map(v=>({v,hunger:true}))];
-  let successes=0,critPairs=0,messyCount=0,bestialCount=0;
+  let successes=0,messyCount=0,bestialCount=0;
   const tens=[];
   allRolls.forEach(({v,hunger})=>{
     if(v>=diff){successes++;if(v===10){tens.push({hunger});}}
   });
-  // Pair tens for crits (+2 each pair)
   const regTens=tens.filter(t=>!t.hunger).length;
   const hungerTens=tens.filter(t=>t.hunger).length;
   const regCrits=Math.floor(regTens/2);
@@ -1465,10 +1672,8 @@ function displayRoll(label,regRolls,hungerRolls,diff){
   const hungerCrits=Math.floor((hungerTens-(mixedCrits?1:0))/2);
   successes+=((regCrits+mixedCrits+hungerCrits)*2);
   messyCount=mixedCrits+hungerCrits;
-  // Bestial failure: hunger 1 on failed roll
   const failed=successes<diff;
   if(failed) bestialCount=hungerRolls.filter(v=>v===1).length;
-  // Build result
   const win=successes>=diff;
   const messy=win&&messyCount>0;
   const bestial=!win&&bestialCount>0;
@@ -1479,13 +1684,18 @@ function displayRoll(label,regRolls,hungerRolls,diff){
   else if(win){outcome='SUCCESS';outcomeColor='var(--green-lt)';}
   else if(bestial){outcome='BESTIAL FAILURE';outcomeColor='var(--crimson-lt)';}
   else{outcome='FAILURE';outcomeColor='var(--crimson-lt)';}
-  // Render dice faces
-  function dieFace(v,hunger){
-    const bg=hunger?(v===1?'rgba(200,20,20,.4)':'rgba(122,21,21,.25)'):'rgba(196,154,34,.08)';
-    const border=hunger?'var(--crimson)':'var(--border)';
-    const color=v>=diff?(hunger?'#ff9090':'var(--gold-lt)'):'var(--subtext)';
+  // Render dice faces with hover tooltips
+  function dieFace(v,isHunger){
+    const bg=isHunger?(v===1?'rgba(200,20,20,.4)':'rgba(122,21,21,.25)'):'rgba(196,154,34,.08)';
+    const border=isHunger?'var(--crimson)':'var(--border)';
+    const color=v>=diff?(isHunger?'#ff9090':'var(--gold-lt)'):'var(--subtext)';
     const bold=(v===10||v===1)?'bold':'normal';
-    return `<div style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:${bg};border:1px solid ${border};font-family:'Cinzel',serif;font-size:12px;color:${color};font-weight:${bold};margin:2px">${v}</div>`;
+    let tip=v>=diff?'Success':'Fail';
+    if(v===10&&!isHunger) tip='Critical (pair for +2 successes)';
+    if(v===10&&isHunger) tip='Messy! (+2 if paired, but messy critical)';
+    if(v===1&&isHunger) tip='Bestial! (failure → bestial failure)';
+    if(isHunger) tip='🩸 Hunger die — '+tip;
+    return `<div title="${tip}" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:${bg};border:1px solid ${border};font-family:'Cinzel',serif;font-size:12px;color:${color};font-weight:${bold};margin:2px;cursor:help">${v}</div>`;
   }
   const diceHTML=allRolls.map(({v,hunger})=>dieFace(v,hunger)).join('');
   const resultEl=document.getElementById('dice_result');
@@ -1496,24 +1706,36 @@ function displayRoll(label,regRolls,hungerRolls,diff){
     <div style="font-size:14px;color:var(--text)">${successes} success${successes!==1?'es':''} vs difficulty ${diff}
     ${messy?'<span style="color:#e0c060;font-size:11px;font-family:Cinzel,serif;margin-left:8px">⚠ Messy — Hunger 10</span>':''}
     ${bestial?'<span style="color:var(--crimson-lt);font-size:11px;font-family:Cinzel,serif;margin-left:8px">☠ Bestial — Hunger 1</span>':''}</div>`;
-  // Add to history
-  const entry={label,regRolls,hungerRolls,successes,outcome,outcomeColor,diff,time:new Date().toLocaleTimeString()};
+  // Push to Firestore dice_rolls for cross-computer sync
+  const entry={label,regRolls,hungerRolls,successes,outcome,outcomeColor,diff,time:new Date().toLocaleTimeString(),source:'dm',_ts:Date.now()};
   rollHistory.unshift(entry);
   if(rollHistory.length>30)rollHistory.pop();
   renderRollHistory();
+  if(window._db&&cfg.dmId){
+    const ref=window._fsDoc(window._db,'dice_rolls',cfg.dmId);
+    window._fsSetDoc(ref,{rolls:rollHistory.slice(0,30),_updatedAt:Date.now()}).catch(()=>{});
+  }
 }
+let _dmHistExpanded=false;
 function renderRollHistory(){
   const el=document.getElementById('dice_history');if(!el)return;
   if(!rollHistory.length){el.innerHTML='<div style="padding:12px;color:var(--subtext);font-style:italic;font-size:13px">No rolls yet.</div>';return;}
-  el.innerHTML=rollHistory.map((r,i)=>`
+  const shown=_dmHistExpanded?rollHistory:rollHistory.slice(0,8);
+  el.innerHTML=shown.map((r,i)=>`
     <div style="display:flex;align-items:center;gap:10px;padding:5px 10px;border-bottom:1px solid rgba(122,94,24,.12);font-size:13px${i===0?';background:rgba(196,154,34,.04)':''}">
       <span style="font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;min-width:60px">${r.time}</span>
       <span style="flex:1;color:var(--text)">${esc(r.label)}</span>
       <span style="font-family:'Cinzel',serif;font-size:11px;color:${r.outcomeColor}">${r.outcome}</span>
       <span style="font-family:'Cinzel',serif;font-size:11px;color:var(--subtext)">${r.successes}✓ / d${r.diff}</span>
     </div>`).join('');
+  if(rollHistory.length>8){
+    el.innerHTML+=`<div style="text-align:center;padding:6px"><button class="btn sm" style="font-size:8px" onclick="_dmHistExpanded=!_dmHistExpanded;renderRollHistory()">${_dmHistExpanded?'▲ Show less':'▼ Show all ('+rollHistory.length+')' }</button></div>`;
+  }
 }
-function clearRollHistory(){rollHistory.length=0;renderRollHistory();document.getElementById('dice_result').innerHTML='<span style="color:var(--subtext);font-style:italic">Roll to see results…</span>';}
+function clearRollHistory(){
+  rollHistory.length=0;_dmHistExpanded=false;renderRollHistory();
+  document.getElementById('dice_result').innerHTML='<span style="color:var(--subtext);font-style:italic">Roll to see results…</span>';
+}
 
 // ── PARTY OVERVIEW ──
 function renderOverview(){
@@ -1699,13 +1921,15 @@ function newSession(){
     vp.addEventListener('touchend', ()=>{ vpDragging=false; lastTouchDist=null; });
   }
 
-  // Space to pan
+  // Space to pan — blocked when measure tool is active to avoid conflict
   document.addEventListener('keydown', e=>{
-    if(e.code==='Space' && document.getElementById('view_map')?.classList.contains('active')){
+    if(e.code==='Space' && document.getElementById('view_map')?.classList.contains('active') && tool!=='measure'){
       spaceHeld=true;
       const vp=document.getElementById('map_viewport');
       if(vp) vp.style.cursor='grab';
     }
+    // Escape cancels measure
+    if(e.code==='Escape' && tool==='measure'){ setTool('pencil'); }
   });
   document.addEventListener('keyup', e=>{
     if(e.code==='Space'){ spaceHeld=false;
@@ -1831,7 +2055,7 @@ function newSession(){
   }
 
   function onDown(e){
-    if(vpDragging||spaceHeld) return;
+    if(vpDragging||spaceHeld||window._dmTokenDragging) return;
     e.preventDefault();
     const {x,y}=mapPos(e);
 
@@ -2210,6 +2434,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
     }
     setStatus('Live sync ready — Firestore connected','saved');
     if(cfg.dmId) subscribeTokens(cfg.dmId);
+    if(cfg.dmId) subscribeDiceRolls(cfg.dmId);
   }
 
   if(!cfg.dmId)setTimeout(showSetup,800);
@@ -2418,6 +2643,7 @@ window.setupTokenDrag=function(){
     const tok=tokFromPos(cx,cy); if(!tok) return;
     e.stopPropagation();
     draggingTok=tok; tokDragOx=cx-tok.x; tokDragOy=cy-tok.y;
+    window._dmTokenDragging=true;
     vp.style.cursor='grabbing';
   });
   window.addEventListener('mousemove',e=>{
@@ -2433,7 +2659,7 @@ window.setupTokenDrag=function(){
   });
   window.addEventListener('mouseup',()=>{
     if(!draggingTok) return;
-    pushTokens(); draggingTok=null; vp.style.cursor='default';
+    pushTokens(); draggingTok=null; window._dmTokenDragging=false; vp.style.cursor='default';
   });
 };
 
@@ -2453,6 +2679,126 @@ window.setupTokenDrag=function(){
     setTimeout(refreshTokenRoster,100);
   };
 })();
+
+// ── TASK 1: Firestore dice_rolls cross-computer sync ──
+// dice_rolls/{dmId} = { rolls: [...], _updatedAt }
+// Player rolls are broadcast via BroadcastChannel (same browser) already.
+// For cross-computer, players write to dice_rolls/{dmId}/player_rolls subcollection.
+// DM listens and merges incoming player rolls into rollHistory.
+let _diceRollsUnsub=null;
+let _lastDiceTs=0; // track timestamp to avoid duplicate entries
+
+function subscribeDiceRolls(dmId){
+  if(_diceRollsUnsub){ _diceRollsUnsub(); _diceRollsUnsub=null; }
+  if(!window._db||!dmId) return;
+  // Listen to player_dice subcollection — players write here
+  const ref=window._fsDoc(window._db,'dice_rolls',dmId+'_players');
+  _diceRollsUnsub=window._fsOnSnapshot(ref,snap=>{
+    if(!snap.exists()) return;
+    const d=snap.data();
+    const incoming=(d.rolls||[]).filter(r=>r._ts && r._ts>_lastDiceTs);
+    if(!incoming.length) return;
+    _lastDiceTs=Math.max(...incoming.map(r=>r._ts));
+    let added=0;
+    incoming.forEach(r=>{
+      // Skip if a BC entry with same time+label already exists (same-browser dedup)
+      const dupe=rollHistory.some(h=>h.source==='bc'&&h._bcTime===r.time&&h.label.includes(r.label||''));
+      if(dupe) return;
+      const entry={
+        label:'['+esc(r.charName||'Player')+'] '+esc(r.label||'Roll'),
+        regRolls:r.regRolls||[], hungerRolls:r.hungerRolls||[],
+        successes:r.successes||0, outcome:r.outcome||'',
+        outcomeColor:r.outcome==='SUCCESS'||r.outcome==='CRITICAL SUCCESS'?'var(--green-lt)':
+                     r.outcome==='MESSY CRITICAL'?'#e0c060':'var(--crimson-lt)',
+        diff:r.diff||2, time:r.time||new Date().toLocaleTimeString(),
+        source:'player', _ts:r._ts
+      };
+      rollHistory.unshift(entry);
+      added++;
+    });
+    if(!added) return;
+    if(rollHistory.length>30) rollHistory.length=30;
+    renderRollHistory();
+    // Flash dice nav
+    const diceNav=document.getElementById('nav_dice');
+    if(diceNav){ diceNav.style.color='var(--gold-lt)'; setTimeout(()=>{diceNav.style.color='';},2000); }
+    toast('Player roll received — check Dice Roller');
+  },err=>console.warn('dice_rolls listener:',err));
+}
+
+// ── TASK 2: DM Roll Request system ──
+// roll_requests/{dmId} = { request: {charId,label,pool,hunger,diff,requestedAt}, status:'pending'|'fulfilled'|'' }
+
+function openRollRequest(){
+  if(!window._db){toast('Firebase not ready','error');return;}
+  if(!cfg.dmId){toast('No session ID — open Setup first','error');return;}
+  const charList=Object.entries(chars);
+  if(!charList.length){toast('No characters loaded — load a character first','error');return;}
+  const charOpts=charList.map(([id,c])=>`<option value="${esc(id)}">${esc(c.name||id)}</option>`).join('');
+  // Insert modal if not present
+  let modal=document.getElementById('rollRequestModal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='rollRequestModal';
+    modal.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:8500;align-items:center;justify-content:center';
+    modal.innerHTML=`
+      <div style="background:var(--surface);border:1px solid var(--dm-border);max-width:420px;width:90%">
+        <div class="ph dm-ph" style="display:flex;align-items:center;justify-content:space-between">
+          <span>📨 Request Player Roll</span>
+          <button class="btn sm danger" onclick="document.getElementById('rollRequestModal').style.display='none'">✕</button>
+        </div>
+        <div class="pb" style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <div class="itl dm" style="margin-top:0">Player</div>
+            <select id="rr_char" class="ri-select" style="width:100%">${charOpts}</select>
+          </div>
+          <div>
+            <div class="itl dm">Roll Label (e.g. Strength + Brawl)</div>
+            <input id="rr_label" class="ri-input" placeholder="e.g. Wits + Awareness" style="width:100%">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div><div class="itl dm">Pool</div><input id="rr_pool" class="ri-input" type="number" min="1" max="20" value="5" style="width:100%"></div>
+            <div><div class="itl dm">Hunger</div><input id="rr_hunger" class="ri-input" type="number" min="0" max="5" value="1" style="width:100%"></div>
+            <div><div class="itl dm">Difficulty</div><input id="rr_diff" class="ri-input" type="number" min="1" max="10" value="2" style="width:100%"></div>
+          </div>
+          <div id="rr_status" style="font-size:11px;color:var(--subtext);min-height:16px;font-family:Cinzel,serif;letter-spacing:1px"></div>
+        </div>
+        <div style="padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn" onclick="document.getElementById('rollRequestModal').style.display='none'">Cancel</button>
+          <button class="btn green" onclick="sendRollRequest()">📨 Send Request</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  } else {
+    document.getElementById('rr_char').innerHTML=charOpts;
+  }
+  modal.style.display='flex';
+}
+
+async function sendRollRequest(){
+  const charId=document.getElementById('rr_char')?.value;
+  const label=document.getElementById('rr_label')?.value.trim()||'Roll';
+  const pool=parseInt(document.getElementById('rr_pool')?.value)||5;
+  const hunger=parseInt(document.getElementById('rr_hunger')?.value)||1;
+  const diff=parseInt(document.getElementById('rr_diff')?.value)||2;
+  const stEl=document.getElementById('rr_status');
+  if(!charId){if(stEl)stEl.textContent='Select a player';return;}
+  if(!window._db||!cfg.dmId){if(stEl)stEl.textContent='Firebase not ready';return;}
+  if(stEl){stEl.textContent='Sending…';stEl.style.color='var(--gold)';}
+  try{
+    const ref=window._fsDoc(window._db,'roll_requests',charId);
+    await window._fsSetDoc(ref,{
+      charId, label, pool, hunger, diff,
+      dmId:cfg.dmId, status:'pending', requestedAt:Date.now()
+    });
+    if(stEl){stEl.textContent='✓ Request sent — waiting for player…';stEl.style.color='var(--green-lt)';}
+    toast('Roll request sent to '+(chars[charId]?.name||charId));
+    setTimeout(()=>{const m=document.getElementById('rollRequestModal');if(m)m.style.display='none';},1500);
+  }catch(e){
+    if(stEl){stEl.textContent='Failed: '+e.message;stEl.style.color='var(--crimson-lt)';}
+  }
+}
+
 </script>
 </body>
 </html>
