@@ -692,7 +692,30 @@ const BC = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('vtm_s
 if (BC) {
   BC.onmessage = (event) => {
     const msg = event.data;
-    if (!msg || msg.type !== 'sheet_update') return;
+    if (!msg) return;
+
+    // Handle player dice rolls broadcast
+    if(msg.type === 'dice_roll'){
+      const { charName, label, regRolls, hungerRolls, successes, outcome, diff, time } = msg;
+      // Add to DM dice history with player attribution
+      const entry = {
+        label: `[${charName}] ${label}`,
+        regRolls: regRolls||[], hungerRolls: hungerRolls||[],
+        successes: successes||0, outcome: outcome||'',
+        outcomeColor: outcome==='SUCCESS'||outcome==='CRITICAL SUCCESS' ? 'var(--green-lt)' :
+                      outcome==='MESSY CRITICAL' ? '#e0c060' : 'var(--crimson-lt)',
+        diff: diff||2, time: time||new Date().toLocaleTimeString()
+      };
+      rollHistory.unshift(entry);
+      if(rollHistory.length>30) rollHistory.pop();
+      renderRollHistory();
+      // Flash dice nav button
+      const diceNav = document.getElementById('nav_dice');
+      if(diceNav){ diceNav.style.color='var(--gold-lt)'; setTimeout(()=>{ diceNav.style.color=''; },2000); }
+      return;
+    }
+
+    if (msg.type !== 'sheet_update') return;
     const { charId, data, charName } = msg;
     if (!charId || !data) return;
 
@@ -1864,7 +1887,8 @@ function newSession(){
     else if(tool==='line'){ ctx.putImageData(snapshot,0,0); ctx.beginPath(); ctx.moveTo(startX,startY); ctx.lineTo(x,y); ctx.stroke(); }
     else if(tool==='rect'){ ctx.putImageData(snapshot,0,0); ctx.beginPath(); ctx.strokeRect(startX,startY,x-startX,y-startY); }
     else if(tool==='ellipse'){ ctx.putImageData(snapshot,0,0); ctx.beginPath(); ctx.ellipse(startX+(x-startX)/2,startY+(y-startY)/2,Math.abs(x-startX)/2,Math.abs(y-startY)/2,0,0,Math.PI*2); ctx.stroke(); }
-    startX=x; startY=y;
+    // Only update start pos for freehand tools (pencil/eraser track last point)
+    if(tool==='pencil'||tool==='eraser'){ startX=x; startY=y; }
   }
 
   function onUp(e){
@@ -1974,19 +1998,23 @@ function newSession(){
       for(let x=0;x<=CANVAS_W;x+=sz){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,CANVAS_H); ctx.stroke(); }
       for(let y=0;y<=CANVAS_H;y+=sz){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CANVAS_W,y); ctx.stroke(); }
     } else {
-      // Proper flat-top hex grid
-      const w=sz, h=sz*Math.sqrt(3);
-      const cols=Math.ceil(CANVAS_W/(w*1.5))+2;
-      const rows=Math.ceil(CANVAS_H/h)+2;
-      for(let row=-1;row<rows;row++){
-        for(let col=-1;col<cols;col++){
-          const cx=col*w*1.5 + w/2;
-          const cy=row*h + (col%2===0?h/2:0);
+      // Flat-top hex grid: sz = circumradius R
+      // Width of hex = 2R, Height = R*sqrt(3)
+      // Col spacing = R*1.5, Row spacing = R*sqrt(3)
+      const R=sz; // sz IS the circumradius
+      const colStep=R*1.5;
+      const rowStep=R*Math.sqrt(3);
+      const cols=Math.ceil(CANVAS_W/colStep)+2;
+      const rows=Math.ceil(CANVAS_H/rowStep)+2;
+      for(let col=-1;col<cols;col++){
+        for(let row=-1;row<rows;row++){
+          const cx=col*colStep + R;
+          const cy=row*rowStep + (col%2===0?0:rowStep/2);
           ctx.beginPath();
           for(let i=0;i<6;i++){
-            const angle=Math.PI/3*i; // flat-top: 0,60,120,...
-            const hx=cx+(w/2)*Math.cos(angle);
-            const hy=cy+(w/2)*Math.sin(angle);
+            const angle=Math.PI/3*i; // flat-top vertices at 0°,60°,120°...
+            const hx=cx+R*Math.cos(angle);
+            const hy=cy+R*Math.sin(angle);
             i===0?ctx.moveTo(hx,hy):ctx.lineTo(hx,hy);
           }
           ctx.closePath(); ctx.stroke();
@@ -2321,7 +2349,7 @@ window.setupTokenDrag=function(){
   // DM can drag placed tokens by clicking near them on the token canvas
   const tc=document.getElementById('map_token_canvas');
   if(!tc) return;
-  tc.style.pointerEvents='auto';
+  // token canvas stays pointer-events:none; events go to viewport
   let draggingTok=null, tokDragOx=0, tokDragOy=0;
 
   function tokFromPos(cx,cy){
@@ -2340,23 +2368,34 @@ window.setupTokenDrag=function(){
     };
   }
 
-  tc.addEventListener('mousedown',e=>{
-    const {x,y}=tokCanvasPos(e);
-    const tok=tokFromPos(x,y); if(!tok) return;
+  // DM token drag: intercept on viewport when a token tool is active
+  // Uses same coord transform as drawing tools
+  vp.addEventListener('mousedown',e=>{
+    if(e.button!==0||window._dmActiveTool==='draw') return;
+    const r=vp.getBoundingClientRect();
+    const mc=document.getElementById('map_canvas_wrap');
+    const m=new DOMMatrix(getComputedStyle(mc).transform);
+    const cx=(e.clientX-r.left-m.m41)/m.m11;
+    const cy=(e.clientY-r.top-m.m42)/m.m22;
+    const tok=tokFromPos(cx,cy); if(!tok) return;
     e.stopPropagation();
-    draggingTok=tok; tokDragOx=x-tok.x; tokDragOy=y-tok.y;
-    tc.style.cursor='grabbing';
+    draggingTok=tok; tokDragOx=cx-tok.x; tokDragOy=cy-tok.y;
+    vp.style.cursor='grabbing';
   });
   window.addEventListener('mousemove',e=>{
     if(!draggingTok) return;
-    const {x,y}=tokCanvasPos(e);
-    draggingTok.x=Math.round(x-tokDragOx);
-    draggingTok.y=Math.round(y-tokDragOy);
+    const r=vp.getBoundingClientRect();
+    const mc=document.getElementById('map_canvas_wrap');
+    const m=new DOMMatrix(getComputedStyle(mc).transform);
+    const cx=(e.clientX-r.left-m.m41)/m.m11;
+    const cy=(e.clientY-r.top-m.m42)/m.m22;
+    draggingTok.x=Math.round(cx-tokDragOx);
+    draggingTok.y=Math.round(cy-tokDragOy);
     renderTokenCanvas();
   });
   window.addEventListener('mouseup',()=>{
     if(!draggingTok) return;
-    pushTokens(); draggingTok=null; tc.style.cursor='default';
+    pushTokens(); draggingTok=null; vp.style.cursor='default';
   });
 };
 
