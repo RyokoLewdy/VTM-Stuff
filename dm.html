@@ -1027,7 +1027,12 @@ function buildCharShell(id){
     <!-- OVERVIEW -->
     <div class="tab-content" id="cv_ov_${id}">
       <div class="grid-2">
-        <div class="panel"><div class="ph">Identity</div><div class="pb"><div class="info-grid" id="ig_identity_${id}">
+        <div class="panel"><div class="ph">Identity</div><div class="pb">
+          <div style="display:flex;gap:10px;margin-bottom:10px;align-items:flex-start">
+            ${d._portraitImg ? `<img src="${d._portraitImg}" style="width:80px;height:80px;object-fit:cover;border:1px solid var(--border);flex-shrink:0" id="portrait_${id}">` : `<div style="width:80px;height:80px;border:1px solid var(--border);background:var(--field-bg);display:flex;align-items:center;justify-content:center;color:var(--subtext);font-size:9px;font-family:Cinzel,serif;flex-shrink:0" id="portrait_${id}">No Portrait</div>`}
+            ${d._tokenImg ? `<div style="display:flex;flex-direction:column;align-items:center;gap:4px"><img src="${d._tokenImg}" style="width:50px;height:50px;object-fit:cover;border-radius:50%;border:2px solid var(--gold-dim)" id="token_prev_${id}"><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext);letter-spacing:1px">TOKEN</div></div>` : ''}
+          </div>
+          <div class="info-grid" id="ig_identity_${id}">
           ${ic('Name',t.f_name)}${ic('Clan',t.f_clan)}
           ${ic('Generation',t.f_gen)}${ic('Blood Potency',bp)}
           ${ic('Sire',t.f_sire)}${ic('Sect',t.f_sect)}
@@ -1216,6 +1221,17 @@ function updateCharData(id){
 
   // Player notes
   set('pnotes_'+id, pn('Session Log',t.notes_session)+pn('NPC Relationships',t.notes_npcs)+pn('Goals & Plans',t.notes_goals)+pn('General Notes',t.notes_general));
+
+  // Portrait + token image (update src if changed)
+  const portraitEl = document.getElementById('portrait_'+id);
+  if(portraitEl && d._portraitImg) {
+    if(portraitEl.tagName==='IMG') portraitEl.src=d._portraitImg;
+    else { const img=document.createElement('img'); img.src=d._portraitImg; img.style.cssText='width:80px;height:80px;object-fit:cover;border:1px solid var(--border);flex-shrink:0'; img.id='portrait_'+id; portraitEl.replaceWith(img); }
+  }
+  const tokenPrevEl = document.getElementById('token_prev_'+id);
+  if(tokenPrevEl && d._tokenImg) tokenPrevEl.src=d._tokenImg;
+  // Also refresh token roster image if open
+  if(document.getElementById('view_map')?.classList.contains('active')) refreshTokenRoster();
 
   // Attributes & Skills (live dot updates) — re-render whole panel via ap()/sp() helpers
   set('cv_st_attr_phys_'+id, ap('Physical Attributes',['Strength','Dexterity','Stamina'],['attr_str','attr_dex','attr_sta'],dots));
@@ -1777,8 +1793,22 @@ function newSession(){
     const px=Math.sqrt((x-measStart.x)**2+(y-measStart.y)**2);
     const sz=parseInt(document.getElementById('map_grid_size')?.value||50);
     const squares=(px/sz).toFixed(1);
-    const meters=(px/sz*1.5).toFixed(1);
-    document.getElementById('measure_result').textContent=`${squares} sq / ${meters}m`;
+    const feet=Math.round(px/sz*5);
+    document.getElementById('measure_result').textContent=`${squares} sq / ${feet}ft`;
+    // Also draw label on grid canvas
+    const gc2=document.getElementById('map_grid_canvas');
+    if(gc2){
+      const ctx2=gc2.getContext('2d');
+      const midX=(measStart.x+x)/2, midY=(measStart.y+y)/2;
+      ctx2.save();
+      ctx2.fillStyle='rgba(0,0,0,0.75)';
+      const lw=70; ctx2.fillRect(midX-lw/2,midY-18,lw,20);
+      ctx2.fillStyle='#ff9999'; ctx2.font='bold 13px Cinzel,serif';
+      ctx2.textAlign='center'; ctx2.textBaseline='middle';
+      ctx2.fillText(`${squares}sq·${feet}ft`, midX, midY-8);
+      ctx2.textAlign='left'; ctx2.textBaseline='alphabetic';
+      ctx2.restore();
+    }
     ctx.restore();
   }
 
@@ -2054,7 +2084,15 @@ function newSession(){
 
     const out=document.createElement('canvas');
     out.width=CANVAS_W; out.height=CANVAS_H;
-    out.getContext('2d').drawImage(base,0,0);
+    const outCtx=out.getContext('2d');
+    outCtx.drawImage(base,0,0);
+    // Include grid overlay if visible
+    const gridCanvas=document.getElementById('map_grid_canvas');
+    if(gridCanvas && document.getElementById('map_grid')?.checked){
+      outCtx.globalAlpha=0.35;
+      outCtx.drawImage(gridCanvas,0,0);
+      outCtx.globalAlpha=1.0;
+    }
 
     const status=document.getElementById('map_push_status');
     if(status) status.textContent='Compressing…';
