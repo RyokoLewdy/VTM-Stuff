@@ -16,12 +16,12 @@
   --blue:#1a3a7a;--blue-lt:#6080e0;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:14px;min-height:100vh;
+body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:16px;min-height:100vh;
   background-image:radial-gradient(ellipse at 20% 20%,rgba(122,21,21,.06) 0%,transparent 60%),
   radial-gradient(ellipse at 80% 80%,rgba(196,154,34,.04) 0%,transparent 60%);}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;opacity:.35;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");}
-.page{max-width:1400px;margin:0 auto;padding:24px 32px;}
+.page{max-width:1600px;margin:0 auto;padding:24px 32px;}
 
 /* HEADER */
 .header{text-align:center;padding:24px 20px 18px;border:1px solid var(--border);
@@ -454,6 +454,18 @@ select.fi::-ms-expand{display:none;}
   color:var(--gold-lt);border:1px solid var(--gold-dim);background:rgba(196,154,34,.08);
   transition:all .15s;flex-shrink:0;margin:4px 8px;}
 .char-tab-add:hover{color:#fff;background:rgba(196,154,34,.2);border-color:var(--gold);}
+.char-switcher-btn{display:flex;align-items:center;gap:8px;padding:0 14px;height:36px;cursor:pointer;
+  font-family:Cinzel,serif;font-size:10px;letter-spacing:1px;color:var(--text);
+  border:none;border-right:1px solid var(--border);background:transparent;white-space:nowrap;flex-shrink:0;transition:background .15s;}
+.char-switcher-btn:hover{background:rgba(196,154,34,.08);}
+.char-switcher-btn.active-char{background:rgba(196,154,34,.12);color:var(--gold-lt);border-bottom:2px solid var(--gold);}
+.char-switcher-new{display:flex;align-items:center;gap:6px;padding:0 12px;height:26px;cursor:pointer;
+  font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;color:var(--gold-lt);
+  border:1px solid var(--gold-dim);background:rgba(196,154,34,.08);margin:5px 8px;flex-shrink:0;transition:all .15s;}
+.char-switcher-new:hover{background:rgba(196,154,34,.2);border-color:var(--gold);}
+.char-switcher-x{background:transparent;border:none;color:var(--subtext);cursor:pointer;
+  font-size:11px;padding:0 2px;line-height:1;transition:color .15s;flex-shrink:0;}
+.char-switcher-x:hover{color:var(--crimson-lt);}
 
 /* TOAST */
 .toast{position:fixed;bottom:20px;right:20px;z-index:9800;background:var(--panel);border:1px solid var(--border);
@@ -606,9 +618,9 @@ select.fi::-ms-expand{display:none;}
       <input type="text" id="p_dice_label" class="fi" placeholder="Label (e.g. Strength + Brawl)…" style="margin-bottom:8px" onkeydown="if(event.key==='Enter')playerRollDice()">
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
         <button class="btn green sm" onclick="playerRollDice()">Roll</button>
-        <button class="btn sm" onclick="playerQuickRoll(1,'Rouse Check')">Rouse (1d)</button>
-        <button class="btn sm" onclick="playerQuickRoll(2,'Frenzy Check')">Frenzy (2d)</button>
-        <button class="btn sm" onclick="playerQuickRoll(1,'Remorse Check')">Remorse</button>
+        <button class="btn sm" onclick="playerQuickRoll(1,'Rouse Check',6)">Rouse (1d)</button>
+        <button class="btn sm" onclick="playerQuickRoll(2,'Frenzy Check',1)">Frenzy (2d)</button>
+        <button class="btn sm" onclick="playerQuickRoll(1,'Remorse Check',1)">Remorse</button>
       </div>
       <div id="p_dice_result" class="panel" style="min-height:80px;padding:10px;font-size:13px;line-height:1.8;margin-bottom:8px"></div>
       <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin-bottom:6px">HISTORY</div>
@@ -627,37 +639,46 @@ select.fi::-ms-expand{display:none;}
 <div class="grid-2">
   <div class="panel">
     <div class="ph"><span class="ph-left">Identity</span></div>
-    <div class="pb">
-      <!-- Character Portrait + Token -->
-      <div style="display:flex;gap:10px;margin-bottom:10px;align-items:flex-start">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-          <div id="char_portrait_preview" onclick="document.getElementById('char_portrait_input').click()" style="width:80px;height:80px;border:1px solid var(--border);background:var(--field-bg);cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--subtext);font-size:10px;font-family:Cinzel,serif;letter-spacing:1px;text-align:center;flex-shrink:0" title="Click to set portrait">Portrait</div>
-          <input type="file" id="char_portrait_input" accept="image/*" style="display:none" onchange="loadCharImage('portrait',event)">
-          <button class="btn sm" style="font-size:7px;padding:2px 6px" onclick="document.getElementById('char_portrait_input').click()">Set Portrait</button>
+    <div class="pb" style="display:flex;gap:0;padding:0">
+      <!-- Vertical portrait column -->
+      <div style="flex:0 0 120px;display:flex;flex-direction:column;border-right:1px solid var(--border)">
+        <!-- Portrait fills column vertically -->
+        <div style="position:relative;flex:1;min-height:220px;background:#000;cursor:pointer;overflow:hidden" onclick="document.getElementById('char_portrait_input').click()" title="Click to set portrait">
+          <div id="char_portrait_preview" style="width:100%;height:100%;min-height:220px;background:var(--field-bg);display:flex;align-items:center;justify-content:center;color:var(--subtext);font-size:9px;font-family:Cinzel,serif;letter-spacing:1px;text-align:center;background-size:cover;background-position:center top">Portrait</div>
+          <div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-family:Cinzel,serif;font-size:6px;letter-spacing:2px;color:rgba(232,201,106,.4)">PORTRAIT</div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-          <div id="char_token_preview" onclick="document.getElementById('char_token_input').click()" style="width:60px;height:60px;border-radius:50%;border:2px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--subtext);font-size:9px;font-family:Cinzel,serif;letter-spacing:1px;text-align:center;flex-shrink:0" title="Click to set map token">Token</div>
-          <input type="file" id="char_token_input" accept="image/*" style="display:none" onchange="loadCharImage('token',event)">
-          <button class="btn sm" style="font-size:7px;padding:2px 6px" onclick="document.getElementById('char_token_input').click()">Set Token</button>
+        <!-- Token circle below portrait -->
+        <div style="border-top:1px solid var(--border);padding:8px;display:flex;flex-direction:column;align-items:center;gap:5px;background:rgba(0,0,0,.3)">
+          <div id="char_token_preview" onclick="document.getElementById('char_token_input').click()" style="width:56px;height:56px;border-radius:50%;border:2px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--subtext);font-size:8px;font-family:Cinzel,serif;text-align:center" title="Click to set map token">Token</div>
+          <span style="font-family:Cinzel,serif;font-size:6px;letter-spacing:2px;color:var(--subtext)">TOKEN</span>
         </div>
-        <div style="font-size:9px;color:var(--subtext);font-style:italic;line-height:1.5;padding-top:4px">Portrait shows on your sheet. Token appears on the DM's map.</div>
+        <!-- Buttons -->
+        <div style="border-top:1px solid var(--border);display:flex;flex-direction:column;gap:3px;padding:5px">
+          <button class="btn sm" style="font-size:6px;padding:2px 4px;width:100%" onclick="document.getElementById('char_portrait_input').click()">Portrait</button>
+          <button class="btn sm" style="font-size:6px;padding:2px 4px;width:100%" onclick="document.getElementById('char_token_input').click()">Token</button>
+        </div>
       </div>
-      <div class="fr"><span class="fl">Clan</span>
-        <select class="fi" id="f_clan">
-          <option value="">— Select Clan —</option>
-        </select>
+      <input type="file" id="char_portrait_input" accept="image/*" style="display:none" onchange="loadCharImage('portrait',event)">
+      <input type="file" id="char_token_input" accept="image/*" style="display:none" onchange="loadCharImage('token',event)">
+      <!-- Fields column -->
+      <div style="flex:1;padding:10px">
+        <div class="fr"><span class="fl">Clan</span>
+          <select class="fi" id="f_clan">
+            <option value="">— Select Clan —</option>
+          </select>
+        </div>
+        <div class="fr"><span class="fl">Generation</span><input class="fi" id="f_gen" placeholder="e.g. 10th"></div>
+        <div class="fr"><span class="fl">Blood Potency</span><input class="fi" id="f_bp" placeholder="1-10"></div>
+        <div class="fr"><span class="fl">Sire</span><input class="fi" id="f_sire" placeholder="Your sire's name"></div>
+        <div class="fr"><span class="fl">Sect</span>
+          <select class="fi" id="f_sect">
+            <option value="">— Select Sect —</option>
+            <option>Camarilla</option><option>Anarch</option><option>Sabbat</option>
+            <option>Ashirra</option><option>Independent</option>
+          </select>
+        </div>
+        <div class="fr"><span class="fl">Player</span><input class="fi" id="f_player" placeholder="Player name"></div>
       </div>
-      <div class="fr"><span class="fl">Generation</span><input class="fi" id="f_gen" placeholder="e.g. 10th"></div>
-      <div class="fr"><span class="fl">Blood Potency</span><input class="fi" id="f_bp" placeholder="1-10"></div>
-      <div class="fr"><span class="fl">Sire</span><input class="fi" id="f_sire" placeholder="Your sire's name"></div>
-      <div class="fr"><span class="fl">Sect</span>
-        <select class="fi" id="f_sect">
-          <option value="">— Select Sect —</option>
-          <option>Camarilla</option><option>Anarch</option><option>Sabbat</option>
-          <option>Ashirra</option><option>Independent</option>
-        </select>
-      </div>
-      <div class="fr"><span class="fl">Player</span><input class="fi" id="f_player" placeholder="Player name"></div>
     </div>
   </div>
   <div class="panel">
@@ -2360,16 +2381,28 @@ function applyData(d) {
 
 // ── CHARACTER + TOKEN IMAGES ──
 function applyCharImagePreview(type, dataUrl){
-  const elId = type==='portrait' ? 'char_portrait_preview' : 'char_token_preview';
-  const el = document.getElementById(elId); if(!el) return;
-  if(dataUrl){
-    el.style.backgroundImage = `url(${dataUrl})`;
-    el.style.backgroundSize = 'cover';
-    el.style.backgroundPosition = 'center';
-    el.textContent = '';
+  if(type==='portrait'){
+    const el = document.getElementById('char_portrait_preview'); if(!el) return;
+    if(dataUrl){
+      el.style.backgroundImage = `url(${dataUrl})`;
+      el.style.backgroundSize = 'cover';
+      el.style.backgroundPosition = 'center top';
+      el.textContent = '';
+    } else {
+      el.style.backgroundImage = '';
+      el.textContent = 'Portrait';
+    }
   } else {
-    el.style.backgroundImage = '';
-    el.textContent = type==='portrait'?'Portrait':'Token';
+    const el = document.getElementById('char_token_preview'); if(!el) return;
+    if(dataUrl){
+      el.style.backgroundImage = `url(${dataUrl})`;
+      el.style.backgroundSize = 'cover';
+      el.style.backgroundPosition = 'center';
+      el.textContent = '';
+    } else {
+      el.style.backgroundImage = '';
+      el.textContent = 'Token';
+    }
   }
 }
 
@@ -2528,28 +2561,36 @@ function saveCfg() { localStorage.setItem(SK_CFG, JSON.stringify(cfg)); }
 function renderCharSwitcher() {
   const bar = document.getElementById('charSwitcher');
   if (!bar) return;
-  // Preserve label, rebuild the rest
   bar.innerHTML = '<span class="char-switcher-label">CHARACTERS</span>';
   const chars = cfg.chars || {};
   const entries = Object.entries(chars);
 
   entries.forEach(([id, cc]) => {
-    const tab = document.createElement('div');
     const isActive = id === cfg.activeCharId;
-    tab.className = 'char-tab' + (isActive ? ' active' : '');
-    tab.title = isActive ? id + ' (active)' : 'Switch to ' + (cc.charName || id);
-    tab.innerHTML = `<span class="char-tab-name">${esc(cc.charName || id)}</span>
-      <button class="char-tab-x" onclick="event.stopPropagation();deleteCharacter('${id}')" title="Remove">✕</button>`;
-    if (!isActive) tab.addEventListener('click', () => switchCharacter(id));
-    bar.appendChild(tab);
+    const btn = document.createElement('button');
+    btn.className = 'char-switcher-btn' + (isActive ? ' active-char' : '');
+    btn.title = isActive ? id + ' (active)' : 'Switch to ' + (cc.charName || id);
+
+    const nameSpan = document.createElement('span');
+    nameSpan.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;max-width:140px;text-align:left';
+    nameSpan.textContent = cc.charName || id;
+
+    const xBtn = document.createElement('button');
+    xBtn.className = 'char-switcher-x';
+    xBtn.title = 'Remove';
+    xBtn.textContent = '✕';
+    xBtn.onclick = e => { e.stopPropagation(); deleteCharacter(id); };
+
+    btn.appendChild(nameSpan);
+    btn.appendChild(xBtn);
+    if (!isActive) btn.onclick = e => { if (!e.target.classList.contains('char-switcher-x')) switchCharacter(id); };
+    bar.appendChild(btn);
   });
 
   const addBtn = document.createElement('button');
-  addBtn.className = 'char-tab-add';
-  addBtn.title = entries.length
-    ? 'Add another character — current one saves first'
-    : 'Create your first character';
-  addBtn.textContent = '＋ New';
+  addBtn.className = 'char-switcher-new';
+  addBtn.title = entries.length ? 'Add another character — saves current first' : 'Create your first character';
+  addBtn.innerHTML = '＋ New Character';
   addBtn.onclick = addNewCharacter;
   bar.appendChild(addBtn);
 }
@@ -2560,8 +2601,9 @@ function switchCharacter(id) {
   saveAll();
   cfg.activeCharId = id;
   saveCfg();
-  // Re-subscribe map for this character's session
+  // Re-subscribe map and roll requests for this character's session
   if(window._mapSubscribeForChar) window._mapSubscribeForChar(id);
+  if(!cfg.chars?.[id]?.skipCloud) subscribeRollRequests(id);
   // Reset state
   state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[], _portraitImg:'', _tokenImg:'' };
   // Re-init UI
@@ -2707,6 +2749,7 @@ async function confirmSetup() {
   cfg.activeCharId = charId;
   saveCfg();
   if(window._mapSubscribeForChar) window._mapSubscribeForChar(charId);
+  subscribeRollRequests(charId);
 
   if (window._db) {
     try {
@@ -3138,6 +3181,38 @@ function populateDropdowns() {
   window._renderPlayerTokens=renderTokenOverlay;
 })();
 
+// ── TASK 2: Player watches roll_requests/{charId} for DM prompts ──
+let _rollReqUnsub=null;
+function subscribeRollRequests(charId){
+  if(_rollReqUnsub){ _rollReqUnsub(); _rollReqUnsub=null; }
+  if(!window._db||!charId) return;
+  const ref=window._fsDoc(window._db,'roll_requests',charId);
+  _rollReqUnsub=window._fsOnSnapshot(ref,snap=>{
+    if(!snap.exists()) return;
+    const d=snap.data();
+    if(d.status!=='pending') return;
+    // Mark as acknowledged so we don't re-trigger
+    window._fsSetDoc(ref,{...d,status:'acknowledged'}).catch(()=>{});
+    // Pre-fill dice panel and open it
+    const labelEl=document.getElementById('p_dice_label');
+    const poolEl=document.getElementById('p_dice_pool');
+    const hungerEl=document.getElementById('p_dice_hunger');
+    const diffEl=document.getElementById('p_dice_diff');
+    if(labelEl) labelEl.value=d.label||'Roll';
+    if(poolEl) poolEl.value=d.pool||5;
+    if(hungerEl) hungerEl.value=d.hunger||1;
+    if(diffEl) diffEl.value=d.diff||2;
+    // Open dice panel
+    const panel=document.getElementById('dicePanelOverlay');
+    if(panel) panel.style.display='flex';
+    // Flash dice button
+    const diceBtn=document.getElementById('diceBtn');
+    if(diceBtn){ diceBtn.style.borderColor='var(--gold)'; diceBtn.style.color='var(--gold-lt)'; diceBtn.textContent='🎲 Roll Request!'; }
+    setTimeout(()=>{ if(diceBtn){diceBtn.style.borderColor='';diceBtn.style.color='';diceBtn.textContent='🎲 Dice';} },6000);
+    toast('🎲 DM requests a roll: '+(d.label||'Roll')+' (Pool '+d.pool+', Diff '+d.diff+')');
+  },err=>console.warn('roll_requests listener:',err));
+}
+
 // ── PLAYER DICE ROLLER ──
 (function(){
   const pRollHistory = [];
@@ -3234,9 +3309,9 @@ function populateDropdowns() {
     displayPRoll(label, regRolls, hungerRolls, diff);
   };
 
-  window.playerQuickRoll = function(n, label){
+  window.playerQuickRoll = function(n, label, diff){
     const rolls = Array.from({length:n}, ()=>Math.ceil(Math.random()*10));
-    displayPRoll(label, rolls, [], 1);
+    displayPRoll(label, rolls, [], diff||1);
   };
 
   function displayPRoll(label, regRolls, hungerRolls, diff){
@@ -3271,7 +3346,12 @@ function populateDropdowns() {
       const border = hunger ? 'var(--crimson)' : 'var(--border)';
       const color = v>=6 ? (hunger?'#ff9090':'var(--gold-lt)') : 'var(--subtext)';
       const bold = (v===10||v===1) ? 'bold' : 'normal';
-      return `<div style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:${bg};border:1px solid ${border};font-family:'Cinzel',serif;font-size:12px;color:${color};font-weight:${bold};margin:2px">${v}</div>`;
+      let ttip = v>=6 ? 'Success' : 'Fail';
+      if(v===10 && !hunger) ttip='Critical (pair for +2)';
+      if(v===10 && hunger) ttip='Messy! (pair for +2 but messy)';
+      if(v===1 && hunger) ttip='Bestial! (failure becomes bestial)';
+      if(hunger) ttip = '🩸 Hunger die — '+ttip;
+      return `<div title="${ttip}" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:${bg};border:1px solid ${border};font-family:'Cinzel',serif;font-size:12px;color:${color};font-weight:${bold};margin:2px;cursor:help">${v}</div>`;
     }
     const diceHTML = allRolls.map(({v,hunger})=>dieFace(v,hunger)).join('');
     const resultEl = document.getElementById('p_dice_result');
@@ -3288,25 +3368,49 @@ function populateDropdowns() {
     if(pRollHistory.length > MAX_HIST) pRollHistory.pop();
     renderPRollHistory();
 
-    // Broadcast to DM via BroadcastChannel
+    // Broadcast to DM via BroadcastChannel (same-browser)
     if(typeof BC !== 'undefined' && BC){
       const charId = (typeof getActiveCharId === 'function') ? getActiveCharId() : null;
       const charName = charId ? (cfg.chars?.[charId]?.charName || charId) : 'Player';
       BC.postMessage({ type:'dice_roll', charId, charName, label, regRolls, hungerRolls, successes, outcome, diff, time: entry.time });
     }
+    // Task 1: Also push to Firestore dice_rolls for cross-computer DM sync
+    (function(){
+      const charId = (typeof getActiveCharId === 'function') ? getActiveCharId() : null;
+      const cc = charId && cfg.chars ? cfg.chars[charId] : null;
+      const dmId = cc?.sessionId;
+      if(!window._db||!dmId) return;
+      const charName = cc?.charName || charId || 'Player';
+      const rollEntry = {label, regRolls, hungerRolls, successes, outcome, diff, time:entry.time, charId, charName, _ts:Date.now()};
+      const ref = window._fsDoc(window._db,'dice_rolls',dmId+'_players');
+      // Read existing, prepend new roll, cap at 30
+      window._fsGetDoc(ref).then(snap=>{
+        const existing = snap.exists() ? (snap.data().rolls||[]) : [];
+        const updated = [rollEntry,...existing].slice(0,30);
+        window._fsSetDoc(ref,{rolls:updated,_updatedAt:Date.now()}).catch(()=>{});
+      }).catch(()=>{
+        window._fsSetDoc(ref,{rolls:[rollEntry],_updatedAt:Date.now()}).catch(()=>{});
+      });
+    })();
   }
 
+  let _histExpanded = false;
   function renderPRollHistory(){
     const el = document.getElementById('p_dice_history'); if(!el) return;
     if(!pRollHistory.length){ el.innerHTML='<div style="color:var(--subtext);font-style:italic">No rolls yet.</div>'; return; }
-    el.innerHTML = pRollHistory.map((r,i)=>`
+    const shown = _histExpanded ? pRollHistory : pRollHistory.slice(0,5);
+    el.innerHTML = shown.map((r,i)=>`
       <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(122,94,24,.12);${i===0?'background:rgba(196,154,34,.04)':''}">
         <span style="font-size:9px;color:var(--subtext);font-family:Cinzel,serif;min-width:52px">${r.time}</span>
         <span style="flex:1;font-size:11px">${esc(r.label)}</span>
         <span style="font-family:Cinzel,serif;font-size:10px;color:${r.outcomeColor}">${r.outcome}</span>
-        <span style="font-size:10px;color:var(--subtext)">${r.successes}✓</span>
+        <span style="font-size:10px;color:var(--subtext)">${r.successes}✓/d${r.diff}</span>
       </div>`).join('');
+    if(pRollHistory.length > 5){
+      el.innerHTML += `<div style="text-align:center;padding:4px 0"><button class="btn sm" style="font-size:8px" onclick="window._toggleDiceHist()">${_histExpanded?'▲ Show less':'▼ Show all ('+pRollHistory.length+')' }</button></div>`;
+    }
   }
+  window._toggleDiceHist = function(){ _histExpanded = !_histExpanded; renderPRollHistory(); };
 })();
 
 // ── PLAYER MAP MEASURE TOOL ──
@@ -3421,8 +3525,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load local data for active character instantly
     loadLocal(activeId);
     updateShareCode();
-    // Subscribe to DM map updates
+    // Subscribe to DM map updates and roll requests
     if(window._mapSubscribeForChar) window._mapSubscribeForChar(activeId);
+    if(!cfg.chars?.[activeId]?.skipCloud) subscribeRollRequests(activeId);
     // Then try cloud if connected
     const cc = cfg.chars?.[activeId];
     if (cc && !cc.skipCloud) {
