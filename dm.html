@@ -2730,7 +2730,17 @@ function subscribeDiceRolls(dmId){
 // roll_requests/{dmId} = { request: {charId,label,pool,hunger,diff,requestedAt}, status:'pending'|'fulfilled'|'' }
 
 function openRollRequest(){
-  if(!window._db){toast('Firebase not ready','error');return;}
+  // Wait for Firebase if not ready yet
+  if(!window._db){
+    let tries=0;
+    const wait=setInterval(()=>{
+      tries++;
+      if(window._db){ clearInterval(wait); openRollRequest(); }
+      else if(tries>40){ clearInterval(wait); toast('Firebase unavailable — check your connection','error'); }
+    },100);
+    toast('Connecting to Firebase…');
+    return;
+  }
   if(!cfg.dmId){toast('No session ID — open Setup first','error');return;}
   const charList=Object.entries(chars);
   if(!charList.length){toast('No characters loaded — load a character first','error');return;}
@@ -2783,7 +2793,2820 @@ async function sendRollRequest(){
   const diff=parseInt(document.getElementById('rr_diff')?.value)||2;
   const stEl=document.getElementById('rr_status');
   if(!charId){if(stEl)stEl.textContent='Select a player';return;}
-  if(!window._db||!cfg.dmId){if(stEl)stEl.textContent='Firebase not ready';return;}
+  if(!window._db||!cfg.dmId){if(stEl){stEl.textContent='Firebase not ready — try again in a moment';stEl.style.color='var(--crimson-lt)';}return;}
+  if(stEl){stEl.textContent='Sending…';stEl.style.color='var(--gold)';}
+  try{
+    const ref=window._fsDoc(window._db,'roll_requests',charId);
+    await window._fsSetDoc(ref,{
+      charId, label, pool, hunger, diff,
+      dmId:cfg.dmId, status:'pending', requestedAt:Date.now()
+    });
+    if(stEl){stEl.textContent='✓ Request sent — waiting for player…';stEl.style.color='var(--green-lt)';}
+    toast('Roll request sent to '+(chars[charId]?.name||charId));
+    setTimeout(()=>{const m=document.getElementById('rollRequestModal');if(m)m.style.display='none';},1500);
+  }catch(e){
+    if(stEl){stEl.textContent='Failed: '+e.message;stEl.style.color='var(--crimson-lt)';}
+  }
+}
+
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VtM V5 — DM Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0705;--surface:#120e09;--panel:#191309;--border:#7a5c18;
+  --gold:#c49a22;--gold-lt:#e8c96a;--gold-dim:#8a6a10;
+  --crimson:#7a1515;--crimson-lt:#c02020;
+  --text:#ede0c4;--subtext:#a08a62;
+  --field-bg:#100e0a;--field-border:#3a2e18;--input-text:#e0d4b0;
+  --green:#3a7a3a;--green-lt:#5aaa5a;
+  --dm:#0e0a2a;--dm-border:#5050c0;--dm-lt:#9090e8;--dm-dim:#2a2060;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:16px;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;opacity:.3;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");}
+.layout{display:flex;min-height:100vh;}
+.sidebar{width:230px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:10;}
+.main{flex:1;padding:18px 24px;overflow-x:hidden;min-width:0;}
+.sb-header{padding:16px 14px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#1e1308,#120e09);}
+.sb-campaign{font-family:'Cinzel Decorative',serif;font-size:12px;color:var(--gold-lt);letter-spacing:1px;line-height:1.4;word-break:break-word;}
+.sb-sub{font-family:'Cinzel',serif;font-size:7px;letter-spacing:4px;color:var(--subtext);margin-top:3px;}
+.sb-sect{padding:6px 0;}
+.sb-label{font-family:'Cinzel',serif;font-size:7px;letter-spacing:3px;color:var(--subtext);text-transform:uppercase;padding:5px 14px 2px;}
+.sb-btn{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;font-family:'EB Garamond',serif;
+  font-size:13px;color:var(--text);transition:all .15s;border:none;background:transparent;width:100%;text-align:left;}
+.sb-btn:hover{background:rgba(196,154,34,.08);color:var(--gold-lt);}
+.sb-btn.active{background:rgba(196,154,34,.12);color:var(--gold-lt);border-left:2px solid var(--gold);}
+.sb-btn.dm-nav{color:var(--dm-lt);}
+.sb-btn.dm-nav.active{background:rgba(80,80,192,.15);border-left:2px solid var(--dm-border);}
+.sb-btn .ti{font-size:12px;width:18px;text-align:center;flex-shrink:0;}
+.sb-btn .tn{flex:1;}
+.sb-btn .tc{font-size:11px;color:var(--subtext);opacity:0;transition:opacity .15s;}
+.sb-btn:hover .tc{opacity:1;}
+.sb-divider{height:1px;background:var(--border);margin:4px 0;opacity:.4;}
+.sb-bottom{margin-top:auto;padding:10px 12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:5px;}
+.btn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;padding:5px 12px;background:transparent;
+  border:1px solid var(--gold-dim);color:var(--gold);cursor:pointer;transition:all .2s;text-transform:uppercase;white-space:nowrap;}
+.btn:hover{background:rgba(196,154,34,.1);border-color:var(--gold);}
+.btn.green{border-color:var(--green);color:var(--green-lt);}
+.btn.green:hover{background:rgba(58,122,58,.15);}
+.btn.danger{border-color:var(--crimson);color:var(--crimson-lt);}
+.btn.danger:hover{background:rgba(122,21,21,.2);}
+.map-tool{min-width:30px;padding:4px 6px;}
+.active-tool{background:rgba(196,154,34,.2)!important;border-color:var(--gold)!important;color:var(--gold-lt)!important;}
+.btn.dm{border-color:var(--dm-border);color:var(--dm-lt);}
+.btn.dm:hover{background:rgba(80,80,192,.15);}
+.btn.sm{font-size:8px;padding:3px 8px;letter-spacing:1px;}
+.add-btn{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;padding:3px 10px;
+  background:transparent;border:1px solid var(--gold-dim);color:var(--gold);cursor:pointer;transition:all .2s;text-transform:uppercase;}
+.add-btn:hover{background:rgba(196,154,34,.12);}
+.panel{border:1px solid var(--border);background:var(--panel);overflow:hidden;margin-bottom:10px;}
+.dm-panel{border:1px solid var(--dm-border);background:rgba(14,10,42,.4);margin-bottom:10px;overflow:hidden;}
+.ph{background:var(--crimson);padding:5px 12px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;
+  color:var(--gold-lt);text-transform:uppercase;border-bottom:1px solid var(--gold-dim);display:flex;align-items:center;gap:8px;}
+.ph::before{content:'✦';font-size:7px;color:var(--gold-dim);}
+.ph.dm-ph{background:var(--dm-dim);border-bottom:1px solid var(--dm-border);}
+.ph.dm-ph::before{content:'⊕';}
+.pb{padding:12px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+.status-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:6px 12px;
+  border:1px solid var(--field-border);background:var(--surface);flex-wrap:wrap;}
+.sv-status{font-size:10px;font-family:'Cinzel',serif;letter-spacing:1px;color:var(--subtext);flex:1;}
+.sv-status.saved{color:var(--green-lt);}
+.sv-status.error{color:var(--crimson-lt);}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.mh-title{font-family:'Cinzel',serif;font-size:15px;color:var(--gold-lt);letter-spacing:3px;}
+.mh-sub{font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;letter-spacing:1px;margin-top:2px;}
+.mh-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.view-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px;flex-wrap:wrap;}
+.vt{padding:6px 14px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;cursor:pointer;
+  color:var(--subtext);border:1px solid transparent;border-bottom:none;margin-bottom:-1px;text-transform:uppercase;transition:all .2s;}
+.vt:hover{color:var(--gold);}
+.vt.active{color:var(--gold-lt);border-color:var(--border);border-bottom:1px solid var(--panel);background:var(--panel);}
+.vt.dm-vt.active{color:var(--dm-lt);border-color:var(--dm-border);border-bottom:1px solid var(--panel);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+.fi{flex:1;background:transparent;border:none;border-bottom:1px solid var(--field-border);
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:14px;padding:1px 4px;outline:none;width:100%;}
+.fi:focus{border-bottom-color:var(--gold-dim);}
+.fta{width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);
+  font-family:'EB Garamond',serif;font-size:14px;padding:8px;outline:none;resize:vertical;min-height:80px;line-height:1.6;}
+.fta:focus{border-color:var(--gold-dim);}
+.fta.dm{border-color:var(--dm-dim);background:rgba(14,10,42,.3);}
+.fta.dm:focus{border-color:var(--dm-border);}
+.fta.lg{min-height:120px;} .fta.xl{min-height:180px;} .fta.xxl{min-height:260px;}
+.fr{display:flex;align-items:baseline;gap:6px;margin-bottom:6px;border-bottom:1px solid rgba(122,94,24,.2);padding-bottom:5px;}
+.fr:last-child{border-bottom:none;}
+.fl{font-size:11px;color:var(--subtext);min-width:90px;font-family:'Cinzel',serif;letter-spacing:.5px;flex-shrink:0;}
+.itl{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--subtext);text-transform:uppercase;margin-bottom:4px;margin-top:8px;}
+.itl.dm{color:var(--dm-lt);}
+.div{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:8px 0;}
+select.fi{cursor:pointer;appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;background-color:transparent;}
+select.fi option{background:#0e0b08;color:#d4c898;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.info-cell{padding:4px 8px;border-bottom:1px solid rgba(122,94,24,.15);display:flex;gap:6px;align-items:baseline;}
+.info-cell:nth-child(odd){border-right:1px solid rgba(122,94,24,.15);}
+.ic-label{font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;min-width:80px;flex-shrink:0;}
+.ic-val{font-size:13px;color:var(--text);}
+.stat-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap;}
+.stat-name{font-size:12px;color:var(--text);min-width:108px;flex-shrink:0;}
+.dots-d{display:flex;gap:4px;}
+.dot-d{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--gold-dim);background:var(--field-bg);}
+.dot-d.f{background:var(--gold);border-color:var(--gold-lt);box-shadow:0 0 4px rgba(196,154,34,.3);}
+.boxes-d{display:flex;gap:3px;flex-wrap:wrap;}
+.box-d{width:22px;height:18px;border:1px solid var(--border);background:var(--field-bg);display:flex;align-items:center;justify-content:center;position:relative;}
+.box-d.sup::after{content:'/';position:absolute;font-size:13px;color:var(--gold);}
+.box-d.agg{background:rgba(122,21,21,.2);border-color:var(--crimson);}
+.box-d.agg::after{content:'X';position:absolute;font-size:11px;font-weight:bold;color:var(--crimson-lt);}
+.ld-d{display:flex;gap:5px;flex-wrap:wrap;}
+.ldot-d{width:15px;height:15px;border-radius:50%;border:1.5px solid var(--gold-dim);background:var(--field-bg);}
+.ldot-d.f{background:var(--gold);border-color:var(--gold-lt);}
+.ldot-d.hf{background:var(--crimson-lt);border-color:#d02020;}
+.disc-card-d{border:1px solid rgba(122,94,24,.35);background:rgba(28,18,8,.8);margin-bottom:6px;}
+.disc-card-d-hdr{display:flex;align-items:center;gap:8px;padding:5px 10px;background:rgba(122,21,21,.25);border-bottom:1px solid rgba(122,94,24,.25);}
+.disc-card-d-name{font-family:'Cinzel',serif;font-size:11px;color:var(--gold-lt);letter-spacing:1px;flex:1;}
+.disc-card-d-body{padding:6px 10px;}
+.power-d{display:flex;align-items:baseline;gap:6px;padding:2px 0;border-bottom:1px solid rgba(122,94,24,.1);font-size:13px;}
+.power-d:last-child{border-bottom:none;}
+.power-d-lvl{font-family:'Cinzel',serif;font-size:9px;color:var(--crimson-lt);min-width:20px;flex-shrink:0;}
+.power-d-dice{font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;margin-left:auto;flex-shrink:0;}
+.adv-d{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:13px;border-bottom:1px solid rgba(122,94,24,.1);}
+.adv-d:last-child{border-bottom:none;}
+.adv-d-name{flex:1;}
+.pn-block{background:rgba(196,154,34,.03);border:1px solid rgba(196,154,34,.12);padding:10px;margin-bottom:8px;}
+.pn-label{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:5px;}
+.pn-text{font-size:14px;color:var(--text);line-height:1.65;white-space:pre-wrap;}
+.log-entry-d{display:flex;align-items:center;gap:8px;padding:4px 6px;border-bottom:1px solid rgba(122,94,24,.12);font-size:13px;}
+.log-entry-d:last-child{border-bottom:none;}
+.log-tag{font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;padding:2px 6px;border:1px solid;min-width:70px;text-align:center;flex-shrink:0;}
+.log-tag.phleg{color:#90b0e0;border-color:#5a7aaa;background:rgba(40,60,120,.15);}
+.log-tag.sang{color:#e080b0;border-color:#7a3a5a;background:rgba(120,40,80,.15);}
+.log-tag.chol{color:#e0c060;border-color:#7a6a20;background:rgba(120,100,20,.15);}
+.log-tag.melan{color:#80c080;border-color:#3a5a3a;background:rgba(40,80,40,.15);}
+.log-tag.gain{color:var(--green-lt);border-color:var(--green);background:rgba(40,80,40,.1);}
+.log-tag.spend{color:var(--crimson-lt);border-color:var(--crimson);background:rgba(122,21,21,.1);}
+.log-tag.neutral{color:var(--subtext);border-color:rgba(122,94,24,.4);background:rgba(122,94,24,.05);}
+.npc-card-dm{border:1px solid var(--dm-border);background:rgba(14,10,42,.3);margin-bottom:8px;}
+.npc-card-dm-hdr{display:flex;align-items:center;gap:8px;padding:7px 12px;background:rgba(14,10,42,.5);border-bottom:1px solid var(--dm-dim);cursor:pointer;}
+.npc-name-dm{font-family:'Cinzel',serif;font-size:12px;color:var(--gold-lt);letter-spacing:1px;flex:1;}
+.npc-attitude{font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;padding:2px 7px;border:1px solid;flex-shrink:0;}
+.npc-attitude.friendly{color:var(--green-lt);border-color:var(--green);}
+.npc-attitude.hostile{color:var(--crimson-lt);border-color:var(--crimson);}
+.npc-attitude.neutral{color:var(--subtext);border-color:rgba(122,94,24,.4);}
+.npc-attitude.complicated{color:#e0c060;border-color:#7a6a20;}
+.npc-attitude.unknown{color:var(--subtext);border-color:rgba(80,80,80,.4);}
+.npc-card-dm-body{padding:10px 12px;display:none;}
+.npc-card-dm-body.open{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.rm-btn{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:12px;padding:0 3px;}
+.rm-btn:hover{color:var(--crimson-lt);}
+.ri-input{background:transparent;border:none;border-bottom:1px solid var(--field-border);
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:2px 4px;outline:none;width:100%;}
+.ri-input:focus{border-bottom-color:var(--gold-dim);}
+.ri-select{background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);
+  font-family:'EB Garamond',serif;font-size:12px;padding:3px 6px;outline:none;width:100%;
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}
+.ri-select option{background:#0e0b08;color:#d4c898;}
+.combat-hdr{display:grid;grid-template-columns:48px 1fr 120px 70px 50px 1fr auto;gap:8px;align-items:center;
+  padding:5px 10px;font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);border-bottom:1px solid var(--border);}
+.combatant{display:grid;grid-template-columns:48px 1fr 120px 70px 50px 1fr auto;gap:8px;align-items:center;
+  padding:6px 10px;border-bottom:1px solid rgba(122,94,24,.12);transition:background .15s;}
+.combatant:hover{background:rgba(196,154,34,.03);}
+.combatant.active-turn{background:rgba(196,154,34,.08);border-left:3px solid var(--gold);padding-left:7px;}
+.combatant.dead{opacity:.4;}
+.hbox{width:15px;height:13px;border:1px solid var(--border);background:var(--field-bg);cursor:pointer;position:relative;flex-shrink:0;}
+.hbox.sup::after{content:'/';position:absolute;font-size:10px;color:var(--gold);top:-1px;left:2px;}
+.hbox.agg{background:rgba(122,21,21,.3);border-color:var(--crimson);}
+.hbox.agg::after{content:'X';position:absolute;font-size:9px;color:var(--crimson-lt);font-weight:bold;top:0;left:2px;}
+.hmini-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;}
+.hmini-dot.hf{background:var(--crimson-lt);border-color:#e03030;}
+.c-num{background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);
+  font-family:'Cinzel',serif;font-size:12px;padding:2px 4px;outline:none;text-align:center;width:100%;}
+.prep-item{display:flex;align-items:flex-start;gap:8px;padding:5px 8px;border-bottom:1px solid rgba(122,94,24,.12);}
+.prep-item:last-child{border-bottom:none;}
+.prep-check{width:14px;height:14px;border:1px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;
+  flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--green-lt);}
+.prep-check.done{background:rgba(58,122,58,.3);border-color:var(--green);}
+.prep-del{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;opacity:0;}
+.prep-item:hover .prep-del{opacity:1;}
+.prep-del:hover{color:var(--crimson-lt);}
+.tl-item{display:grid;grid-template-columns:100px 110px 1fr auto;gap:8px;align-items:center;padding:6px 8px;border-bottom:1px solid rgba(122,94,24,.12);}
+.tl-hdr{display:grid;grid-template-columns:100px 110px 1fr auto;gap:8px;padding:4px 8px;
+  font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);border-bottom:1px solid var(--border);}
+.empty-state{text-align:center;padding:60px 20px;color:var(--subtext);}
+.empty-state h2{font-family:'Cinzel',serif;font-size:16px;color:var(--gold-dim);letter-spacing:4px;margin-bottom:10px;}
+.empty-msg{font-size:12px;color:var(--subtext);font-style:italic;padding:8px 0;}
+.frenzy-tag{display:inline-block;padding:1px 7px;background:rgba(192,32,32,.2);border:1px solid var(--crimson-lt);
+  font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--crimson-lt);animation:fp 1.8s ease-in-out infinite;}
+@keyframes fp{0%,100%{opacity:1;}50%{opacity:.55;}}
+.toast{position:fixed;bottom:20px;right:20px;z-index:9800;background:var(--panel);border:1px solid var(--border);
+  padding:10px 16px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;color:var(--gold-lt);
+  box-shadow:0 4px 20px rgba(0,0,0,.6);animation:ti .3s ease;}
+.toast.error{border-color:var(--crimson);color:var(--crimson-lt);}
+@keyframes ti{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.footer{text-align:center;padding:10px;font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:var(--subtext);border-top:1px solid var(--border);margin-top:16px;}
+.code-input{background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);
+  font-family:'Cinzel',serif;font-size:13px;letter-spacing:3px;padding:7px 12px;outline:none;
+  text-align:center;text-transform:uppercase;width:180px;}
+.na-box{font-size:11px;color:var(--subtext);font-style:italic;padding:6px;border-left:2px solid var(--crimson);background:rgba(122,21,21,.05);}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-header">
+    <div class="sb-campaign" id="sb_name">VtM V5 Campaign</div>
+    <div class="sb-sub">DM DASHBOARD</div>
+  </div>
+  <div class="sb-sect">
+    <div class="sb-label">Players</div>
+    <div id="charTabs"></div>
+    <div style="padding:6px 12px">
+      <button class="btn" style="width:100%;font-size:8px" onclick="showView('load')">+ Load Character</button>
+    </div>
+  </div>
+  <div class="sb-divider"></div>
+  <div class="sb-sect">
+    <div class="sb-label">Campaign</div>
+    <button class="sb-btn dm-nav" id="nav_overview" onclick="showView('overview')"><span class="ti">👁</span><span class="tn">Party Overview</span></button>
+    <button class="sb-btn dm-nav" id="nav_map" onclick="showView('map')"><span class="ti">🗺</span><span class="tn">Map Table</span></button>
+    <button class="sb-btn dm-nav" id="nav_prep" onclick="showView('prep')"><span class="ti">📋</span><span class="tn">Session Prep</span></button>
+    <button class="sb-btn dm-nav" id="nav_campaign" onclick="showView('campaign')"><span class="ti">📜</span><span class="tn">Campaign Notes</span></button>
+    <button class="sb-btn dm-nav" id="nav_npcs" onclick="showView('npcs')"><span class="ti">🎭</span><span class="tn">NPC Roster</span></button>
+    <button class="sb-btn dm-nav" id="nav_timeline" onclick="showView('timeline')"><span class="ti">⏳</span><span class="tn">Timeline</span></button>
+    <button class="sb-btn dm-nav" id="nav_combat" onclick="showView('combat')"><span class="ti">⚔</span><span class="tn">Combat Tracker</span></button>
+    <button class="sb-btn dm-nav" id="nav_dice" onclick="showView('dice')"><span class="ti">🎲</span><span class="tn">Dice Roller</span></button>
+  </div>
+  <div class="sb-bottom">
+    <button class="btn" style="font-size:8px" onclick="saveAll()">Save (Ctrl+S)</button>
+    <button class="btn dm" style="font-size:8px" onclick="syncFirestore()">☁ Sync to Cloud</button>
+    <button class="btn" style="font-size:8px" onclick="exportAll()">Export JSON</button>
+    <button class="btn" style="font-size:8px" onclick="document.getElementById('importFile').click()">Import JSON</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importAll(event)">
+    <button class="btn" style="font-size:8px" onclick="showSetup()">⚙ Setup</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="status-bar">
+    <span class="sv-status" id="saveStatus">DM Dashboard</span>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span id="syncIndicator" style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;color:var(--subtext)">Connecting…</span>
+      <button class="btn sm" onclick="refreshAll()">↻ Refresh All</button>
+    </div>
+  </div>
+
+  <!-- LOAD -->
+  <div id="view_load" class="tab-content active">
+    <div class="empty-state">
+      <h2>Load Character</h2>
+      <p style="font-size:13px;margin-bottom:24px;line-height:1.6">Import a player JSON export, or load a synced character from the cloud using their Character ID.</p>
+      <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;max-width:680px;margin:0 auto">
+        <div class="dm-panel" style="flex:1;min-width:260px">
+          <div class="ph dm-ph">Import JSON File</div>
+          <div class="pb" style="text-align:center">
+            <p style="font-size:12px;color:var(--subtext);margin-bottom:12px;line-height:1.5">Player exports their sheet → sends you the file → import here.</p>
+            <button class="btn green" onclick="document.getElementById('charFile').click()">📂 Choose File</button>
+            <input type="file" id="charFile" accept=".json" style="display:none" onchange="loadFromFile(event)">
+            <div id="fileStatus" style="margin-top:8px;font-size:11px;color:var(--subtext);font-family:'Cinzel',serif"></div>
+          </div>
+        </div>
+        <div class="dm-panel" style="flex:1;min-width:260px">
+          <div class="ph dm-ph">Load via Character ID</div>
+          <div class="pb" style="text-align:center">
+            <p style="font-size:13px;color:var(--subtext);margin-bottom:12px;line-height:1.6">Player opens their sheet → ⚙ Setup → enters your Session ID + a username. Their Character ID = <em style="color:var(--gold)">sessionid_username</em>.</p>
+            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+              <input class="code-input" id="codeInput" placeholder="e.g. dm_abc123_ryoko" style="min-width:220px;font-size:12px" onkeydown="if(event.key==='Enter')loadByCode()">
+              <button class="btn green" onclick="loadByCode()">Load</button>
+            </div>
+            <div id="codeStatus" style="margin-top:8px;font-size:11px;color:var(--subtext);font-family:'Cinzel',serif"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARTY OVERVIEW -->
+  <div id="view_overview" class="tab-content">
+    <div class="mh">
+      <div><div class="mh-title">Party Overview</div><div class="mh-sub">All loaded characters at a glance</div></div>
+      <div class="mh-actions"><button class="btn sm" onclick="renderOverview()">↻ Refresh</button></div>
+    </div>
+    <div id="overview_content"><div class="empty-state"><h2>No Characters Loaded</h2><p style="font-size:13px;color:var(--subtext)">Load characters via the Load Character screen first.</p></div></div>
+  </div>
+
+  <!-- MAP TABLE -->
+  <div id="view_map" class="tab-content">
+    <div class="mh">
+      <div><div class="mh-title">Map Table</div><div class="mh-sub">Draw or upload scene maps — push to players live</div></div>
+      <div class="mh-actions">
+        <select id="map_select" class="fi" style="max-width:160px;font-size:11px" onchange="loadSavedMap(this.value)">
+          <option value="">— Saved Maps —</option>
+        </select>
+        <button class="btn sm danger" onclick="deleteSavedMap()" title="Delete selected map">🗑</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;padding:0 0 12px;height:calc(100vh - 140px);min-height:600px">
+
+      <!-- LEFT TOOLBAR -->
+      <div class="dm-panel" style="flex:0 0 180px;overflow-y:auto;display:flex;flex-direction:column">
+        <div class="ph dm-ph">Tools</div>
+        <div class="pb" style="display:flex;flex-direction:column;gap:5px">
+
+          <!-- Draw Tools -->
+          <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin-bottom:2px">DRAW</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px">
+            <button id="tool_pencil"  class="btn sm map-tool active-tool" onclick="setTool('pencil')"  title="Pencil">✏️</button>
+            <button id="tool_line"    class="btn sm map-tool" onclick="setTool('line')"    title="Line">╱</button>
+            <button id="tool_rect"    class="btn sm map-tool" onclick="setTool('rect')"    title="Rectangle">▭</button>
+            <button id="tool_ellipse" class="btn sm map-tool" onclick="setTool('ellipse')" title="Ellipse">◯</button>
+            <button id="tool_fill"    class="btn sm map-tool" onclick="setTool('fill')"    title="Flood Fill">🪣</button>
+            <button id="tool_text"    class="btn sm map-tool" onclick="setTool('text')"    title="Text">T</button>
+            <button id="tool_eraser"  class="btn sm map-tool" onclick="setTool('eraser')"  title="Eraser">⬜</button>
+            <button id="tool_select"  class="btn sm map-tool" onclick="setTool('select')"  title="Select &amp; Move">⊹</button>
+          </div>
+
+          <!-- Stamps -->
+          <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin:4px 0 2px">STAMPS</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px">
+            <button class="btn sm map-tool" onclick="setStamp('🚪')" title="Door">🚪</button>
+            <button class="btn sm map-tool" onclick="setStamp('🪤')" title="Trap">🪤</button>
+            <button class="btn sm map-tool" onclick="setStamp('📦')" title="Chest">📦</button>
+            <button class="btn sm map-tool" onclick="setStamp('💡')" title="Light">💡</button>
+            <button class="btn sm map-tool" onclick="setStamp('🩸')" title="Blood">🩸</button>
+            <button class="btn sm map-tool" onclick="setStamp('💀')" title="Death">💀</button>
+            <button class="btn sm map-tool" onclick="setStamp('⭐')" title="Point of interest">⭐</button>
+            <button class="btn sm map-tool" onclick="setStamp('❓')" title="Unknown">❓</button>
+          </div>
+
+          <!-- Measure -->
+          <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin:4px 0 2px">MEASURE</div>
+          <button id="tool_measure" class="btn sm map-tool" style="width:100%" onclick="setTool('measure')" title="Measure distance">📏 Measure</button>
+          <div id="measure_result" style="font-size:10px;color:var(--gold);font-style:italic;min-height:14px;text-align:center"></div>
+
+          <hr style="border-color:var(--border);margin:4px 0">
+
+          <!-- Color & Size -->
+          <div style="display:flex;align-items:center;gap:6px">
+            <label style="font-family:Cinzel,serif;font-size:8px;letter-spacing:1px;color:var(--gold)">COLOR</label>
+            <input type="color" id="map_color" value="#c49a22" style="width:36px;height:22px;border:none;background:none;cursor:pointer;padding:0;flex:1">
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <label style="font-family:Cinzel,serif;font-size:8px;letter-spacing:1px;color:var(--gold)">SIZE</label>
+            <input type="range" id="map_size" min="1" max="80" value="4" style="flex:1">
+            <span id="map_size_val" style="font-size:11px;color:var(--subtext);min-width:18px">4</span>
+          </div>
+
+          <!-- History -->
+          <div style="display:flex;gap:3px">
+            <button class="btn sm" style="flex:1" onclick="mapUndo()" title="Undo">↩ Undo</button>
+            <button class="btn sm" style="flex:1" onclick="mapRedo()" title="Redo">↪ Redo</button>
+          </div>
+          <button class="btn danger sm" style="width:100%" onclick="clearCanvas()">✕ Clear All</button>
+
+          <hr style="border-color:var(--border);margin:4px 0">
+
+          <!-- Layer -->
+          <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin-bottom:2px">LAYER</div>
+          <div style="display:flex;gap:4px">
+            <button id="layer_base" class="btn sm active-tool" onclick="setLayer('base')" style="flex:1">Base</button>
+            <button id="layer_fog"  class="btn sm" onclick="setLayer('fog')"  style="flex:1;color:#e05050">🌫 Fog</button>
+          </div>
+          <div style="font-size:9px;color:var(--subtext);font-style:italic;line-height:1.4">Fog hidden from players.</div>
+
+          <hr style="border-color:var(--border);margin:4px 0">
+
+          <!-- Grid -->
+          <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin-bottom:2px">GRID</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input type="checkbox" id="map_grid" onchange="toggleGrid()" style="cursor:pointer">
+            <label for="map_grid" style="font-size:11px;cursor:pointer">Show</label>
+            <select id="map_grid_type" onchange="toggleGrid()" style="font-size:10px;background:var(--field-bg);color:var(--input-text);border:1px solid var(--field-border);padding:2px 4px;flex:1">
+              <option value="square">Square</option>
+              <option value="hex">Hex</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <label style="font-family:Cinzel,serif;font-size:8px;letter-spacing:1px;color:var(--subtext)">SZ</label>
+            <input type="range" id="map_grid_size" min="20" max="120" value="50" style="flex:1" oninput="toggleGrid();document.getElementById('grid_sz_val').textContent=this.value">
+            <span id="grid_sz_val" style="font-size:10px;color:var(--subtext);min-width:22px">50</span>
+          </div>
+
+          <hr style="border-color:var(--border);margin:4px 0">
+
+          <!-- Image upload -->
+          <input type="file" id="map_upload" accept="image/*" style="display:none" onchange="uploadMapImage(event)">
+          <button class="btn sm" style="width:100%" onclick="document.getElementById('map_upload').click()">🖼 Upload Image</button>
+
+          <hr style="border-color:var(--border);margin:4px 0">
+
+          <!-- Push -->
+          <input type="text" id="map_name_input" class="fi" placeholder="Map name…" style="font-size:11px">
+          <button class="btn green sm" style="width:100%;margin-top:3px" onclick="saveAndPushMap()">🚀 Push to Players</button>
+          <div id="map_push_status" style="font-size:9px;color:var(--subtext);font-style:italic;margin-top:3px;min-height:14px;text-align:center"></div>
+        </div>
+      </div>
+
+      <!-- CANVAS AREA (scrollable pan container) -->
+      <div style="flex:1;overflow:hidden;position:relative;background:#0a0a0a;border:1px solid var(--border)" id="map_viewport">
+        <div id="map_canvas_wrap" style="position:absolute;transform-origin:0 0;cursor:crosshair">
+          <canvas id="map_base"        width="2048" height="1536" style="display:block"></canvas>
+          <canvas id="map_fog"         width="2048" height="1536" style="position:absolute;top:0;left:0;opacity:0.55;pointer-events:none"></canvas>
+          <canvas id="map_grid_canvas" width="2048" height="1536" style="position:absolute;top:0;left:0;pointer-events:none;opacity:0.3"></canvas>
+          <canvas id="map_token_canvas" width="2048" height="1536" style="position:absolute;top:0;left:0;pointer-events:none"></canvas>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL: Token Roster -->
+      <div class="dm-panel" style="flex:0 0 160px;overflow-y:auto;display:flex;flex-direction:column">
+        <div class="ph dm-ph">Tokens</div>
+        <div class="pb" style="display:flex;flex-direction:column;gap:6px">
+          <div style="font-size:9px;color:var(--subtext);font-style:italic;line-height:1.4">Drag a token onto the map. Players control their own.</div>
+          <div id="token_roster" style="display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:10px;color:var(--subtext);text-align:center;padding:8px 0">No characters loaded.</div>
+          </div>
+          <hr style="border-color:var(--border);margin:4px 0">
+          <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin-bottom:2px">ON MAP</div>
+          <div id="token_placed_list" style="display:flex;flex-direction:column;gap:3px"></div>
+          <button class="btn danger sm" style="width:100%;margin-top:4px" onclick="clearAllTokens()">✕ Clear Tokens</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DICE ROLLER -->
+  <div id="view_dice" class="tab-content">
+    <div class="mh">
+      <div><div class="mh-title">Dice Roller</div><div class="mh-sub">V5 pool roller with Hunger dice</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="dm-panel">
+        <div class="ph dm-ph">Pool Builder</div>
+        <div class="pb">
+          <div class="fr"><span class="fl">Regular Dice</span>
+            <input type="number" id="dice_pool" class="fi" value="5" min="0" max="30" style="max-width:60px">
+          </div>
+          <div class="fr"><span class="fl">Hunger Dice</span>
+            <input type="number" id="dice_hunger" class="fi" value="1" min="0" max="5" style="max-width:60px">
+          </div>
+          <div class="fr"><span class="fl">Difficulty</span>
+            <input type="number" id="dice_diff" class="fi" value="2" min="1" max="10" style="max-width:60px">
+          </div>
+          <div class="fr"><span class="fl">Label</span>
+            <input type="text" id="dice_label" class="fi" placeholder="e.g. Strength + Brawl…" onkeydown="if(event.key==='Enter')rollDice()">
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <button class="btn green" onclick="rollDice()" style="font-size:11px;padding:6px 18px">🎲 Roll</button>
+            <button class="btn sm" onclick="quickRoll(1,'Rouse Check',6)">Rouse</button>
+            <button class="btn sm" onclick="quickRoll(2,'Frenzy Check',1)">Frenzy (2d)</button>
+            <button class="btn danger sm" onclick="clearRollHistory()">Clear</button>
+            <button class="btn dm sm" onclick="openRollRequest()" title="Ask a player to roll">📨 Request Roll</button>
+          </div>
+        </div>
+      </div>
+      <div class="dm-panel">
+        <div class="ph dm-ph">Result</div>
+        <div class="pb" id="dice_result" style="min-height:120px;font-size:14px;line-height:1.8">
+          <span style="color:var(--subtext);font-style:italic">Roll to see results…</span>
+        </div>
+      </div>
+    </div>
+    <div class="dm-panel">
+      <div class="ph dm-ph" style="justify-content:space-between"><span>Roll History</span></div>
+      <div class="pb" style="padding:0;max-height:340px;overflow-y:auto" id="dice_history">
+        <div style="padding:12px;color:var(--subtext);font-style:italic;font-size:13px">No rolls yet.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARACTER -->
+  <div id="view_character" class="tab-content"><div id="charContent"></div></div>
+
+  <!-- SESSION PREP -->
+  <div id="view_prep" class="tab-content">
+    <div class="mh">
+      <div><div class="mh-title">Session Prep</div><div class="mh-sub">Planning for the next session</div></div>
+      <div class="mh-actions"><button class="btn sm" onclick="clearDone()">Clear Done</button></div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="dm-panel">
+          <div class="ph dm-ph" style="justify-content:space-between"><span>Scene Checklist</span><button class="add-btn" onclick="addPrep('scenes')">+ Add</button></div>
+          <div class="pb">
+            <div id="prep_scenes"></div>
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <input id="pi_scenes" class="ri-input" placeholder="Scene or encounter..." onkeydown="if(event.key==='Enter')addPrep('scenes')" style="flex:1">
+              <button class="btn green sm" onclick="addPrep('scenes')">Add</button>
+            </div>
+          </div>
+        </div>
+        <div class="dm-panel">
+          <div class="ph dm-ph" style="justify-content:space-between"><span>NPCs This Session</span><button class="add-btn" onclick="addPrep('npcs')">+ Add</button></div>
+          <div class="pb">
+            <div id="prep_npcs"></div>
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <input id="pi_npcs" class="ri-input" placeholder="NPC to feature..." onkeydown="if(event.key==='Enter')addPrep('npcs')" style="flex:1">
+              <button class="btn green sm" onclick="addPrep('npcs')">Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="dm-panel">
+          <div class="ph dm-ph">Goals & Hooks</div>
+          <div class="pb">
+            <div class="itl dm" style="margin-top:0">Session Goals</div>
+            <textarea class="fta dm lg" id="prep_goals" placeholder="What should players accomplish this session..."></textarea>
+            <div class="itl dm">Hooks to Introduce</div>
+            <textarea class="fta dm" id="prep_hooks" placeholder="New threads, mysteries, foreshadowing..."></textarea>
+          </div>
+        </div>
+        <div class="dm-panel">
+          <div class="ph dm-ph">GM Notes</div>
+          <div class="pb"><textarea class="fta dm xl" id="prep_gmnotes" placeholder="Pacing, contingencies, things to remember, improvisation prompts..."></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAMPAIGN -->
+  <div id="view_campaign" class="tab-content">
+    <div class="mh"><div><div class="mh-title">Campaign Notes</div><div class="mh-sub">DM only</div></div></div>
+    <div class="fr" style="margin-bottom:12px">
+      <span class="fl">Campaign Name</span>
+      <input class="fi" id="dm_name" placeholder="Your campaign name..." oninput="updateName()">
+      <span class="fl" style="margin-left:16px">Setting</span>
+      <input class="fi" id="dm_setting" placeholder="e.g. Victorian London 1888...">
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="dm-panel"><div class="ph dm-ph">Session Log</div><div class="pb"><textarea class="fta dm xxl" id="dm_sessions" placeholder="Session chronicle..."></textarea></div></div>
+        <div class="dm-panel"><div class="ph dm-ph">Active Plot Threads</div><div class="pb"><textarea class="fta dm xl" id="dm_plots" placeholder="Live threads, foreshadowing, mysteries..."></textarea></div></div>
+      </div>
+      <div>
+        <div class="dm-panel"><div class="ph dm-ph">Secrets & Reveals</div><div class="pb"><textarea class="fta dm xl" id="dm_secrets" placeholder="What players don't know yet..."></textarea></div></div>
+        <div class="dm-panel"><div class="ph dm-ph">Faction Notes</div><div class="pb"><textarea class="fta dm xl" id="dm_factions" placeholder="Power structures, agendas, who owes who..."></textarea></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NPCS -->
+  <div id="view_npcs" class="tab-content">
+    <div class="mh">
+      <div><div class="mh-title">NPC Roster</div><div class="mh-sub">Mortals, Kindred &amp; named chronicle characters</div></div>
+      <div class="mh-actions" style="flex-wrap:wrap;gap:6px">
+        <select id="npc_filter" onchange="renderNPCs()" style="background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'Cinzel',serif;font-size:9px;padding:4px 8px;outline:none">
+          <option value="">All Types</option><option value="kindred">Kindred</option><option value="mortal">Mortal</option>
+          <option value="ghoul">Ghoul</option><option value="other">Other Supernatural</option>
+        </select>
+        <select id="npc_att_filter" onchange="renderNPCs()" style="background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'Cinzel',serif;font-size:9px;padding:4px 8px;outline:none">
+          <option value="">All Attitudes</option><option value="friendly">Friendly</option><option value="neutral">Neutral</option>
+          <option value="hostile">Hostile</option><option value="complicated">Complicated</option><option value="unknown">Unknown</option>
+        </select>
+        <button class="btn green" onclick="openNPCCreator()">+ Create NPC</button>
+      </div>
+    </div>
+    <div id="npc_list"></div>
+    <div class="empty-msg" id="npc_empty" style="display:none;padding:20px;text-align:center">No NPCs yet. Click <b>+ Create NPC</b> to add one.</div>
+  </div>
+
+  <!-- NPC CREATOR MODAL -->
+  <div id="npcCreatorModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:8000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0">
+    <div style="background:var(--surface);border:1px solid var(--border);max-width:780px;width:95%;margin:auto">
+      <div class="ph" style="display:flex;align-items:center;justify-content:space-between">
+        <span id="npcModalTitle">Create NPC</span>
+        <button class="btn danger sm" onclick="closeNPCCreator()">✕ Close</button>
+      </div>
+      <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div class="itl dm" style="margin-top:0">Name</div>
+          <input class="ri-input" id="nc_name" placeholder="NPC name..." style="width:100%;margin-bottom:8px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <div><div class="itl dm">Type</div>
+              <select class="ri-select" id="nc_type" style="width:100%" onchange="npcTypeChanged()">
+                <option value="kindred">Kindred</option><option value="mortal">Mortal</option>
+                <option value="ghoul">Ghoul</option><option value="other">Other Supernatural</option>
+              </select></div>
+            <div><div class="itl dm">Attitude</div>
+              <select class="ri-select" id="nc_attitude" style="width:100%">
+                <option value="neutral">Neutral</option><option value="friendly">Friendly</option>
+                <option value="hostile">Hostile</option><option value="complicated">Complicated</option>
+                <option value="unknown">Unknown</option>
+              </select></div>
+          </div>
+          <div id="nc_kindred_fields">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+              <div><div class="itl dm">Clan</div>
+                <select class="ri-select" id="nc_clan" style="width:100%">
+                  <option value="">— Select —</option>
+                  <option>Banu Haqim</option><option>Brujah</option><option>Gangrel</option>
+                  <option>Hecata</option><option>Lasombra</option><option>Malkavian</option>
+                  <option>Ministry</option><option>Nosferatu</option><option>Ravnos</option>
+                  <option>Salubri</option><option>Toreador</option><option>Tremere</option>
+                  <option>Tzimisce</option><option>Ventrue</option><option>Caitiff</option><option>Thin-Blood</option>
+                </select></div>
+              <div><div class="itl dm">Generation</div><input class="ri-input" id="nc_gen" placeholder="e.g. 9th" style="width:100%"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+              <div><div class="itl dm">Blood Potency</div><input class="ri-input" id="nc_bp" type="number" min="0" max="10" value="1" style="width:100%"></div>
+              <div><div class="itl dm">Sect / Faction</div><input class="ri-input" id="nc_sect" placeholder="Camarilla, Anarch..." style="width:100%"></div>
+            </div>
+            <div class="itl dm">Disciplines (e.g. Dominate 3, Presence 2)</div>
+            <input class="ri-input" id="nc_discs" style="width:100%;margin-bottom:8px">
+          </div>
+          <div id="nc_mortal_fields" style="display:none">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+              <div><div class="itl dm">Occupation</div><input class="ri-input" id="nc_occ" style="width:100%"></div>
+              <div><div class="itl dm">Organisation</div><input class="ri-input" id="nc_org" style="width:100%"></div>
+            </div>
+          </div>
+          <div class="itl dm">Status</div>
+          <select class="ri-select" id="nc_status" style="width:100%;margin-bottom:8px">
+            <option>Active</option><option>Dead</option><option>Missing</option><option>Unknown</option>
+          </select>
+        </div>
+        <div>
+          <div class="itl dm" style="margin-top:0">Key Attributes (1–5)</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px">
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">STR</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_str" style="width:100%"></div>
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">DEX</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_dex" style="width:100%"></div>
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">STA</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_sta" style="width:100%"></div>
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">CHA</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_cha" style="width:100%"></div>
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">MAN</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_man" style="width:100%"></div>
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">COM</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_com" style="width:100%"></div>
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">INT</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_int" style="width:100%"></div>
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">WIT</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_wit" style="width:100%"></div>
+            <div><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext)">RES</div><input class="ri-input" type="number" min="1" max="5" value="2" id="nc_attr_res" style="width:100%"></div>
+          </div>
+          <div class="itl dm">Key Skills (e.g. Brawl:3, Stealth:2)</div>
+          <input class="ri-input" id="nc_skills" style="width:100%;margin-bottom:8px">
+          <div id="nc_kindred_trackers">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
+              <div><div class="itl dm">Humanity</div><input class="ri-input" type="number" id="nc_humanity" min="0" max="10" value="7" style="width:100%"></div>
+              <div><div class="itl dm">Hunger</div><input class="ri-input" type="number" id="nc_hunger" min="0" max="5" value="1" style="width:100%"></div>
+              <div><div class="itl dm">Willpower</div><input class="ri-input" type="number" id="nc_wp" min="0" max="10" value="3" style="width:100%"></div>
+            </div>
+          </div>
+          <div class="itl dm">Health Boxes</div>
+          <input class="ri-input" type="number" id="nc_health" min="3" max="15" value="5" style="width:80px;margin-bottom:8px">
+          <div class="itl dm">Description &amp; Role</div>
+          <textarea class="fta dm" id="nc_desc" style="min-height:70px;width:100%;margin-bottom:8px" placeholder="Who are they, what do they want..."></textarea>
+          <div class="itl dm">Secrets &amp; Agenda (DM only)</div>
+          <textarea class="fta dm" id="nc_secrets" style="min-height:60px;width:100%" placeholder="Hidden motivations, true allegiances..."></textarea>
+        </div>
+      </div>
+      <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end">
+        <input type="hidden" id="nc_editing_id" value="">
+        <button class="btn" onclick="closeNPCCreator()">Cancel</button>
+        <button class="btn green" onclick="saveNPCFromCreator()">✓ Save NPC</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div id="view_timeline" class="tab-content">
+    <div class="mh">
+      <div><div class="mh-title">Chronicle Timeline</div><div class="mh-sub">Events in order</div></div>
+      <div class="mh-actions"><button class="btn" onclick="addTL()">+ Add Event</button></div>
+    </div>
+    <div class="dm-panel">
+      <div class="ph dm-ph">Events</div>
+      <div class="pb" style="padding:0">
+        <div class="tl-hdr"><span>Session / Date</span><span>Type</span><span>Event</span><span></span></div>
+        <div id="tl_list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMBAT -->
+  <div id="view_combat" class="tab-content">
+    <div class="mh">
+      <div><div class="mh-title">Combat Tracker</div><div class="mh-sub">Initiative · Health · Hunger</div></div>
+      <div class="mh-actions">
+        <button class="btn green" onclick="addCombatant()">+ Add</button>
+        <button class="btn" onclick="nextTurn()">Next Turn ▶</button>
+        <button class="btn" onclick="sortInit()">Sort by Init</button>
+        <button class="btn danger" onclick="clearCombat()">Clear</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="pb" style="padding:0">
+        <div class="combat-hdr"><span>Init</span><span>Name</span><span>Health</span><span>Hunger</span><span>WP</span><span>Notes</span><span></span></div>
+        <div id="combat_list"></div>
+      </div>
+    </div>
+    <div class="empty-msg" id="combat_empty">No combatants. Click + Add.</div>
+    <div class="dm-panel" style="margin-top:10px">
+      <div class="ph dm-ph">Combat Notes</div>
+      <div class="pb"><textarea class="fta dm" id="combat_notes" placeholder="Scene, environment, ongoing effects..."></textarea></div>
+    </div>
+  </div>
+
+  <div class="footer">✦ &nbsp; Vampire: The Masquerade V5 &nbsp;·&nbsp; DM Dashboard &nbsp; ✦</div>
+</div>
+</div>
+
+<!-- SETUP MODAL -->
+<div id="setupModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9000;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+  <div style="background:var(--panel);border:1px solid var(--border);max-width:420px;width:90%">
+    <div style="background:var(--crimson);padding:12px 16px;border-bottom:1px solid var(--gold-dim)">
+      <div style="font-family:'Cinzel Decorative',serif;font-size:14px;color:var(--gold-lt);letter-spacing:2px">DM Setup</div>
+      <div style="font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;margin-top:3px">Firestore cloud sync — no account needed</div>
+    </div>
+    <div style="padding:16px">
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:5px">Session ID</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="s_dmid" style="flex:1;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:14px;padding:7px 10px;outline:none;letter-spacing:1px" placeholder="Leave blank to generate a new one">
+          <button class="btn sm" onclick="copyGroupCode()" title="Copy Session ID">📋 Copy</button>
+        </div>
+        <div style="font-size:11px;color:var(--subtext);font-style:italic;margin-top:5px">Share this with your players — they paste it in their sheet's ⚙ Setup. Leave blank to auto-generate.</div>
+      </div>
+      <div style="padding:10px 12px;border:1px solid rgba(196,154,34,.25);background:rgba(196,154,34,.04);font-family:'EB Garamond',serif;font-size:13px;color:var(--subtext);line-height:1.6">
+        <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold-lt);margin-bottom:6px">HOW PLAYERS CONNECT</div>
+        1. Share your <strong style="color:var(--gold-lt)">Session ID</strong> with players<br>
+        2. Players open their sheet → ⚙ Setup → enter Session ID + a Username<br>
+        3. Their Character ID becomes <em style="color:var(--gold)">sessionid_username</em><br>
+        4. Use Load Character → enter that Character ID to see their sheet live
+      </div>
+    </div>
+    <div style="padding:10px 16px;border-top:1px solid var(--field-border);display:flex;justify-content:space-between;gap:8px;align-items:center">
+      <button class="btn" style="color:var(--subtext);font-size:11px" onclick="newSession()" title="Wipe current session and start fresh">⚡ New Session</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="hideSetup()">Cancel</button>
+        <button class="btn green" onclick="confirmSetup()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD4ZzE-wQ1PT9fkvm4JmJuoYvtsC5rhBkI",
+  authDomain: "vtmcampaignsync.firebaseapp.com",
+  projectId: "vtmcampaignsync",
+  storageBucket: "vtmcampaignsync.firebasestorage.app",
+  messagingSenderId: "891411401019",
+  appId: "1:891411401019:web:cced7ba60037ed7c614f1e"
+};
+const _app = initializeApp(firebaseConfig);
+const _db  = getFirestore(_app);
+const _auth = getAuth(_app);
+const _storage = getStorage(_app);
+
+window._db             = _db;
+window._auth           = _auth;
+window._storage        = _storage;
+window._sRef           = sRef;
+window._uploadBytes    = uploadBytes;
+window._getDownloadURL = getDownloadURL;
+window._deleteObject   = deleteObject;
+window._fsDoc          = doc;
+window._fsGetDoc       = getDoc;
+window._fsSetDoc       = setDoc;
+window._fsOnSnapshot   = onSnapshot;
+window._fsDocs         = getDocs;
+window._fsCollection   = collection;
+
+signInAnonymously(_auth).catch(e => console.warn('Anon auth failed:', e));
+</script>
+
+<script>
+const SK='vtm_dm3_v1', SK_CFG='vtm_dm3_cfg';
+
+// ── INSTANT SYNC via BroadcastChannel ──
+// Receives instant updates from player sheets open in the same browser.
+// No GitHub needed, no polling delay — sub-millisecond.
+const BC = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('vtm_sheet_sync') : null;
+if (BC) {
+  BC.onmessage = (event) => {
+    const msg = event.data;
+    if (!msg) return;
+
+    // Handle player dice rolls broadcast (same-browser only)
+    if(msg.type === 'dice_roll'){
+      const { charName, label, regRolls, hungerRolls, successes, outcome, diff, time } = msg;
+      // Add to DM dice history with player attribution — tag as 'bc' so Firestore dedup can skip it
+      const entry = {
+        label: `[${charName}] ${label}`,
+        regRolls: regRolls||[], hungerRolls: hungerRolls||[],
+        successes: successes||0, outcome: outcome||'',
+        outcomeColor: outcome==='SUCCESS'||outcome==='CRITICAL SUCCESS' ? 'var(--green-lt)' :
+                      outcome==='MESSY CRITICAL' ? '#e0c060' : 'var(--crimson-lt)',
+        diff: diff||2, time: time||new Date().toLocaleTimeString(),
+        source: 'bc', _bcTime: time  // used to dedup Firestore delivery
+      };
+      rollHistory.unshift(entry);
+      if(rollHistory.length>30) rollHistory.pop();
+      renderRollHistory();
+      // Flash dice nav button
+      const diceNav = document.getElementById('nav_dice');
+      if(diceNav){ diceNav.style.color='var(--gold-lt)'; setTimeout(()=>{ diceNav.style.color=''; },2000); }
+      return;
+    }
+
+    if (msg.type !== 'sheet_update') return;
+    const { charId, data, charName } = msg;
+    if (!charId || !data) return;
+
+    // Only update characters already loaded in the DM — don't auto-add new ones.
+    // New characters must be loaded explicitly via Character ID to avoid ghost tabs.
+    if (!chars[charId]) return;
+
+    // Check if data actually changed before re-rendering
+    const newHash = dataHash(data);
+    if (newHash === lastHash[charId]) return;
+
+    chars[charId].data = data;
+    lastHash[charId] = newHash;
+
+    // Flash the sidebar tab
+    const btn = document.getElementById('ct_' + charId);
+    if (btn) {
+      btn.style.borderLeft = '2px solid var(--green-lt)';
+      setTimeout(() => { if (btn) btn.style.borderLeft = ''; }, 2000);
+    }
+
+    // Re-render only if this character is currently visible
+    if (activeChar === charId) {
+      renderChar(charId); // tab restore is handled inside renderChar
+    }
+
+    setStatus('Live update: ' + (charName||'Player') + ' — ' + new Date().toLocaleTimeString(), 'saved');
+  };
+}
+let cfg={}, chars={}, activeChar=null;
+const activeTab={};
+const lastHash={};
+function dataHash(d){
+  if(!d)return'';
+  return JSON.stringify({ld:d.largeDots,boxes:d.boxes,stains:d.text?.f_stains,
+    res:d.text?.f_resonance,sn:d.text?.notes_session,ng:d.text?.notes_goals,
+    nn:d.text?.notes_npcs,gen:d.text?.notes_general,
+    xl:d.xpLog?.length,fl:d.feedLog?.length,
+    dots:d.dots,
+    specs:d.specialties?.map(s=>s.skill+s.name),
+    discs:d.disciplines?.map(x=>x.name+':'+(x.powers||[]).map(p=>p.name).join(',')),
+    merits:d.merits?.map(m=>m.name+(m.dots||0)),
+    flaws:d.flaws?.map(f=>f.name)});
+}
+const RES={phleg:'Phlegmatic',sang:'Sanguine',chol:'Choleric',melan:'Melancholic',empty:'Empty',''  :'Unknown'};
+const BPT={0:{surge:1,bane:1},1:{surge:2,bane:2},2:{surge:2,bane:2},3:{surge:3,bane:2},4:{surge:3,bane:3},5:{surge:4,bane:3},6:{surge:4,bane:3},7:{surge:5,bane:4},8:{surge:5,bane:4},9:{surge:6,bane:5},10:{surge:6,bane:5}};
+
+let dm={
+  campaignName:'',setting:'',
+  sessions:'',plots:'',secrets:'',factions:'',
+  prepGoals:'',prepHooks:'',prepGmNotes:'',combatNotes:'',
+  prepScenes:[],prepNpcs:[],
+  npcs:[],timeline:[],combat:[],
+  charNotes:{}
+};
+
+// ── PERSIST ──
+function loadCfg(){try{cfg=JSON.parse(localStorage.getItem(SK_CFG)||'{}')}catch(e){cfg={}}}
+function saveCfg(){localStorage.setItem(SK_CFG,JSON.stringify(cfg))}
+function g(id){const e=document.getElementById(id);return e?e.value:''}
+function s(id,v){const e=document.getElementById(id);if(e)e.value=v||''}
+
+function collectDM(){
+  dm.campaignName=g('dm_name'); dm.setting=g('dm_setting');
+  dm.sessions=g('dm_sessions'); dm.plots=g('dm_plots');
+  dm.secrets=g('dm_secrets'); dm.factions=g('dm_factions');
+  dm.prepGoals=g('prep_goals'); dm.prepHooks=g('prep_hooks');
+  dm.prepGmNotes=g('prep_gmnotes'); dm.combatNotes=g('combat_notes');
+  Object.keys(chars).forEach(id=>{
+    if(!dm.charNotes[id])dm.charNotes[id]={};
+    ['dmPrivate','dmArc','dmHooks','dmThreat'].forEach(k=>{
+      const el=document.getElementById(k+'_'+id);
+      if(el)dm.charNotes[id][k]=el.value;
+    });
+  });
+}
+function applyDM(){
+  s('dm_name',dm.campaignName); s('dm_setting',dm.setting);
+  s('dm_sessions',dm.sessions); s('dm_plots',dm.plots);
+  s('dm_secrets',dm.secrets); s('dm_factions',dm.factions);
+  s('prep_goals',dm.prepGoals); s('prep_hooks',dm.prepHooks);
+  s('prep_gmnotes',dm.prepGmNotes); s('combat_notes',dm.combatNotes);
+  updateName(); renderPrepList('scenes'); renderPrepList('npcs');
+  renderNPCs(); renderTL(); renderCombat();
+}
+function saveAll(){
+  collectDM();
+  localStorage.setItem(SK,JSON.stringify({dm,chars,maps:dm.maps}));
+  setStatus('Saved — '+new Date().toLocaleTimeString(),'saved');
+  if(window._db && cfg.dmId){
+    const ref=window._fsDoc(window._db,'dm_data',cfg.dmId);
+    window._fsSetDoc(ref,{dm,_updatedAt:Date.now()}).catch(e=>console.warn('DM cloud save:',e));
+  }
+}
+function loadLocal(){
+  try{
+    const raw=localStorage.getItem(SK); if(!raw)return;
+    const d=JSON.parse(raw);
+    if(d.dm)Object.assign(dm,d.dm);
+    if(d.maps)dm.maps=d.maps;
+    if(d.chars){
+      chars=d.chars;
+      Object.entries(chars).forEach(([id,c])=>{
+        addCharTab(id,c.name);
+        if(c.data) buildCharShell(id);
+      });
+    }
+    applyDM();
+    refreshMapSelect();
+  }catch(e){console.error(e)}
+}
+
+// ── SETUP / FIRESTORE ──
+function showSetup(){
+  document.getElementById('s_dmid').value=cfg.dmId||'';
+  document.getElementById('setupModal').style.display='flex';
+}
+function hideSetup(){document.getElementById('setupModal').style.display='none'}
+function confirmSetup(){
+  let dmId=document.getElementById('s_dmid').value.trim();
+  if(!dmId){
+    // Generate a stable DM session ID
+    dmId='dm_'+Math.random().toString(36).substring(2,12);
+  }
+  cfg.dmId=dmId;
+  saveCfg();hideSetup();
+  toast('Session ID saved: '+dmId+' — share this with returning campaigns.');
+}
+
+function copyGroupCode(){
+  if(!cfg.dmId){ toast('No session ID yet. Click ⚙ Setup.','error'); return; }
+  navigator.clipboard.writeText(cfg.dmId).then(()=>toast('Session ID copied — you can use this to restore your DM data on another device.'));
+}
+
+async function syncFirestore(){
+  if(!window._db){toast('Firebase not ready.','error');return}
+  if(!cfg.dmId){toast('No session ID. Click ⚙ Setup.','error');return}
+  setStatus('Syncing...',''); collectDM();
+  try{
+    const ref=window._fsDoc(window._db,'dm_data',cfg.dmId);
+    await window._fsSetDoc(ref,{dm,_updatedAt:Date.now()});
+    setStatus('Synced — '+new Date().toLocaleTimeString(),'saved');
+    toast('DM data synced to cloud.');
+  }catch(e){setStatus('Sync failed','error');toast('Sync failed: '+e.message,'error')}
+}
+
+
+// ── LOAD CHARACTER ──
+function loadFromFile(e){
+  const file=e.target.files[0]; if(!file)return;
+  const status=document.getElementById('fileStatus');
+  const r=new FileReader(); r.onload=ev=>{
+    try{const data=JSON.parse(ev.target.result);const name=data.text?.f_name||file.name.replace('.json','')||'Unknown';
+    const id='f_'+Date.now();chars[id]={data,name,source:'file'};if(!dm.charNotes[id])dm.charNotes[id]={};
+    addCharTab(id,name);switchChar(id);status.textContent='';toast('Loaded: '+name);}catch(err){status.textContent='Invalid JSON file.';}
+  };r.readAsText(file);e.target.value='';
+}
+
+async function loadByCode(){
+  const raw=document.getElementById('codeInput').value.trim();
+  const st=document.getElementById('codeStatus');
+  if(!raw){st.textContent='Enter a Character ID from the player sheet.';return}
+  if(!window._db){st.textContent='Firebase not ready yet — try again in a moment.';return}
+  st.textContent='Loading from cloud...';
+  try{
+    const charId=raw;
+    const snap=await window._fsGetDoc(window._fsDoc(window._db,'characters',charId));
+    if(!snap.exists()){st.textContent='No character found with that ID. Ask the player to sync first.';return}
+    const data=snap.data();
+    const name=data.text?.f_name||data._charName||'Unknown';
+    chars[charId]={data,name,source:'firestore',charId};
+    if(!dm.charNotes[charId])dm.charNotes[charId]={};
+    // Subscribe to live updates for this character
+    subscribeChar(charId);
+    addCharTab(charId,name);
+    document.getElementById('codeInput').value='';
+    st.textContent='';
+    switchChar(charId);
+    toast('Loaded: '+name);
+  }catch(e){st.textContent='Error: '+e.message}
+}
+
+// Live Firestore listener per character (replaces polling)
+const _unsubs={};
+function subscribeChar(charId){
+  if(_unsubs[charId])return; // already subscribed
+  const ref=window._fsDoc(window._db,'characters',charId);
+  _unsubs[charId]=window._fsOnSnapshot(ref,(snap)=>{
+    if(!snap.exists())return;
+    const newData=snap.data();
+    const newHash=dataHash(newData);
+    const changed=newHash!==lastHash[charId];
+    if(!changed)return;
+    if(!chars[charId])return;
+    chars[charId].data=newData;
+    lastHash[charId]=newHash;
+    chars[charId].lastChecked=new Date().toLocaleTimeString();
+    const btn=document.getElementById('ct_'+charId);
+    if(btn){btn.style.borderLeft='2px solid var(--green-lt)';setTimeout(()=>{if(btn)btn.style.borderLeft='';},2000);}
+    if(activeChar===charId)renderChar(charId);
+    setStatus('Live update: '+(chars[charId]?.name||charId)+' — '+new Date().toLocaleTimeString(),'saved');
+    updateSyncIndicator();
+    if(document.getElementById('view_overview')?.classList.contains('active')) renderOverview();
+  },(err)=>console.warn('Snapshot error:',err));
+}
+function unsubscribeChar(id){if(_unsubs[id]){_unsubs[id]();delete _unsubs[id];}}
+
+async function refreshChar(id,silent){
+  const c=chars[id]; if(!c)return;
+  if(c.source==='firestore'){
+    // onSnapshot handles live updates; force a manual fetch if asked explicitly
+    if(silent)return;
+    try{
+      const snap=await window._fsGetDoc(window._fsDoc(window._db,'characters',c.charId||id));
+      if(!snap.exists())return;
+      const newData=snap.data();
+      const newHash=dataHash(newData);
+      if(newHash!==lastHash[id]){
+        c.data=newData;lastHash[id]=newHash;
+        if(activeChar===id)renderChar(id);
+        toast('Updated: '+c.name);
+      } else { toast('Already up to date.'); }
+      c.lastChecked=new Date().toLocaleTimeString();
+    }catch(e){if(!silent)toast('Refresh failed','error')}
+  }
+}
+async function refreshAll(silent){
+  const ids=Object.keys(chars).filter(id=>chars[id].source==='firestore');
+  if(!ids.length){if(!silent)setStatus('No cloud characters loaded.','');updateSyncIndicator();return;}
+  await Promise.all(ids.map(id=>refreshChar(id,true)));
+  if(!silent)setStatus('Checked '+ids.length+' sheet(s) — '+new Date().toLocaleTimeString(),'saved');
+  updateSyncIndicator();
+  // Re-render overview if visible
+  if(document.getElementById('view_overview')?.classList.contains('active')) renderOverview();
+}
+
+// ── NAV ──
+function addCharTab(id,name){
+  if(document.getElementById('ct_'+id))return;
+  const tabs=document.getElementById('charTabs');
+  const username=id.includes('_')?id.split('_').pop():id;
+  const btn=document.createElement('button'); btn.className='sb-btn'; btn.id='ct_'+id;
+  btn.innerHTML=`<span class="ti">🧛</span><span class="tn" style="text-transform:capitalize">${esc(username)}</span>
+    <span style="display:flex;gap:3px;margin-left:auto;flex-shrink:0">
+      <span class="tc" title="View ${esc(name)}" onclick="event.stopPropagation();switchChar('${id}')">👁</span>
+      <span class="tc" onclick="removeChar('${id}',event)">✕</span>
+    </span>`;
+  btn.onclick=e=>{if(!e.target.classList.contains('tc')&&!e.target.closest('[class="tc"]'))switchChar(id)};
+  tabs.appendChild(btn);
+}
+function removeChar(id,e){if(e)e.stopPropagation();unsubscribeChar(id);delete chars[id];document.getElementById('ct_'+id)?.remove();if(activeChar===id){activeChar=null;showView('load')}}
+function switchChar(id){activeChar=id;document.querySelectorAll('.sb-btn').forEach(b=>b.classList.remove('active'));document.getElementById('ct_'+id)?.classList.add('active');showView('character');renderChar(id)}
+function showView(name){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById('view_'+name)?.classList.add('active');
+  document.querySelectorAll('.sb-btn.dm-nav').forEach(b=>b.classList.remove('active'));
+  document.getElementById('nav_'+name)?.classList.add('active');
+  if(name==='overview') renderOverview();
+  if(name==='map') initMapCanvas();
+}
+function updateName(){const n=g('dm_name')||'VtM V5 Campaign';document.getElementById('sb_name').textContent=n;document.title=n+' — DM Dashboard'}
+
+// ── CHAR VIEW ──
+// ── CHAR VIEW ──
+// buildCharShell: creates the full DOM structure once (on first load / tab switch)
+// updateCharData: patches only the changing values on live updates — never rebuilds DOM
+function renderChar(id){
+  const alreadyBuilt = !!document.getElementById('cv_ov_'+id);
+  if(alreadyBuilt){
+    updateCharData(id);
+  } else {
+    buildCharShell(id);
+  }
+  // Restore active sub-tab without touching the rest of the DOM
+  const savedTab = activeTab[id] || 'ov';
+  ['ov','st','di','lg','pn','dm'].forEach(t=>{
+    document.getElementById('vt_'+t+'_'+id)?.classList.toggle('active',t===savedTab);
+    document.getElementById('cv_'+t+'_'+id)?.classList.toggle('active',t===savedTab);
+  });
+}
+
+function buildCharShell(id){
+  const c=chars[id]; if(!c)return;
+  const d=c.data,t=d.text||{},dots=d.dots||{},boxes=d.boxes||{},ld=d.largeDots||{};
+  const discs=d.disciplines||[],merits=d.merits||[],flaws=d.flaws||[];
+  const specs=d.specialties||[],rits=d.rituals||[],xpLog=d.xpLog||[],feedLog=d.feedLog||[];
+  const coterie=d.coterie||[],pnpcs=d.npcs||[];
+  const notes=dm.charNotes[id]||{};
+  const hunger=ld.hunger||1,bp=ld.bp||1,bpRow=BPT[bp]||BPT[1];
+  let xpTotal=0,xpSpent=0;
+  xpLog.forEach(e=>{if(e.type==='gain')xpTotal+=e.amount;else xpSpent+=e.amount});
+
+  document.getElementById('charContent').innerHTML=`
+    <div class="mh">
+      <div>
+        <div class="mh-title" id="mh_name_${id}">${esc(t.f_name||'Character')}</div>
+        <div class="mh-sub" id="mh_sub_${id}">${esc(t.f_clan||'')} · ${esc(t.f_sect||'')} · Gen ${esc(t.f_gen||'?')}${hunger>=4?' &nbsp;<span class="frenzy-tag">⚠ FRENZY RISK</span>':''}</div>
+      </div>
+      <div class="mh-actions">
+        ${c.source==='firestore'?`<button class="btn green sm" onclick="refreshChar('${id}')">↻ Refresh</button>`:''}
+        <button class="btn sm" onclick="downloadCharJSON('${id}')" title="Download this character's sheet as JSON">⬇ JSON</button>
+        <button class="btn danger sm" onclick="removeChar('${id}')">Remove</button>
+      </div>
+    </div>
+    <div class="view-tabs">
+      <div class="vt" id="vt_ov_${id}" onclick="cvt('${id}','ov')">Overview</div>
+      <div class="vt" id="vt_st_${id}" onclick="cvt('${id}','st')">Stats</div>
+      <div class="vt" id="vt_di_${id}" onclick="cvt('${id}','di')">Disciplines</div>
+      <div class="vt" id="vt_lg_${id}" onclick="cvt('${id}','lg')">Logs & Coterie</div>
+      <div class="vt" id="vt_pn_${id}" onclick="cvt('${id}','pn')">Player Notes</div>
+      <div class="vt dm-vt" id="vt_dm_${id}" onclick="cvt('${id}','dm')">⊕ DM Notes</div>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div class="tab-content" id="cv_ov_${id}">
+      <div class="grid-2">
+        <div class="panel"><div class="ph">Identity</div><div class="pb">
+          <div style="display:flex;gap:10px;margin-bottom:10px;align-items:flex-start">
+            ${d._portraitImg ? `<img src="${d._portraitImg}" style="width:80px;height:80px;object-fit:cover;border:1px solid var(--border);flex-shrink:0" id="portrait_${id}">` : `<div style="width:80px;height:80px;border:1px solid var(--border);background:var(--field-bg);display:flex;align-items:center;justify-content:center;color:var(--subtext);font-size:9px;font-family:Cinzel,serif;flex-shrink:0" id="portrait_${id}">No Portrait</div>`}
+            ${d._tokenImg ? `<div style="display:flex;flex-direction:column;align-items:center;gap:4px"><img src="${d._tokenImg}" style="width:50px;height:50px;object-fit:cover;border-radius:50%;border:2px solid var(--gold-dim)" id="token_prev_${id}"><div style="font-size:8px;font-family:Cinzel,serif;color:var(--subtext);letter-spacing:1px">TOKEN</div></div>` : ''}
+          </div>
+          <div class="info-grid" id="ig_identity_${id}">
+          ${ic('Name',t.f_name)}${ic('Clan',t.f_clan)}
+          ${ic('Generation',t.f_gen)}${ic('Blood Potency',bp)}
+          ${ic('Sire',t.f_sire)}${ic('Sect',t.f_sect)}
+          ${ic('Predator Type',t.f_predator)}${ic('Archetype',t.f_archetype)}
+          ${ic('Vampire Age',t.f_vamp_age)}${ic('XP',xpTotal+' earned / '+(xpTotal-xpSpent)+' left')}
+        </div></div></div>
+        <div class="panel"><div class="ph">Trackers</div><div class="pb" id="trackers_${id}">
+          <div class="itl" style="margin-top:0">Humanity (<span id="hum_val_${id}">${ld.humanity||7}</span>/10)</div>
+          <div class="ld-d" id="hum_dots_${id}">${ldH(ld.humanity||7,10,'h')}</div>
+          <div class="itl">Hunger (<span id="hgr_val_${id}">${hunger}</span>/5)<span id="hgr_frenzy_${id}">${hunger>=4?' &nbsp;<span class="frenzy-tag">FRENZY</span>':''}</span></div>
+          <div class="ld-d" id="hgr_dots_${id}">${ldH(hunger,5,'hg')}</div>
+          <div class="itl">Blood Potency (<span id="bp_val_${id}">${bp}</span>/10) — Surge +<span id="bp_surge_${id}">${bpRow.surge}</span>d · Bane Sev. <span id="bp_bane_${id}">${bpRow.bane}</span></div>
+          <div class="ld-d" id="bp_dots_${id}">${ldH(bp,10,'bp')}</div>
+          <div class="itl">Health</div>
+          <div class="boxes-d" id="health_boxes_${id}">${bxH(boxes.health||[],d.trackSizes?.health||5)}</div>
+          <div class="itl">Willpower</div>
+          <div class="boxes-d" id="wp_boxes_${id}">${bxH(boxes.wp||[],d.trackSizes?.wp||5)}</div>
+          <div style="margin-top:8px" class="info-grid" id="ig_res_${id}">
+            ${ic('Stains',t.f_stains||'0')}${ic('Resonance',t.f_resonance||'—')}
+          </div>
+        </div></div>
+      </div>
+      <div class="grid-2">
+        <div class="panel"><div class="ph">Convictions & Touchstones</div><div class="pb" id="conv_block_${id}">
+          ${conv(t.conv_1,t.touch_1,1)}${conv(t.conv_2,t.touch_2,2)}${conv(t.conv_3,t.touch_3,3)}
+        </div></div>
+        <div class="panel"><div class="ph">Ambition & Desire</div><div class="pb">
+          <div class="itl" style="margin-top:0">Ambition</div>
+          <div style="font-size:13px;line-height:1.6;margin-bottom:8px" id="ambition_${id}">${esc(t.f_ambition||'—')}</div>
+          <div class="itl">Desire</div>
+          <div style="font-size:13px;line-height:1.6" id="desire_${id}">${esc(t.f_desire||'—')}</div>
+        </div></div>
+      </div>
+      <div class="panel"><div class="ph">Background</div><div class="pb" style="white-space:pre-wrap;font-size:13px;line-height:1.7" id="backstory_${id}">${esc(t.f_backstory||'No background recorded.')}</div></div>
+    </div>
+
+    <!-- STATS -->
+    <div class="tab-content" id="cv_st_${id}">
+      <div class="grid-3">
+        <div id="cv_st_attr_phys_${id}">${ap('Physical Attributes',['Strength','Dexterity','Stamina'],['attr_str','attr_dex','attr_sta'],dots)}</div>
+        <div id="cv_st_attr_soc_${id}">${ap('Social Attributes',['Charisma','Manipulation','Composure'],['attr_cha','attr_man','attr_com'],dots)}</div>
+        <div id="cv_st_attr_men_${id}">${ap('Mental Attributes',['Intelligence','Wits','Resolve'],['attr_int','attr_wit','attr_res'],dots)}</div>
+      </div>
+      <div class="grid-3">
+        <div id="cv_st_sk_phys_${id}">${sp('Physical Skills',['Athletics','Brawl','Craft','Drive','Firearms','Larceny','Melee','Stealth','Survival'],['sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel','sk_ste','sk_sur'],dots,specs)}</div>
+        <div id="cv_st_sk_soc_${id}">${sp('Social Skills',['Animal Ken','Etiquette','Insight','Intimidation','Leadership','Performance','Persuasion','Streetwise','Subterfuge'],['sk_ani','sk_eti','sk_ins','sk_imi','sk_lea','sk_per','sk_prs','sk_str','sk_sub'],dots,specs)}</div>
+        <div id="cv_st_sk_men_${id}">${sp('Mental Skills',['Academics','Awareness','Finance','Investigation','Medicine','Occult','Politics','Science','Technology'],['sk_aca','sk_awa','sk_fin','sk_inv','sk_med','sk_occ','sk_pol','sk_sci','sk_tec'],dots,specs)}</div>
+      </div>
+      <div class="grid-2">
+        <div class="panel"><div class="ph">Advantages</div><div class="pb" id="cv_st_merits_${id}">
+          ${merits.map(m=>`<div class="adv-d"><span class="adv-d-name">${esc(m.name)}</span>${dH(m.dots||0,5)}<span style="font-family:'Cinzel',serif;font-size:9px;color:var(--subtext)">${esc(m.cost)}</span></div>`).join('')||'<div class="empty-msg">None.</div>'}
+        </div></div>
+        <div class="panel"><div class="ph">Flaws</div><div class="pb" id="cv_st_flaws_${id}">
+          ${flaws.map(f=>`<div class="adv-d"><span class="adv-d-name" style="color:#c08080">${esc(f.name)}</span><span style="font-family:'Cinzel',serif;font-size:9px;color:var(--subtext)">${esc(f.cost)}</span></div>`).join('')||'<div class="empty-msg">None.</div>'}
+          ${t.f_bane?`<div class="div"></div><div class="itl">Clan Bane</div><div style="font-size:12px;color:var(--subtext)">${esc(t.f_bane)}</div>`:''}
+        </div></div>
+      </div>
+    </div>
+
+    <!-- DISCIPLINES -->
+    <div class="tab-content" id="cv_di_${id}">
+      <div class="grid-2">
+        <div class="panel"><div class="ph">Disciplines & Powers</div><div class="pb" id="cv_di_discs_${id}">
+          ${discs.length?discs.map(disc=>`<div class="disc-card-d">
+            <div class="disc-card-d-hdr"><span style="font-size:14px">${esc(disc.icon||'')}</span>
+              <span class="disc-card-d-name">${esc(disc.name)}</span>
+              <span style="font-size:10px;color:var(--subtext)">${disc.powers?.length||0} power${disc.powers?.length!==1?'s':''}</span></div>
+            <div class="disc-card-d-body">${(disc.powers||[]).map(p=>`<div class="power-d"><span class="power-d-lvl">${'●'.repeat(p.level)}</span><span>${esc(p.name)}</span><span class="power-d-dice">${esc(p.dice||'')}</span></div>`).join('')||'<div class="empty-msg">No powers</div>'}</div>
+          </div>`).join(''):'<div class="empty-msg">No disciplines recorded.</div>'}
+        </div></div>
+        <div>
+          <div class="panel"><div class="ph">Rituals & Formulae</div><div class="pb">
+            ${rits.length?rits.map(r=>`<div class="adv-d"><span style="font-family:'Cinzel',serif;font-size:9px;color:var(--crimson-lt);min-width:24px">${'●'.repeat(r.level)}</span><span class="adv-d-name">${esc(r.name)}</span>${r.desc?`<span style="font-size:11px;color:var(--subtext);font-style:italic">${esc(r.desc)}</span>`:''}</div>`).join(''):'<div class="empty-msg">None.</div>'}
+          </div></div>
+          <div class="panel"><div class="ph">Specialties</div><div class="pb">
+            ${specs.length?specs.map(s=>`<div class="adv-d"><span style="font-family:'Cinzel',serif;font-size:9px;color:var(--subtext);min-width:90px">${esc(s.skill)}</span><span>${esc(s.name)}</span></div>`).join(''):'<div class="empty-msg">None.</div>'}
+          </div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOGS & COTERIE -->
+    <div class="tab-content" id="cv_lg_${id}">
+      <div class="grid-2">
+        <div class="panel"><div class="ph">XP Log (<span id="xp_summary_${id}">${xpTotal} earned · ${xpTotal-xpSpent} remaining</span>)</div>
+          <div class="pb" style="max-height:220px;overflow-y:auto;padding:0" id="xp_log_${id}">
+            ${xpLog.length?xpLog.map(e=>`<div class="log-entry-d"><span class="log-tag ${e.type}">${e.type==='gain'?'+'+e.amount:'−'+e.amount} XP</span><span class="log-tag neutral">${esc(e.cat)}</span><span style="flex:1;font-size:12px">${esc(e.desc)}</span><span style="font-size:10px;color:var(--subtext)">${esc(e.date||'')}</span></div>`).join(''):'<div class="empty-msg" style="padding:8px">No XP entries.</div>'}
+          </div>
+        </div>
+        <div class="panel"><div class="ph">Feeding Log</div>
+          <div class="pb" style="max-height:220px;overflow-y:auto;padding:0" id="feed_log_${id}">
+            ${feedLog.length?feedLog.map(e=>`<div class="log-entry-d"><span class="log-tag ${e.resonance||'neutral'}">${RES[e.resonance]||'Unknown'}</span>${e.hunger?`<span style="font-family:'Cinzel',serif;font-size:10px;color:var(--crimson-lt);flex-shrink:0">-${e.hunger}🩸</span>`:''}<span style="flex:1;font-size:12px">${esc(e.target)}</span>${e.notes?`<span style="font-size:11px;color:var(--subtext);font-style:italic">${esc(e.notes)}</span>`:''}<span style="font-size:10px;color:var(--subtext)">${esc(e.date||'')}</span></div>`).join(''):'<div class="empty-msg" style="padding:8px">No entries.</div>'}
+          </div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="panel"><div class="ph">Coterie</div><div class="pb" id="coterie_${id}">
+          ${coterie.length?coterie.map(m=>`<div style="border:1px solid rgba(122,94,24,.3);padding:8px;margin-bottom:6px;background:rgba(16,12,8,.5)">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-family:'Cinzel',serif;font-size:10px;color:var(--gold-lt)">${esc(m.name)}</span><span style="font-size:10px;color:var(--subtext)">${esc(m.clan||'')}</span></div>
+            <div style="font-size:11px;color:var(--subtext)">BP ${m.bp||1} · Vinculum ${'●'.repeat(m.vinculum||0)}${'○'.repeat(3-(m.vinculum||0))}</div>
+            ${m.notes?`<div style="font-size:12px;margin-top:4px">${esc(m.notes)}</div>`:''}
+          </div>`).join(''):'<div class="empty-msg">No coterie recorded.</div>'}
+        </div></div>
+        <div class="panel"><div class="ph">Player-Tracked NPCs</div><div class="pb" id="pnpcs_${id}">
+          ${pnpcs.length?pnpcs.map(n=>`<div class="adv-d"><span class="npc-attitude ${n.type||'neutral'}" style="font-size:8px;padding:2px 6px">${cap(n.type||'neutral')}</span><span class="adv-d-name">${esc(n.name)}</span>${n.faction?`<span style="font-size:10px;color:var(--subtext)">${esc(n.faction)}</span>`:''}</div>`).join(''):'<div class="empty-msg">None tracked by player.</div>'}
+        </div></div>
+      </div>
+    </div>
+
+    <!-- PLAYER NOTES -->
+    <div class="tab-content" id="cv_pn_${id}">
+      <div class="panel"><div class="ph">Player Notes <span style="font-size:8px;color:var(--green-lt);margin-left:8px">◈ Shared by player</span></div><div class="pb" id="pnotes_${id}">
+        ${pn('Session Log',t.notes_session)}${pn('NPC Relationships',t.notes_npcs)}
+        ${pn('Goals & Plans',t.notes_goals)}${pn('General Notes',t.notes_general)}
+      </div></div>
+    </div>
+
+    <!-- DM NOTES -->
+    <div class="tab-content" id="cv_dm_${id}">
+      <div class="grid-2">
+        <div class="dm-panel"><div class="ph dm-ph">⊕ DM Notes — ${esc(t.f_name||'Character')}</div><div class="pb">
+          <div class="itl dm" style="margin-top:0">Secrets & Hidden Info</div>
+          <textarea class="fta dm lg" id="dmPrivate_${id}" placeholder="What does the DM know that this character doesn't...">${esc(notes.dmPrivate||'')}</textarea>
+          <div class="itl dm">Threat Assessment</div>
+          <textarea class="fta dm" id="dmThreat_${id}" placeholder="Power level, vulnerabilities...">${esc(notes.dmThreat||'')}</textarea>
+        </div></div>
+        <div class="dm-panel"><div class="ph dm-ph">⊕ Character Arc</div><div class="pb">
+          <div class="itl dm" style="margin-top:0">Planned Arc</div>
+          <textarea class="fta dm lg" id="dmArc_${id}" placeholder="Where this character's story might go...">${esc(notes.dmArc||'')}</textarea>
+          <div class="itl dm">Hooks & Leverage</div>
+          <textarea class="fta dm" id="dmHooks_${id}" placeholder="What NPCs, secrets, or threads can engage this player...">${esc(notes.dmHooks||'')}</textarea>
+        </div></div>
+      </div>
+    </div>`;
+}
+
+// Patch only the values that change frequently — no DOM rebuild, no tab reset
+function updateCharData(id){
+  const c=chars[id]; if(!c)return;
+  const d=c.data,t=d.text||{},dots=d.dots||{},boxes=d.boxes||{},ld=d.largeDots||{};
+  const hunger=ld.hunger||1,bp=ld.bp||1,bpRow=BPT[bp]||BPT[1];
+  const xpLog=d.xpLog||[],feedLog=d.feedLog||[],specs=d.specialties||[];
+  let xpTotal=0,xpSpent=0;
+  xpLog.forEach(e=>{if(e.type==='gain')xpTotal+=e.amount;else xpSpent+=e.amount});
+
+  function set(elId,html){const el=document.getElementById(elId);if(el)el.innerHTML=html;}
+  function txt(elId,val){const el=document.getElementById(elId);if(el)el.textContent=val||'';}
+
+  // Header
+  txt('mh_name_'+id, t.f_name||'Character');
+  set('mh_sub_'+id, `${esc(t.f_clan||'')} · ${esc(t.f_sect||'')} · Gen ${esc(t.f_gen||'?')}${hunger>=4?' &nbsp;<span class="frenzy-tag">⚠ FRENZY RISK</span>':''}`);
+
+  // Trackers
+  txt('hum_val_'+id, ld.humanity||7);
+  set('hum_dots_'+id, ldH(ld.humanity||7,10,'h'));
+  txt('hgr_val_'+id, hunger);
+  set('hgr_frenzy_'+id, hunger>=4?' &nbsp;<span class="frenzy-tag">FRENZY</span>':'');
+  set('hgr_dots_'+id, ldH(hunger,5,'hg'));
+  txt('bp_val_'+id, bp);
+  txt('bp_surge_'+id, bpRow.surge);
+  txt('bp_bane_'+id, bpRow.bane);
+  set('bp_dots_'+id, ldH(bp,10,'bp'));
+  set('health_boxes_'+id, bxH(boxes.health||[],d.trackSizes?.health||5));
+  set('wp_boxes_'+id, bxH(boxes.wp||[],d.trackSizes?.wp||5));
+  set('ig_res_'+id, ic('Stains',t.f_stains||'0')+ic('Resonance',t.f_resonance||'—'));
+
+  // Identity grid
+  set('ig_identity_'+id,
+    ic('Name',t.f_name)+ic('Clan',t.f_clan)+
+    ic('Generation',t.f_gen)+ic('Blood Potency',bp)+
+    ic('Sire',t.f_sire)+ic('Sect',t.f_sect)+
+    ic('Predator Type',t.f_predator)+ic('Archetype',t.f_archetype)+
+    ic('Vampire Age',t.f_vamp_age)+ic('XP',xpTotal+' earned / '+(xpTotal-xpSpent)+' left')
+  );
+
+  // Notes & story
+  set('conv_block_'+id, conv(t.conv_1,t.touch_1,1)+conv(t.conv_2,t.touch_2,2)+conv(t.conv_3,t.touch_3,3));
+  set('ambition_'+id, esc(t.f_ambition||'—'));
+  set('desire_'+id, esc(t.f_desire||'—'));
+  set('backstory_'+id, esc(t.f_backstory||'No background recorded.'));
+
+  // XP + feed logs
+  txt('xp_summary_'+id, `${xpTotal} earned · ${xpTotal-xpSpent} remaining`);
+  set('xp_log_'+id, xpLog.length?xpLog.map(e=>`<div class="log-entry-d"><span class="log-tag ${e.type}">${e.type==='gain'?'+'+e.amount:'−'+e.amount} XP</span><span class="log-tag neutral">${esc(e.cat)}</span><span style="flex:1;font-size:12px">${esc(e.desc)}</span><span style="font-size:10px;color:var(--subtext)">${esc(e.date||'')}</span></div>`).join(''):'<div class="empty-msg" style="padding:8px">No XP entries.</div>');
+  set('feed_log_'+id, feedLog.length?feedLog.map(e=>`<div class="log-entry-d"><span class="log-tag ${e.resonance||'neutral'}">${RES[e.resonance]||'Unknown'}</span>${e.hunger?`<span style="font-family:'Cinzel',serif;font-size:10px;color:var(--crimson-lt);flex-shrink:0">-${e.hunger}🩸</span>`:''}<span style="flex:1;font-size:12px">${esc(e.target)}</span>${e.notes?`<span style="font-size:11px;color:var(--subtext);font-style:italic">${esc(e.notes)}</span>`:''}<span style="font-size:10px;color:var(--subtext)">${esc(e.date||'')}</span></div>`).join(''):'<div class="empty-msg" style="padding:8px">No entries.</div>');
+
+  // Player notes
+  set('pnotes_'+id, pn('Session Log',t.notes_session)+pn('NPC Relationships',t.notes_npcs)+pn('Goals & Plans',t.notes_goals)+pn('General Notes',t.notes_general));
+
+  // Portrait + token image (update src if changed)
+  const portraitEl = document.getElementById('portrait_'+id);
+  if(portraitEl && d._portraitImg) {
+    if(portraitEl.tagName==='IMG') portraitEl.src=d._portraitImg;
+    else { const img=document.createElement('img'); img.src=d._portraitImg; img.style.cssText='width:80px;height:80px;object-fit:cover;border:1px solid var(--border);flex-shrink:0'; img.id='portrait_'+id; portraitEl.replaceWith(img); }
+  }
+  const tokenPrevEl = document.getElementById('token_prev_'+id);
+  if(tokenPrevEl && d._tokenImg) tokenPrevEl.src=d._tokenImg;
+  // Also refresh token roster image if open
+  if(document.getElementById('view_map')?.classList.contains('active')) refreshTokenRoster();
+
+  // Attributes & Skills (live dot updates) — re-render whole panel via ap()/sp() helpers
+  set('cv_st_attr_phys_'+id, ap('Physical Attributes',['Strength','Dexterity','Stamina'],['attr_str','attr_dex','attr_sta'],dots));
+  set('cv_st_attr_soc_'+id,  ap('Social Attributes',['Charisma','Manipulation','Composure'],['attr_cha','attr_man','attr_com'],dots));
+  set('cv_st_attr_men_'+id,  ap('Mental Attributes',['Intelligence','Wits','Resolve'],['attr_int','attr_wit','attr_res'],dots));
+  set('cv_st_sk_phys_'+id, sp('Physical Skills',['Athletics','Brawl','Craft','Drive','Firearms','Larceny','Melee','Stealth','Survival'],['sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel','sk_ste','sk_sur'],dots,specs));
+  set('cv_st_sk_soc_'+id,  sp('Social Skills',['Animal Ken','Etiquette','Insight','Intimidation','Leadership','Performance','Persuasion','Streetwise','Subterfuge'],['sk_ani','sk_eti','sk_ins','sk_imi','sk_lea','sk_per','sk_prs','sk_str','sk_sub'],dots,specs));
+  set('cv_st_sk_men_'+id,  sp('Mental Skills',['Academics','Awareness','Finance','Investigation','Medicine','Occult','Politics','Science','Technology'],['sk_aca','sk_awa','sk_fin','sk_inv','sk_med','sk_occ','sk_pol','sk_sci','sk_tec'],dots,specs));
+
+  // Merits & Flaws live update
+  const merits=d.merits||[],flaws=d.flaws||[];
+  set('cv_st_merits_'+id, merits.map(m=>'<div class="adv-d"><span class="adv-d-name">'+esc(m.name)+'</span>'+dH(m.dots||0,5)+'<span style="font-family:\'Cinzel\',serif;font-size:9px;color:var(--subtext)">'+esc(m.cost)+'</span></div>').join('')||'<div class="empty-msg">None.</div>');
+  set('cv_st_flaws_'+id, flaws.map(f=>'<div class="adv-d"><span class="adv-d-name" style="color:#c08080">'+esc(f.name)+'</span><span style="font-family:\'Cinzel\',serif;font-size:9px;color:var(--subtext)">'+esc(f.cost)+'</span></div>').join('')||'<div class="empty-msg">None.</div>');
+
+  // Disciplines live update
+  const discs=d.disciplines||[];
+  set('cv_di_discs_'+id, discs.length?discs.map(disc=>'<div class="disc-card-d"><div class="disc-card-d-hdr"><span style="font-size:14px">'+esc(disc.icon||'')+'</span><span class="disc-card-d-name">'+esc(disc.name)+'</span><span style="font-size:10px;color:var(--subtext)">'+( disc.powers?.length||0)+' power'+((disc.powers?.length!==1)?'s':'')+'</span></div><div class="disc-card-d-body">'+(disc.powers||[]).map(p=>'<div class="power-d"><span class="power-d-lvl">'+'●'.repeat(p.level)+'</span><span>'+esc(p.name)+'</span><span class="power-d-dice">'+esc(p.dice||'')+'</span></div>').join('')+'</div></div>').join(''):'<div class="empty-msg">No disciplines recorded.</div>');
+}
+// ── RENDER HELPERS ──
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function cap(s){return s?s[0].toUpperCase()+s.slice(1):s}
+function ic(l,v){return `<div class="info-cell"><span class="ic-label">${l}</span><span class="ic-val">${esc(v||'—')}</span></div>`}
+function dH(val,max){return `<div class="dots-d">${Array.from({length:max},(_,i)=>`<div class="dot-d${i<val?' f':''}"></div>`).join('')}</div>`}
+function ldH(val,max,type){return Array.from({length:max},(_,i)=>`<div class="ldot-d${i<val?(type==='hg'?' hf':' f'):''}"></div>`).join('')}
+function bxH(states,n){return Array.from({length:n},(_,i)=>`<div class="box-d${states[i]===1?' sup':states[i]===2?' agg':''}"></div>`).join('')}
+function conv(cv,ts,n){if(!cv&&!ts)return '';return `<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(122,94,24,.2)"><div style="font-size:9px;font-family:'Cinzel',serif;color:var(--gold);margin-bottom:2px">Conviction ${n}</div><div style="font-size:12px;margin-bottom:4px">${esc(cv||'')}</div><div style="font-size:9px;font-family:'Cinzel',serif;color:var(--crimson-lt);margin-bottom:2px">Touchstone ${n}</div><div style="font-size:12px;color:var(--subtext);font-style:italic">${esc(ts||'')}</div></div>`}
+function pn(label,text){return `<div class="pn-block"><div class="pn-label">${label}</div><div class="pn-text${!text?' pn-empty':''}">${text?esc(text):'No notes provided'}</div></div>`}
+function ap(title,names,keys,dots){return `<div class="panel"><div class="ph">${title}</div><div class="pb">${names.map((n,i)=>`<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[keys[i]]||0,5)}</div>`).join('')}</div></div>`}
+function sp(title,names,keys,dots,specs){return `<div class="panel"><div class="ph">${title}</div><div class="pb">${names.map((n,i)=>{const ss=specs.filter(s=>s.skill===n);return `<div class="stat-row"><span class="stat-name">${n}</span>${dH(dots[keys[i]]||0,5)}${ss.map(s=>`<span style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--gold);border:1px solid rgba(196,154,34,.35);padding:1px 5px;margin-left:3px">${esc(s.name)}</span>`).join('')}</div>`}).join('')}</div></div>`;}
+
+function cvt(id,tab){
+  collectDM();
+  activeTab[id]=tab;  // remember which tab is open for this character
+  ['ov','st','di','lg','pn','dm'].forEach(t=>{
+    document.getElementById('vt_'+t+'_'+id)?.classList.toggle('active',t===tab);
+    document.getElementById('cv_'+t+'_'+id)?.classList.toggle('active',t===tab);
+  });
+}
+
+// ── SESSION PREP ──
+function addPrep(list){
+  const input=document.getElementById('pi_'+list);
+  const text=input?.value?.trim(); if(!text)return;
+  const key=list==='scenes'?'prepScenes':'prepNpcs';
+  dm[key].push({id:Date.now(),text,done:false});
+  input.value=''; renderPrepList(list); markUnsaved();
+}
+function togglePrep(list,id){const key=list==='scenes'?'prepScenes':'prepNpcs';const item=dm[key].find(i=>i.id===id);if(item)item.done=!item.done;renderPrepList(list);markUnsaved()}
+function delPrep(list,id){const key=list==='scenes'?'prepScenes':'prepNpcs';dm[key]=dm[key].filter(i=>i.id!==id);renderPrepList(list);markUnsaved()}
+function clearDone(){dm.prepScenes=dm.prepScenes.filter(i=>!i.done);dm.prepNpcs=dm.prepNpcs.filter(i=>!i.done);renderPrepList('scenes');renderPrepList('npcs');markUnsaved()}
+function renderPrepList(list){
+  const key=list==='scenes'?'prepScenes':'prepNpcs';
+  const c=document.getElementById('prep_'+list); if(!c)return;
+  c.innerHTML='';
+  (dm[key]||[]).forEach(item=>{
+    const div=document.createElement('div'); div.className='prep-item';
+    div.innerHTML=`<div class="prep-check${item.done?' done':''}" onclick="togglePrep('${list}',${item.id})">${item.done?'✓':''}</div>
+      <span style="flex:1;font-size:13px;${item.done?'text-decoration:line-through;opacity:.5':''}">${esc(item.text)}</span>
+      <button class="prep-del" onclick="delPrep('${list}',${item.id})">✕</button>`;
+    c.appendChild(div);
+  });
+}
+
+// ── NPC ROSTER ──
+function openNPCCreator(id){
+  const modal=document.getElementById('npcCreatorModal'); if(!modal) return;
+  const editId=id||'';
+  document.getElementById('nc_editing_id').value=editId;
+  const fields=['str','dex','sta','cha','man','com','int','wit','res'];
+  if(editId){
+    const n=dm.npcs.find(n=>n.id==editId); if(!n) return;
+    document.getElementById('npcModalTitle').textContent='Edit NPC';
+    document.getElementById('nc_name').value=n.name||'';
+    document.getElementById('nc_type').value=n.type||'kindred';
+    document.getElementById('nc_attitude').value=n.attitude||'neutral';
+    document.getElementById('nc_status').value=n.status||'Active';
+    document.getElementById('nc_clan').value=n.clan||'';
+    document.getElementById('nc_gen').value=n.gen||'';
+    document.getElementById('nc_bp').value=n.bp||1;
+    document.getElementById('nc_sect').value=n.sect||'';
+    document.getElementById('nc_discs').value=n.discs||'';
+    document.getElementById('nc_occ').value=n.occ||'';
+    document.getElementById('nc_org').value=n.org||'';
+    document.getElementById('nc_skills').value=n.skills||'';
+    document.getElementById('nc_humanity').value=n.humanity||7;
+    document.getElementById('nc_hunger').value=n.hunger||1;
+    document.getElementById('nc_wp').value=n.wp||3;
+    document.getElementById('nc_health').value=n.health||5;
+    document.getElementById('nc_desc').value=n.desc||'';
+    document.getElementById('nc_secrets').value=n.secrets||'';
+    fields.forEach(a=>{ const el=document.getElementById('nc_attr_'+a); if(el)el.value=n.attrs?.[a]||2; });
+  } else {
+    document.getElementById('npcModalTitle').textContent='Create NPC';
+    document.getElementById('nc_name').value='';
+    document.getElementById('nc_type').value='kindred';
+    document.getElementById('nc_attitude').value='neutral';
+    document.getElementById('nc_status').value='Active';
+    ['nc_clan','nc_gen','nc_sect','nc_discs','nc_occ','nc_org','nc_skills','nc_desc','nc_secrets'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    document.getElementById('nc_bp').value=1;
+    document.getElementById('nc_humanity').value=7;
+    document.getElementById('nc_hunger').value=1;
+    document.getElementById('nc_wp').value=3;
+    document.getElementById('nc_health').value=5;
+    fields.forEach(a=>{ const el=document.getElementById('nc_attr_'+a); if(el)el.value=2; });
+  }
+  npcTypeChanged();
+  modal.style.display='flex';
+  setTimeout(()=>document.getElementById('nc_name').focus(),100);
+}
+
+function closeNPCCreator(){
+  const modal=document.getElementById('npcCreatorModal');
+  if(modal) modal.style.display='none';
+}
+
+function npcTypeChanged(){
+  const type=document.getElementById('nc_type')?.value||'kindred';
+  const isKindred=(type==='kindred'||type==='ghoul');
+  document.getElementById('nc_kindred_fields').style.display=isKindred?'':'none';
+  document.getElementById('nc_mortal_fields').style.display=isKindred?'none':'';
+  const trackers=document.getElementById('nc_kindred_trackers');
+  if(trackers) trackers.style.display=(type==='kindred')?'':'none';
+}
+
+function saveNPCFromCreator(){
+  const name=document.getElementById('nc_name').value.trim();
+  if(!name){toast('Enter a name first','error');return;}
+  const editId=document.getElementById('nc_editing_id').value;
+  const attrs={};
+  ['str','dex','sta','cha','man','com','int','wit','res'].forEach(a=>{
+    attrs[a]=parseInt(document.getElementById('nc_attr_'+a)?.value||2);
+  });
+  const n={
+    id:editId?parseInt(editId):Date.now(),
+    name,
+    type:document.getElementById('nc_type').value,
+    attitude:document.getElementById('nc_attitude').value,
+    status:document.getElementById('nc_status').value,
+    clan:document.getElementById('nc_clan').value,
+    gen:document.getElementById('nc_gen').value,
+    bp:parseInt(document.getElementById('nc_bp').value||1),
+    sect:document.getElementById('nc_sect').value,
+    discs:document.getElementById('nc_discs').value,
+    occ:document.getElementById('nc_occ').value,
+    org:document.getElementById('nc_org').value,
+    skills:document.getElementById('nc_skills').value,
+    humanity:parseInt(document.getElementById('nc_humanity').value||7),
+    hunger:parseInt(document.getElementById('nc_hunger').value||1),
+    wp:parseInt(document.getElementById('nc_wp').value||3),
+    health:parseInt(document.getElementById('nc_health').value||5),
+    desc:document.getElementById('nc_desc').value,
+    secrets:document.getElementById('nc_secrets').value,
+    attrs, open:false
+  };
+  if(editId){
+    const idx=dm.npcs.findIndex(x=>x.id==parseInt(editId));
+    if(idx>=0) dm.npcs[idx]=n; else dm.npcs.push(n);
+  } else { dm.npcs.push(n); }
+  closeNPCCreator(); renderNPCs(); markUnsaved(); toast('NPC saved: '+name);
+}
+
+function addNPC(data){
+  const n=data||{id:Date.now(),name:'New NPC',type:'kindred',attitude:'neutral',status:'Active',desc:'',secrets:'',open:false};
+  if(!data) dm.npcs.push(n);
+  renderNPCs(); markUnsaved();
+}
+function deleteNPC(id){if(!confirm('Delete this NPC?'))return;dm.npcs=dm.npcs.filter(n=>n.id!==id);renderNPCs();markUnsaved();}
+function toggleNPC(id){const n=dm.npcs.find(n=>n.id===id);if(n){n.open=!n.open;renderNPCs();}}
+function collectNPCF(id){const n=dm.npcs.find(n=>n.id===id);if(!n)return;['name','faction','attitude','status','desc','secrets'].forEach(k=>{const el=document.getElementById('nf_'+k+'_'+id);if(el)n[k]=el.value;})}
+function saveNPC(id){collectNPCF(id);renderNPCs();markUnsaved();toast('NPC saved');}
+
+function renderNPCs(){
+  const list=document.getElementById('npc_list');
+  const empty=document.getElementById('npc_empty');
+  if(!list) return; list.innerHTML='';
+  const typeFilter=document.getElementById('npc_filter')?.value||'';
+  const attFilter=document.getElementById('npc_att_filter')?.value||'';
+  let filtered=dm.npcs;
+  if(typeFilter) filtered=filtered.filter(n=>(n.type||'kindred')===typeFilter);
+  if(attFilter) filtered=filtered.filter(n=>(n.attitude||'neutral')===attFilter);
+  empty.style.display=filtered.length?'none':'block';
+  const ATTRS=['str','dex','sta','cha','man','com','int','wit','res'];
+  const ATTR_L=['STR','DEX','STA','CHA','MAN','COM','INT','WIT','RES'];
+  filtered.forEach(n=>{
+    const card=document.createElement('div'); card.className='npc-card-dm';
+    const isKindred=(n.type==='kindred'||n.type==='ghoul');
+    const attColor={friendly:'var(--green-lt)',neutral:'var(--subtext)',hostile:'var(--crimson-lt)',complicated:'#e0c060',unknown:'var(--subtext)'}[n.attitude]||'var(--subtext)';
+    const typeLabel={kindred:'Kindred',mortal:'Mortal',ghoul:'Ghoul',other:'Supernatural'}[n.type||'kindred']||'';
+    const attrStr=n.attrs?ATTRS.map((a,i)=>`<span title="${ATTR_L[i]}" style="font-size:10px;margin-right:4px;color:${(n.attrs[a]||2)>=4?'var(--gold-lt)':'var(--text)'}">${ATTR_L[i]}${n.attrs[a]||2}</span>`).join(''):'';
+    card.innerHTML=`
+      <div class="npc-card-dm-hdr" onclick="toggleNPC(${n.id})" style="cursor:pointer">
+        <span class="npc-name-dm${n.status==='Dead'?' npc-status-dead':''}">${esc(n.name)}</span>
+        <span style="font-size:10px;color:var(--subtext);font-family:Cinzel,serif">${typeLabel}${n.clan?' · '+esc(n.clan):''}</span>
+        <span style="font-size:10px;color:${attColor};font-family:Cinzel,serif;letter-spacing:1px">${cap(n.attitude||'neutral')}</span>
+        ${n.status&&n.status!=='Active'?`<span style="font-family:'Cinzel',serif;font-size:8px;padding:2px 5px;border:1px solid var(--gold-dim);color:var(--subtext)">${esc(n.status)}</span>`:''}
+        <div style="margin-left:auto;display:flex;gap:4px">
+          <button class="btn sm" onclick="event.stopPropagation();openNPCCreator(${n.id})" style="padding:1px 7px;font-size:7px">Edit</button>
+          <button class="rm-btn" onclick="event.stopPropagation();deleteNPC(${n.id})">✕</button>
+        </div>
+      </div>
+      <div class="npc-card-dm-body${n.open?' open':''}">
+        <div>
+          ${isKindred?`<div style="flex-wrap:wrap;display:flex;gap:2px;margin-bottom:6px">${attrStr}</div>
+            ${n.discs?`<div style="font-size:11px;margin-bottom:4px"><span style="font-family:Cinzel,serif;font-size:8px;color:var(--subtext)">DISCIPLINES: </span>${esc(n.discs)}</div>`:''}
+            ${n.skills?`<div style="font-size:11px;margin-bottom:4px"><span style="font-family:Cinzel,serif;font-size:8px;color:var(--subtext)">SKILLS: </span>${esc(n.skills)}</div>`:''}
+            <div style="font-size:11px;margin-bottom:4px">❤ ${n.health||5}hp · 🩸 ${n.hunger||1}/5 · 🫀 ${n.humanity||7}/10 · WP ${n.wp||3}</div>
+            ${n.sect?`<div style="font-size:10px;color:var(--subtext)">${esc(n.sect)}</div>`:''}`
+          :`<div style="font-size:11px">${esc(n.occ||'')}${n.org?' — '+esc(n.org):''}</div>
+            ${n.skills?`<div style="font-size:11px;margin-top:4px"><span style="font-family:Cinzel,serif;font-size:8px;color:var(--subtext)">SKILLS: </span>${esc(n.skills)}</div>`:''}`}
+          ${n.desc?`<div class="itl dm" style="margin-top:6px">Description</div><div style="font-size:12px;line-height:1.6;white-space:pre-wrap">${esc(n.desc)}</div>`:''}
+        </div>
+        <div>
+          ${n.secrets?`<div class="itl dm" style="color:var(--crimson-lt);margin-top:0">Secrets</div><div style="font-size:12px;line-height:1.6;white-space:pre-wrap;color:var(--crimson-lt)">${esc(n.secrets)}</div>`:'<div style="color:var(--subtext);font-style:italic;font-size:11px">No secrets recorded.</div>'}
+        </div>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+// ── TIMELINE ──
+function addTL(data){const e=data||{id:Date.now(),date:'',type:'Discovery',event:''};if(!data)dm.timeline.push(e);renderTL();if(!data)markUnsaved()}
+function delTL(id){dm.timeline=dm.timeline.filter(e=>e.id!==id);renderTL();markUnsaved()}
+function renderTL(){
+  const list=document.getElementById('tl_list'); if(!list)return; list.innerHTML='';
+  const types=['Combat','Social','Discovery','Downtime','Travel','Supernatural','Political','Personal','Session'];
+  dm.timeline.forEach(ev=>{
+    const row=document.createElement('div'); row.className='tl-item';
+    row.innerHTML=`
+      <input class="ri-input" value="${esc(ev.date)}" placeholder="Session/Date" oninput="dm.timeline.find(e=>e.id===${ev.id})&&(dm.timeline.find(e=>e.id===${ev.id}).date=this.value);markUnsaved()">
+      <select class="ri-select" onchange="dm.timeline.find(e=>e.id===${ev.id})&&(dm.timeline.find(e=>e.id===${ev.id}).type=this.value);markUnsaved()">
+        ${types.map(t=>`<option${ev.type===t?' selected':''}>${t}</option>`).join('')}
+      </select>
+      <input class="ri-input" value="${esc(ev.event)}" placeholder="What happened..." oninput="dm.timeline.find(e=>e.id===${ev.id})&&(dm.timeline.find(e=>e.id===${ev.id}).event=this.value);markUnsaved()">
+      <button class="rm-btn" onclick="delTL(${ev.id})">✕</button>`;
+    list.appendChild(row);
+  });
+}
+
+// ── COMBAT ──
+let curTurn=0;
+function addCombatant(data){
+  const c=data||{id:Date.now(),name:'',init:0,health:new Array(5).fill(0),hunger:1,wp:5,notes:'',dead:false};
+  if(!data)dm.combat.push(c);
+  renderCombat(); if(!data)markUnsaved();
+}
+function delCombatant(id){dm.combat=dm.combat.filter(c=>c.id!==id);renderCombat();markUnsaved()}
+function sortInit(){collectCombatF();dm.combat.sort((a,b)=>(b.init||0)-(a.init||0));curTurn=0;renderCombat()}
+function nextTurn(){if(!dm.combat.length)return;const alive=dm.combat.filter(c=>!c.dead);if(!alive.length)return;curTurn=(curTurn+1)%alive.length;renderCombat()}
+function clearCombat(){if(!confirm('Clear all combatants?'))return;dm.combat=[];curTurn=0;renderCombat();markUnsaved()}
+function collectCombatF(){dm.combat.forEach(c=>{const n=document.getElementById('cn_'+c.id);const i=document.getElementById('ci_'+c.id);const nt=document.getElementById('cno_'+c.id);if(n)c.name=n.value;if(i)c.init=parseInt(i.value)||0;if(nt)c.notes=nt.value})}
+function cycleBox(cid,idx){const c=dm.combat.find(x=>x.id===cid);if(!c)return;c.health[idx]=((c.health[idx]||0)+1)%3;c.dead=c.health.every(h=>h===2);renderCombat();markUnsaved()}
+function setHunger(cid,val){const c=dm.combat.find(x=>x.id===cid);if(!c)return;c.hunger=c.hunger===val?val-1:val;renderCombat();markUnsaved()}
+function renderCombat(){
+  const list=document.getElementById('combat_list');
+  const empty=document.getElementById('combat_empty');
+  if(!list)return; list.innerHTML='';
+  empty.style.display=dm.combat.length?'none':'block';
+  const alive=dm.combat.filter(c=>!c.dead);
+  dm.combat.forEach((c)=>{
+    const aliveIdx=alive.indexOf(c);
+    const isActive=!c.dead&&aliveIdx===curTurn%Math.max(alive.length,1);
+    const row=document.createElement('div');
+    row.className='combatant'+(isActive?' active-turn':'')+(c.dead?' dead':'');
+    const hboxes=(c.health||[]).map((s,i)=>`<div class="hbox${s===1?' sup':s===2?' agg':''}" onclick="cycleBox(${c.id},${i})"></div>`).join('');
+    const hdots=[1,2,3,4,5].map(i=>`<div class="hmini-dot${(c.hunger||1)>=i?' hf':''}" onclick="setHunger(${c.id},${i})"></div>`).join('');
+    row.innerHTML=`
+      <input class="c-num" id="ci_${c.id}" value="${c.init||0}" style="width:44px" oninput="markUnsaved()">
+      <input class="ri-input" id="cn_${c.id}" value="${esc(c.name)}" placeholder="Name..." oninput="markUnsaved()">
+      <div style="display:flex;gap:2px;flex-wrap:wrap">${hboxes}</div>
+      <div style="display:flex;gap:3px">${hdots}</div>
+      <div style="font-size:11px;color:var(--subtext);text-align:center">${c.wp||'—'}</div>
+      <input class="ri-input" id="cno_${c.id}" value="${esc(c.notes||'')}" placeholder="Status..." oninput="markUnsaved()">
+      <button class="rm-btn" onclick="delCombatant(${c.id})">✕</button>`;
+    list.appendChild(row);
+  });
+}
+
+// ── EXPORT / IMPORT ──
+function downloadCharJSON(id){
+  const c=chars[id]; if(!c)return;
+  const blob=new Blob([JSON.stringify(c.data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=(c.name||'character').replace(/\s/g,'_').toLowerCase()+'_sheet.json';
+  a.click(); toast('Downloaded: '+c.name);
+}
+function exportAll(){collectDM();const blob=new Blob([JSON.stringify({dm,chars},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(dm.campaignName||'dm_dashboard').replace(/\s/g,'_')+'_data.json';a.click()}
+function importAll(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.dm)Object.assign(dm,d.dm);if(d.chars){chars=d.chars;document.getElementById('charTabs').innerHTML='';Object.entries(chars).forEach(([id,c])=>addCharTab(id,c.name))}applyDM();saveAll();toast('Imported.')}catch(err){toast('Invalid file','error')}};
+  r.readAsText(file);e.target.value='';
+}
+
+// ── SYNC STATUS ──
+function updateSyncIndicator(){
+  const el=document.getElementById('syncIndicator');
+  if(!el)return;
+  const hasFS=!!window._db, hasBC=BC!==null;
+  const count=Object.keys(chars).length;
+  if(hasFS) el.textContent='Firestore live ✓' + (count>0?' · '+count+' character'+(count!==1?'s':''):'');
+  else if(hasBC) el.textContent='Same-browser sync ✓';
+  else el.textContent='No sync active';
+}
+
+// ── DICE ROLLER ──
+const rollHistory=[];
+function rollDice(){
+  const pool=parseInt(document.getElementById('dice_pool').value)||0;
+  const hunger=Math.min(parseInt(document.getElementById('dice_hunger').value)||0,pool);
+  const diff=parseInt(document.getElementById('dice_diff').value)||2;
+  const label=document.getElementById('dice_label').value.trim()||'Pool';
+  const reg=pool-hunger;
+  const regRolls=Array.from({length:reg},()=>Math.ceil(Math.random()*10));
+  const hungerRolls=Array.from({length:hunger},()=>Math.ceil(Math.random()*10));
+  displayRoll(label,regRolls,hungerRolls,diff);
+}
+function quickRoll(n,label,diff){
+  const rolls=Array.from({length:n},()=>Math.ceil(Math.random()*10));
+  displayRoll(label||(n===1?'Rouse Check':'Frenzy Check'),rolls,[],diff||1);
+}
+function displayRoll(label,regRolls,hungerRolls,diff){
+  const allRolls=[...regRolls.map(v=>({v,hunger:false})),...hungerRolls.map(v=>({v,hunger:true}))];
+  let successes=0,messyCount=0,bestialCount=0;
+  const tens=[];
+  allRolls.forEach(({v,hunger})=>{
+    if(v>=diff){successes++;if(v===10){tens.push({hunger});}}
+  });
+  const regTens=tens.filter(t=>!t.hunger).length;
+  const hungerTens=tens.filter(t=>t.hunger).length;
+  const regCrits=Math.floor(regTens/2);
+  const mixedCrits=regTens%2===1&&hungerTens>0?1:0;
+  const hungerCrits=Math.floor((hungerTens-(mixedCrits?1:0))/2);
+  successes+=((regCrits+mixedCrits+hungerCrits)*2);
+  messyCount=mixedCrits+hungerCrits;
+  const failed=successes<diff;
+  if(failed) bestialCount=hungerRolls.filter(v=>v===1).length;
+  const win=successes>=diff;
+  const messy=win&&messyCount>0;
+  const bestial=!win&&bestialCount>0;
+  const critical=(regCrits+mixedCrits+hungerCrits)>0&&win;
+  let outcome='',outcomeColor='var(--text)';
+  if(messy){outcome='MESSY CRITICAL';outcomeColor='#e0c060';}
+  else if(critical){outcome='CRITICAL SUCCESS';outcomeColor='var(--green-lt)';}
+  else if(win){outcome='SUCCESS';outcomeColor='var(--green-lt)';}
+  else if(bestial){outcome='BESTIAL FAILURE';outcomeColor='var(--crimson-lt)';}
+  else{outcome='FAILURE';outcomeColor='var(--crimson-lt)';}
+  // Render dice faces with hover tooltips
+  function dieFace(v,isHunger){
+    const bg=isHunger?(v===1?'rgba(200,20,20,.4)':'rgba(122,21,21,.25)'):'rgba(196,154,34,.08)';
+    const border=isHunger?'var(--crimson)':'var(--border)';
+    const color=v>=diff?(isHunger?'#ff9090':'var(--gold-lt)'):'var(--subtext)';
+    const bold=(v===10||v===1)?'bold':'normal';
+    let tip=v>=diff?'Success':'Fail';
+    if(v===10&&!isHunger) tip='Critical (pair for +2 successes)';
+    if(v===10&&isHunger) tip='Messy! (+2 if paired, but messy critical)';
+    if(v===1&&isHunger) tip='Bestial! (failure → bestial failure)';
+    if(isHunger) tip='🩸 Hunger die — '+tip;
+    return `<div title="${tip}" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:${bg};border:1px solid ${border};font-family:'Cinzel',serif;font-size:12px;color:${color};font-weight:${bold};margin:2px;cursor:help">${v}</div>`;
+  }
+  const diceHTML=allRolls.map(({v,hunger})=>dieFace(v,hunger)).join('');
+  const resultEl=document.getElementById('dice_result');
+  if(resultEl) resultEl.innerHTML=`
+    <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--subtext);margin-bottom:6px;letter-spacing:1px">${esc(label)} · Difficulty ${diff}</div>
+    <div style="margin-bottom:10px;flex-wrap:wrap;display:flex;gap:0">${diceHTML}</div>
+    <div style="font-family:'Cinzel Decorative',serif;font-size:20px;color:${outcomeColor};margin-bottom:4px">${outcome}</div>
+    <div style="font-size:14px;color:var(--text)">${successes} success${successes!==1?'es':''} vs difficulty ${diff}
+    ${messy?'<span style="color:#e0c060;font-size:11px;font-family:Cinzel,serif;margin-left:8px">⚠ Messy — Hunger 10</span>':''}
+    ${bestial?'<span style="color:var(--crimson-lt);font-size:11px;font-family:Cinzel,serif;margin-left:8px">☠ Bestial — Hunger 1</span>':''}</div>`;
+  // Push to Firestore dice_rolls for cross-computer sync
+  const entry={label,regRolls,hungerRolls,successes,outcome,outcomeColor,diff,time:new Date().toLocaleTimeString(),source:'dm',_ts:Date.now()};
+  rollHistory.unshift(entry);
+  if(rollHistory.length>30)rollHistory.pop();
+  renderRollHistory();
+  if(window._db&&cfg.dmId){
+    const ref=window._fsDoc(window._db,'dice_rolls',cfg.dmId);
+    window._fsSetDoc(ref,{rolls:rollHistory.slice(0,30),_updatedAt:Date.now()}).catch(()=>{});
+  }
+}
+let _dmHistExpanded=false;
+function renderRollHistory(){
+  const el=document.getElementById('dice_history');if(!el)return;
+  if(!rollHistory.length){el.innerHTML='<div style="padding:12px;color:var(--subtext);font-style:italic;font-size:13px">No rolls yet.</div>';return;}
+  const shown=_dmHistExpanded?rollHistory:rollHistory.slice(0,8);
+  el.innerHTML=shown.map((r,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:5px 10px;border-bottom:1px solid rgba(122,94,24,.12);font-size:13px${i===0?';background:rgba(196,154,34,.04)':''}">
+      <span style="font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;min-width:60px">${r.time}</span>
+      <span style="flex:1;color:var(--text)">${esc(r.label)}</span>
+      <span style="font-family:'Cinzel',serif;font-size:11px;color:${r.outcomeColor}">${r.outcome}</span>
+      <span style="font-family:'Cinzel',serif;font-size:11px;color:var(--subtext)">${r.successes}✓ / d${r.diff}</span>
+    </div>`).join('');
+  if(rollHistory.length>8){
+    el.innerHTML+=`<div style="text-align:center;padding:6px"><button class="btn sm" style="font-size:8px" onclick="_dmHistExpanded=!_dmHistExpanded;renderRollHistory()">${_dmHistExpanded?'▲ Show less':'▼ Show all ('+rollHistory.length+')' }</button></div>`;
+  }
+}
+function clearRollHistory(){
+  rollHistory.length=0;_dmHistExpanded=false;renderRollHistory();
+  document.getElementById('dice_result').innerHTML='<span style="color:var(--subtext);font-style:italic">Roll to see results…</span>';
+}
+
+// ── PARTY OVERVIEW ──
+function renderOverview(){
+  const el=document.getElementById('overview_content');if(!el)return;
+  const ids=Object.keys(chars);
+  if(!ids.length){el.innerHTML='<div class="empty-state"><h2>No Characters Loaded</h2><p style="font-size:13px;color:var(--subtext)">Load characters first via the Load Character screen.</p></div>';return;}
+  el.innerHTML=ids.map(id=>{
+    const c=chars[id],d=c?.data||{},t=d.text||{},ld=d.largeDots||{},boxes=d.boxes||{};
+    const hunger=ld.hunger||0,humanity=ld.humanity??7;
+    const health=boxes.health||[],wp=boxes.wp||[];
+    const hSize=d.trackSizes?.health||5,wSize=d.trackSizes?.wp||5;
+    const hAgg=health.filter(x=>x===2).length,hSup=health.filter(x=>x===1).length;
+    const wAgg=wp.filter(x=>x===2).length,wSup=wp.filter(x=>x===1).length;
+    const frenzy=hunger>=4;
+    const lastUp=c.lastChecked?('Updated '+c.lastChecked):'';
+    function miniBoxes(states,size){return Array.from({length:size},(_,i)=>`<div style="display:inline-block;width:14px;height:11px;border:1px solid ${states[i]===2?'var(--crimson)':states[i]===1?'var(--gold-dim)':'var(--border)'};background:${states[i]===2?'rgba(122,21,21,.3)':states[i]===1?'rgba(196,154,34,.1)':'var(--field-bg)'};position:relative;margin-right:2px">${states[i]===2?'<span style="position:absolute;font-size:8px;font-weight:bold;color:var(--crimson-lt);top:-1px;left:1px">X</span>':states[i]===1?'<span style="position:absolute;font-size:10px;color:var(--gold);top:-2px;left:2px">/</span>':''}</div>`).join('');}
+    function miniDots(val,max,fillColor){return Array.from({length:max},(_,i)=>`<div style="display:inline-block;width:10px;height:10px;border-radius:50%;border:1.5px solid ${i<val?fillColor:'var(--gold-dim)'};background:${i<val?fillColor:'var(--field-bg)'};margin-right:2px"></div>`).join('');}
+    return `<div class="dm-panel" style="cursor:pointer" onclick="switchChar('${id}')">
+      <div class="ph dm-ph" style="justify-content:space-between">
+        <span style="font-size:11px">${esc(t.f_name||c.name||'Unknown')} <span style="font-size:9px;color:var(--subtext);font-weight:normal">${esc(t.f_clan||'')} · ${esc(t.f_sect||'')}</span></span>
+        <span style="display:flex;gap:8px;align-items:center">
+          ${frenzy?'<span style="font-family:Cinzel,serif;font-size:8px;letter-spacing:1px;color:var(--crimson-lt);animation:fp 1.8s ease-in-out infinite">⚠ FRENZY RISK</span>':''}
+          <span style="font-size:9px;color:var(--subtext)">${lastUp}</span>
+        </span>
+      </div>
+      <div class="pb" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;padding:10px 12px">
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);margin-bottom:4px">HUNGER</div>
+          <div>${miniDots(hunger,5,'var(--crimson-lt)')}</div>
+          <div style="font-size:11px;color:${frenzy?'var(--crimson-lt)':'var(--subtext)'};margin-top:2px">${hunger}/5${frenzy?' ⚠':''}</div>
+        </div>
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);margin-bottom:4px">HUMANITY</div>
+          <div>${miniDots(humanity,10,'var(--gold)')}</div>
+          <div style="font-size:11px;color:var(--subtext);margin-top:2px">${humanity}/10</div>
+        </div>
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);margin-bottom:4px">HEALTH</div>
+          <div>${miniBoxes(health,hSize)}</div>
+          <div style="font-size:11px;color:var(--subtext);margin-top:2px">${hAgg>0?hAgg+'Agg ':''} ${hSup>0?hSup+'Sup ':''} ${hAgg===0&&hSup===0?'Full':''}</div>
+        </div>
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--subtext);margin-bottom:4px">WILLPOWER</div>
+          <div>${miniBoxes(wp,wSize)}</div>
+          <div style="font-size:11px;color:var(--subtext);margin-top:2px">${wAgg>0?wAgg+'Agg ':''} ${wSup>0?wSup+'Sup ':''} ${wAgg===0&&wSup===0?'Full':''}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── UI ──
+function setStatus(msg,type){const el=document.getElementById('saveStatus');if(el){el.textContent=msg;el.className='sv-status'+(type?' '+type:'')}}
+function markUnsaved(){setStatus('Unsaved changes','')}
+let toastT;
+function toast(msg,type){document.querySelector('.toast')?.remove();const el=document.createElement('div');el.className='toast'+(type==='error'?' error':'');el.textContent=msg;document.body.appendChild(el);clearTimeout(toastT);toastT=setTimeout(()=>el.remove(),4000)}
+
+
+// ── NEW SESSION ──
+function newSession(){
+  if(!confirm('Start a NEW session? This clears all local DM data and loaded characters. Cloud data is NOT deleted.\n\nContinue?')) return;
+  localStorage.removeItem(SK);
+  cfg.dmId='';
+  saveCfg();
+  location.reload();
+}
+
+// ── MAP ENGINE ──
+(function(){
+  const CANVAS_W=2048, CANVAS_H=1536;
+  let tool='pencil', activeLayer='base', drawing=false;
+  let startX=0, startY=0, snapshot=null;
+  let currentStamp=null;
+  let selRect=null, selImg=null, selDragging=false, selDragOx=0, selDragOy=0;
+  const undoStack=[], redoStack=[];
+  const MAX_UNDO=30;
+
+  // ── Viewport pan/zoom state ──
+  let vpScale=0.5, vpPanX=0, vpPanY=0;
+  let vpDragging=false, vpDragSX=0, vpDragSY=0, vpPanSX=0, vpPanSY=0;
+  let spaceHeld=false;
+  let lastTouchDist=null, lastTouchMidX=0, lastTouchMidY=0;
+
+  function applyVP(){
+    const wrap=document.getElementById('map_canvas_wrap');
+    if(wrap) wrap.style.transform=`translate(${vpPanX}px,${vpPanY}px) scale(${vpScale})`;
+  }
+
+  function clampPan(){
+    // allow some overscroll but not too far
+    const vp=document.getElementById('map_viewport');
+    if(!vp) return;
+    const maxX = vp.clientWidth * 0.9;
+    const maxY = vp.clientHeight * 0.9;
+    const minX = -(CANVAS_W * vpScale - vp.clientWidth * 0.1);
+    const minY = -(CANVAS_H * vpScale - vp.clientHeight * 0.1);
+    vpPanX = Math.min(maxX, Math.max(minX, vpPanX));
+    vpPanY = Math.min(maxY, Math.max(minY, vpPanY));
+  }
+
+  // Convert viewport client coords → canvas pixel coords
+  function vpToCanvas(cx,cy){
+    const vp=document.getElementById('map_viewport');
+    if(!vp) return {x:cx,y:cy};
+    const r=vp.getBoundingClientRect();
+    return {
+      x: (cx - r.left - vpPanX) / vpScale,
+      y: (cy - r.top  - vpPanY) / vpScale
+    };
+  }
+
+  function setupVPEvents(){
+    const vp=document.getElementById('map_viewport');
+    if(!vp) return;
+
+    // Scroll to zoom
+    vp.addEventListener('wheel', e=>{
+      e.preventDefault();
+      const r=vp.getBoundingClientRect();
+      const mx=e.clientX-r.left, my=e.clientY-r.top;
+      const delta=e.deltaY>0?0.9:1.1;
+      const newScale=Math.min(4,Math.max(0.1,vpScale*delta));
+      // Zoom toward cursor
+      vpPanX=mx-(mx-vpPanX)*(newScale/vpScale);
+      vpPanY=my-(my-vpPanY)*(newScale/vpScale);
+      vpScale=newScale;
+      clampPan();
+      applyVP();
+    },{passive:false});
+
+    // Mouse pan (space+drag or middle click)
+    vp.addEventListener('mousedown', e=>{
+      if(e.button===1 || (e.button===0 && spaceHeld)){
+        e.preventDefault();
+        vpDragging=true;
+        vpDragSX=e.clientX; vpDragSY=e.clientY;
+        vpPanSX=vpPanX; vpPanSY=vpPanY;
+        vp.style.cursor='grabbing';
+      }
+    });
+    window.addEventListener('mousemove', e=>{
+      if(!vpDragging) return;
+      vpPanX=vpPanSX+(e.clientX-vpDragSX);
+      vpPanY=vpPanSY+(e.clientY-vpDragSY);
+      clampPan(); applyVP();
+    });
+    window.addEventListener('mouseup', e=>{
+      if(!vpDragging) return;
+      vpDragging=false;
+      vp.style.cursor= spaceHeld ? 'grab' : 'default';
+    });
+
+    // Touch pan+zoom
+    vp.addEventListener('touchstart', e=>{
+      if(e.touches.length===2){
+        lastTouchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+        lastTouchMidX=(e.touches[0].clientX+e.touches[1].clientX)/2;
+        lastTouchMidY=(e.touches[0].clientY+e.touches[1].clientY)/2;
+        vpDragSX=lastTouchMidX; vpDragSY=lastTouchMidY;
+        vpPanSX=vpPanX; vpPanSY=vpPanY;
+        vpDragging=true;
+      }
+    },{passive:true});
+    vp.addEventListener('touchmove', e=>{
+      if(e.touches.length===2){
+        const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+        const midX=(e.touches[0].clientX+e.touches[1].clientX)/2;
+        const midY=(e.touches[0].clientY+e.touches[1].clientY)/2;
+        if(lastTouchDist){
+          const r=vp.getBoundingClientRect();
+          const mx=midX-r.left, my=midY-r.top;
+          const newScale=Math.min(4,Math.max(0.1,vpScale*(dist/lastTouchDist)));
+          vpPanX=mx-(mx-vpPanX)*(newScale/vpScale);
+          vpPanY=my-(my-vpPanY)*(newScale/vpScale);
+          vpScale=newScale;
+        }
+        vpPanX=vpPanSX+(midX-vpDragSX);
+        vpPanY=vpPanSY+(midY-vpDragSY);
+        lastTouchDist=dist; vpDragSX=midX; vpDragSY=midY; vpPanSX=vpPanX; vpPanSY=vpPanY;
+        clampPan(); applyVP();
+      }
+    },{passive:true});
+    vp.addEventListener('touchend', ()=>{ vpDragging=false; lastTouchDist=null; });
+  }
+
+  // Space to pan — blocked when measure tool is active to avoid conflict
+  document.addEventListener('keydown', e=>{
+    if(e.code==='Space' && document.getElementById('view_map')?.classList.contains('active') && tool!=='measure'){
+      spaceHeld=true;
+      const vp=document.getElementById('map_viewport');
+      if(vp) vp.style.cursor='grab';
+    }
+    // Escape cancels measure
+    if(e.code==='Escape' && tool==='measure'){ setTool('pencil'); }
+  });
+  document.addEventListener('keyup', e=>{
+    if(e.code==='Space'){ spaceHeld=false;
+      const vp=document.getElementById('map_viewport');
+      if(vp) vp.style.cursor='default';
+    }
+  });
+
+  window.vpFitToScreen=function(){
+    const vp=document.getElementById('map_viewport');
+    if(!vp) return;
+    vpScale=Math.min(vp.clientWidth/CANVAS_W, vp.clientHeight/CANVAS_H)*0.95;
+    vpPanX=(vp.clientWidth - CANVAS_W*vpScale)/2;
+    vpPanY=(vp.clientHeight - CANVAS_H*vpScale)/2;
+    applyVP();
+  };
+  window.vpResetZoom=function(){ vpScale=1; vpPanX=0; vpPanY=0; applyVP(); };
+
+  // ── Canvas draw helpers ──
+  function getCtx(layer){ return document.getElementById(layer==='fog'?'map_fog':'map_base')?.getContext('2d'); }
+  function activeCtx(){ return getCtx(activeLayer); }
+
+  function pushUndo(){
+    const base=document.getElementById('map_base');
+    const fog=document.getElementById('map_fog');
+    if(!base||!fog) return;
+    undoStack.push({
+      base: base.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H),
+      fog:  fog.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H)
+    });
+    if(undoStack.length>MAX_UNDO) undoStack.shift();
+    redoStack.length=0;
+  }
+
+  function mapPos(e){
+    const src=e.touches?e.touches[0]:e;
+    return vpToCanvas(src.clientX, src.clientY);
+  }
+
+  function applyStyle(ctx){
+    const color=document.getElementById('map_color')?.value||'#c49a22';
+    const size=parseInt(document.getElementById('map_size')?.value||4);
+    ctx.strokeStyle = tool==='eraser' ? 'rgba(0,0,0,1)' : color;
+    ctx.fillStyle   = color;
+    ctx.lineWidth   = tool==='eraser' ? size*3 : size;
+    ctx.lineCap='round'; ctx.lineJoin='round';
+    ctx.globalCompositeOperation = tool==='eraser' ? 'destination-out' : 'source-over';
+  }
+
+  function floodFill(ctx,x,y,fillColor){
+    x=Math.round(x); y=Math.round(y);
+    if(x<0||y<0||x>=CANVAS_W||y>=CANVAS_H) return;
+    const img=ctx.getImageData(0,0,CANVAS_W,CANVAS_H);
+    const d=img.data;
+    const idx=(y*CANVAS_W+x)*4;
+    const tr=d[idx],tg=d[idx+1],tb=d[idx+2],ta=d[idx+3];
+    const fc=parseInt(fillColor.replace('#',''),16);
+    const fr=(fc>>16)&255,fg=(fc>>8)&255,fb=fc&255;
+    if(tr===fr&&tg===fg&&tb===fb&&ta===255) return;
+    const stack=[[x,y]];
+    while(stack.length){
+      const [cx,cy]=stack.pop();
+      if(cx<0||cy<0||cx>=CANVAS_W||cy>=CANVAS_H) continue;
+      const i=(cy*CANVAS_W+cx)*4;
+      if(d[i]!==tr||d[i+1]!==tg||d[i+2]!==tb||d[i+3]!==ta) continue;
+      d[i]=fr; d[i+1]=fg; d[i+2]=fb; d[i+3]=255;
+      stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
+    }
+    ctx.putImageData(img,0,0);
+  }
+
+  // Measure tool state
+  let measStart=null;
+  function drawMeasure(x,y){
+    if(!measStart) return;
+    const gc=document.getElementById('map_grid_canvas');
+    if(!gc) return;
+    // Redraw grid then overlay measure line
+    toggleGrid();
+    const ctx=gc.getContext('2d');
+    ctx.save();
+    ctx.strokeStyle='#ff4444'; ctx.lineWidth=2; ctx.setLineDash([8,4]);
+    ctx.beginPath(); ctx.moveTo(measStart.x,measStart.y); ctx.lineTo(x,y); ctx.stroke();
+    ctx.setLineDash([]);
+    const px=Math.sqrt((x-measStart.x)**2+(y-measStart.y)**2);
+    const sz=parseInt(document.getElementById('map_grid_size')?.value||50);
+    const squares=(px/sz).toFixed(1);
+    const feet=Math.round(px/sz*5);
+    document.getElementById('measure_result').textContent=`${squares} sq / ${feet}ft`;
+    // Also draw label on grid canvas
+    const gc2=document.getElementById('map_grid_canvas');
+    if(gc2){
+      const ctx2=gc2.getContext('2d');
+      const midX=(measStart.x+x)/2, midY=(measStart.y+y)/2;
+      ctx2.save();
+      ctx2.fillStyle='rgba(0,0,0,0.75)';
+      const lw=70; ctx2.fillRect(midX-lw/2,midY-18,lw,20);
+      ctx2.fillStyle='#ff9999'; ctx2.font='bold 13px Cinzel,serif';
+      ctx2.textAlign='center'; ctx2.textBaseline='middle';
+      ctx2.fillText(`${squares}sq·${feet}ft`, midX, midY-8);
+      ctx2.textAlign='left'; ctx2.textBaseline='alphabetic';
+      ctx2.restore();
+    }
+    ctx.restore();
+  }
+
+  // Selection tool state
+  let selStartX=0,selStartY=0,selEndX=0,selEndY=0;
+  let selPhase='none'; // 'none','drawing','selected','moving'
+
+  function drawSelOverlay(){
+    const gc=document.getElementById('map_grid_canvas');
+    if(!gc||selPhase==='none') return;
+    toggleGrid();
+    const ctx=gc.getContext('2d');
+    ctx.save();
+    ctx.strokeStyle='#6699ff'; ctx.lineWidth=1.5; ctx.setLineDash([6,3]);
+    const x=Math.min(selStartX,selEndX), y=Math.min(selStartY,selEndY);
+    const w=Math.abs(selEndX-selStartX), h=Math.abs(selEndY-selStartY);
+    ctx.strokeRect(x,y,w,h);
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  function onDown(e){
+    if(vpDragging||spaceHeld||window._dmTokenDragging) return;
+    e.preventDefault();
+    const {x,y}=mapPos(e);
+
+    if(tool==='measure'){
+      measStart={x,y};
+      drawing=true;
+      return;
+    }
+
+    if(tool==='select'){
+      if(selPhase==='selected'){
+        // Check if inside selection to start move
+        const sx=Math.min(selStartX,selEndX), sy=Math.min(selStartY,selEndY);
+        const sw=Math.abs(selEndX-selStartX), sh=Math.abs(selEndY-selStartY);
+        if(x>=sx&&x<=sx+sw&&y>=sy&&y<=sy+sh){
+          selPhase='moving'; selDragging=true;
+          selDragOx=x-sx; selDragOy=y-sy;
+          // Cut the selection out into temp canvas
+          const base=document.getElementById('map_base');
+          const ctx=base.getContext('2d');
+          selImg=ctx.getImageData(sx,sy,sw,sh);
+          ctx.clearRect(sx,sy,sw,sh);
+          return;
+        }
+      }
+      selPhase='drawing'; selStartX=x; selStartY=y; selEndX=x; selEndY=y;
+      drawing=true; return;
+    }
+
+    const ctx=activeCtx(); if(!ctx) return;
+    pushUndo(); applyStyle(ctx);
+
+    if(tool==='stamp'&&currentStamp){
+      const sz=parseInt(document.getElementById('map_size')?.value||4)*4+16;
+      ctx.font=`${sz}px serif`;
+      ctx.globalCompositeOperation='source-over';
+      ctx.fillText(currentStamp, x-sz/2, y+sz/3);
+      return;
+    }
+    if(tool==='pencil'||tool==='eraser'){
+      ctx.beginPath(); ctx.moveTo(x,y); drawing=true;
+    } else if(tool==='fill'){
+      floodFill(ctx,x,y,document.getElementById('map_color')?.value||'#c49a22');
+    } else if(tool==='text'){
+      const txt=prompt('Enter text:');
+      if(txt){
+        applyStyle(ctx);
+        const sz=parseInt(document.getElementById('map_size')?.value||4)*3+8;
+        ctx.font=`${sz}px EB Garamond,serif`;
+        ctx.globalCompositeOperation='source-over';
+        ctx.fillText(txt,x,y);
+      }
+    } else {
+      snapshot=ctx.getImageData(0,0,CANVAS_W,CANVAS_H);
+      drawing=true;
+    }
+  }
+
+  function onMove(e){
+    if(vpDragging||spaceHeld) return;
+    e.preventDefault();
+    const {x,y}=mapPos(e);
+
+    if(tool==='measure'&&drawing){ drawMeasure(x,y); return; }
+
+    if(tool==='select'){
+      if(selPhase==='moving'&&selImg){
+        const sw=Math.abs(selEndX-selStartX), sh=Math.abs(selEndY-selStartY);
+        const nx=x-selDragOx, ny=y-selDragOy;
+        // redraw ghost
+        const gc=document.getElementById('map_grid_canvas');
+        if(gc){ toggleGrid(); const ctx=gc.getContext('2d'); ctx.save(); ctx.strokeStyle='#6699ff'; ctx.lineWidth=1.5; ctx.setLineDash([6,3]); ctx.strokeRect(nx,ny,sw,sh); ctx.setLineDash([]); ctx.restore(); }
+        selStartX=nx; selStartY=ny; selEndX=nx+sw; selEndY=ny+sh;
+        return;
+      }
+      if(selPhase==='drawing'){ selEndX=x; selEndY=y; drawSelOverlay(); return; }
+    }
+
+    if(!drawing) return;
+    const ctx=activeCtx(); if(!ctx) return;
+    applyStyle(ctx);
+    if(tool==='pencil'||tool==='eraser'){ ctx.lineTo(x,y); ctx.stroke(); }
+    else if(tool==='line'){ ctx.putImageData(snapshot,0,0); ctx.beginPath(); ctx.moveTo(startX,startY); ctx.lineTo(x,y); ctx.stroke(); }
+    else if(tool==='rect'){ ctx.putImageData(snapshot,0,0); ctx.beginPath(); ctx.strokeRect(startX,startY,x-startX,y-startY); }
+    else if(tool==='ellipse'){ ctx.putImageData(snapshot,0,0); ctx.beginPath(); ctx.ellipse(startX+(x-startX)/2,startY+(y-startY)/2,Math.abs(x-startX)/2,Math.abs(y-startY)/2,0,0,Math.PI*2); ctx.stroke(); }
+    // Only update start pos for freehand tools (pencil/eraser track last point)
+    if(tool==='pencil'||tool==='eraser'){ startX=x; startY=y; }
+  }
+
+  function onUp(e){
+    const {x,y}=mapPos(e);
+
+    if(tool==='measure'&&drawing){ drawing=false; measStart=null; return; }
+
+    if(tool==='select'){
+      if(selPhase==='drawing'){ selEndX=x; selEndY=y; selPhase='selected'; drawSelOverlay(); drawing=false; return; }
+      if(selPhase==='moving'&&selImg){
+        const sw=Math.abs(selEndX-selStartX-0), sh=selImg.height;
+        const nx=Math.min(selStartX,selEndX), ny=Math.min(selStartY,selEndY);
+        const base=document.getElementById('map_base');
+        if(base){ const ctx=base.getContext('2d'); ctx.putImageData(selImg,nx,ny); }
+        selPhase='selected'; selDragging=false; selImg=null;
+        drawSelOverlay(); return;
+      }
+    }
+
+    if(!drawing) return;
+    drawing=false; snapshot=null;
+    const ctx=activeCtx(); if(!ctx) return;
+    if(tool==='pencil'||tool==='eraser') ctx.closePath();
+    ctx.globalCompositeOperation='source-over';
+  }
+
+  window.setTool=function(t){
+    tool=t; currentStamp=null;
+    selPhase='none'; selImg=null;
+    document.querySelectorAll('.map-tool').forEach(b=>b.classList.remove('active-tool'));
+    document.getElementById('tool_'+t)?.classList.add('active-tool');
+    if(t!=='measure'){ document.getElementById('measure_result').textContent=''; }
+    const vp=document.getElementById('map_viewport');
+    if(vp) vp.style.cursor = t==='select'?'crosshair':t==='eraser'?'cell':'crosshair';
+  };
+
+  window.setStamp=function(emoji){
+    tool='stamp'; currentStamp=emoji;
+    document.querySelectorAll('.map-tool').forEach(b=>b.classList.remove('active-tool'));
+  };
+
+  window.setLayer=function(l){
+    activeLayer=l;
+    ['layer_base','layer_fog'].forEach(id=>document.getElementById(id)?.classList.remove('active-tool'));
+    document.getElementById('layer_'+l)?.classList.add('active-tool');
+    const base=document.getElementById('map_base');
+    const fog=document.getElementById('map_fog');
+    if(l==='base'){ if(base)base.style.pointerEvents='auto'; if(fog)fog.style.pointerEvents='none'; if(fog)fog.style.opacity='0.45'; }
+    else { if(base)base.style.pointerEvents='none'; if(fog)fog.style.pointerEvents='auto'; if(fog)fog.style.opacity='0.65'; }
+    setupCanvasEvents();
+  };
+
+  function setupCanvasEvents(){
+    ['map_base','map_fog'].forEach(id=>{
+      const c=document.getElementById(id); if(!c) return;
+      c.onmousedown=null; c.onmousemove=null; c.onmouseup=null;
+      c.ontouchstart=null; c.ontouchmove=null; c.ontouchend=null;
+    });
+    const active=document.getElementById(activeLayer==='fog'?'map_fog':'map_base');
+    if(!active) return;
+    active.onmousedown=onDown; active.onmousemove=onMove; active.onmouseup=onUp;
+    active.onmouseleave=e=>{ if(drawing) onUp(e); };
+    active.ontouchstart=onDown; active.ontouchmove=onMove; active.ontouchend=onUp;
+  }
+
+  window.mapUndo=function(){
+    if(!undoStack.length) return;
+    const state=undoStack.pop();
+    const base=document.getElementById('map_base'); const fog=document.getElementById('map_fog');
+    if(!base||!fog) return;
+    redoStack.push({ base:base.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H), fog:fog.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H) });
+    base.getContext('2d').putImageData(state.base,0,0);
+    fog.getContext('2d').putImageData(state.fog,0,0);
+  };
+
+  window.mapRedo=function(){
+    if(!redoStack.length) return;
+    const state=redoStack.pop();
+    const base=document.getElementById('map_base'); const fog=document.getElementById('map_fog');
+    if(!base||!fog) return;
+    undoStack.push({ base:base.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H), fog:fog.getContext('2d').getImageData(0,0,CANVAS_W,CANVAS_H) });
+    base.getContext('2d').putImageData(state.base,0,0);
+    fog.getContext('2d').putImageData(state.fog,0,0);
+  };
+
+  window.clearCanvas=function(){
+    if(!confirm('Clear the entire canvas?')) return;
+    pushUndo();
+    const base=document.getElementById('map_base'); const fog=document.getElementById('map_fog');
+    if(!base||!fog) return;
+    const bctx=base.getContext('2d'); bctx.clearRect(0,0,CANVAS_W,CANVAS_H);
+    bctx.fillStyle='#1a1a1a'; bctx.fillRect(0,0,CANVAS_W,CANVAS_H);
+    fog.getContext('2d').clearRect(0,0,CANVAS_W,CANVAS_H);
+  };
+
+  window.toggleGrid=function(){
+    const on=document.getElementById('map_grid')?.checked;
+    const type=document.getElementById('map_grid_type')?.value||'square';
+    const sz=parseInt(document.getElementById('map_grid_size')?.value||50);
+    const gc=document.getElementById('map_grid_canvas'); if(!gc) return;
+    const ctx=gc.getContext('2d');
+    ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
+    if(!on) return;
+    ctx.strokeStyle='rgba(255,255,255,0.8)'; ctx.lineWidth=0.8;
+
+    if(type==='square'){
+      for(let x=0;x<=CANVAS_W;x+=sz){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,CANVAS_H); ctx.stroke(); }
+      for(let y=0;y<=CANVAS_H;y+=sz){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CANVAS_W,y); ctx.stroke(); }
+    } else {
+      // Flat-top hex grid: sz = circumradius R
+      // Width of hex = 2R, Height = R*sqrt(3)
+      // Col spacing = R*1.5, Row spacing = R*sqrt(3)
+      const R=sz; // sz IS the circumradius
+      const colStep=R*1.5;
+      const rowStep=R*Math.sqrt(3);
+      const cols=Math.ceil(CANVAS_W/colStep)+2;
+      const rows=Math.ceil(CANVAS_H/rowStep)+2;
+      for(let col=-1;col<cols;col++){
+        for(let row=-1;row<rows;row++){
+          const cx=col*colStep + R;
+          const cy=row*rowStep + (col%2===0?0:rowStep/2);
+          ctx.beginPath();
+          for(let i=0;i<6;i++){
+            const angle=Math.PI/3*i; // flat-top vertices at 0°,60°,120°...
+            const hx=cx+R*Math.cos(angle);
+            const hy=cy+R*Math.sin(angle);
+            i===0?ctx.moveTo(hx,hy):ctx.lineTo(hx,hy);
+          }
+          ctx.closePath(); ctx.stroke();
+        }
+      }
+    }
+  };
+
+  window.uploadMapImage=function(e){
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const img=new Image();
+      img.onload=()=>{
+        pushUndo();
+        const base=document.getElementById('map_base'); if(!base) return;
+        const ctx=base.getContext('2d');
+        ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
+        // Scale to fill canvas preserving aspect
+        const scale=Math.min(CANVAS_W/img.width, CANVAS_H/img.height);
+        const w=img.width*scale, h=img.height*scale;
+        ctx.drawImage(img,(CANVAS_W-w)/2,(CANVAS_H-h)/2,w,h);
+        vpFitToScreen();
+        toast('Image loaded — fit to screen');
+      };
+      img.onerror=()=>toast('Failed to load image','error');
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value='';
+  };
+
+  window.saveAndPushMap=function(){
+    if(!window._db){toast('Firebase not ready','error');return;}
+    if(!cfg.dmId){toast('No session ID — open Setup first','error');return;}
+    const base=document.getElementById('map_base'); if(!base) return;
+
+    const out=document.createElement('canvas');
+    out.width=CANVAS_W; out.height=CANVAS_H;
+    const outCtx=out.getContext('2d');
+    outCtx.drawImage(base,0,0);
+    // Include grid overlay if visible
+    const gridCanvas=document.getElementById('map_grid_canvas');
+    if(gridCanvas && document.getElementById('map_grid')?.checked){
+      outCtx.globalAlpha=0.35;
+      outCtx.drawImage(gridCanvas,0,0);
+      outCtx.globalAlpha=1.0;
+    }
+
+    const status=document.getElementById('map_push_status');
+    if(status) status.textContent='Compressing…';
+
+    out.toBlob(async blob=>{
+      if(!blob){if(status)status.textContent='Export failed.';return;}
+      const name=document.getElementById('map_name_input')?.value.trim()||'Map '+new Date().toLocaleTimeString();
+      const path=`maps/${cfg.dmId}/${Date.now()}.jpg`;
+      try{
+        if(status) status.textContent='Uploading…';
+        const storageRef=window._sRef(window._storage,path);
+        await window._uploadBytes(storageRef,blob,{contentType:'image/jpeg'});
+        const url=await window._getDownloadURL(storageRef);
+        const mapMeta={name,url,path,pushedAt:Date.now()};
+        await window._fsSetDoc(window._fsDoc(window._db,'maps',cfg.dmId),{current:mapMeta,_updatedAt:Date.now()});
+        if(!dm.maps) dm.maps=[];
+        dm.maps.unshift(mapMeta);
+        if(dm.maps.length>5){ const old=dm.maps.pop(); if(old.path) window._deleteObject(window._sRef(window._storage,old.path)).catch(()=>{}); }
+        saveAll(); refreshMapSelect();
+        if(status) status.textContent='✓ Pushed '+new Date().toLocaleTimeString();
+        toast('Map pushed to players!');
+      }catch(err){
+        console.error(err);
+        if(status) status.textContent='Error: '+err.message;
+        toast('Push failed: '+err.message,'error');
+      }
+    },'image/jpeg',0.82);
+  };
+
+  window.refreshMapSelect=function(){
+    const sel=document.getElementById('map_select'); if(!sel) return;
+    sel.innerHTML='<option value="">— Saved Maps —</option>';
+    (dm.maps||[]).forEach((m,i)=>{
+      const opt=document.createElement('option');
+      opt.value=i; opt.textContent=m.name||'Map '+(i+1);
+      sel.appendChild(opt);
+    });
+  };
+
+  window.loadSavedMap=function(idx){
+    if(idx===''||idx===null) return;
+    const m=(dm.maps||[])[parseInt(idx)];
+    if(!m||!m.url) return;
+    const img=new Image(); img.crossOrigin='anonymous';
+    img.onload=()=>{
+      pushUndo();
+      const base=document.getElementById('map_base'); if(!base) return;
+      const ctx=base.getContext('2d');
+      ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
+      const scale=Math.min(CANVAS_W/img.width,CANVAS_H/img.height);
+      ctx.drawImage(img,(CANVAS_W-img.width*scale)/2,(CANVAS_H-img.height*scale)/2,img.width*scale,img.height*scale);
+      const ni=document.getElementById('map_name_input'); if(ni) ni.value=m.name||'';
+      vpFitToScreen();
+      toast('Map loaded: '+m.name);
+    };
+    img.onerror=()=>toast('Failed to load map image','error');
+    img.src=m.url;
+  };
+
+  window.deleteSavedMap=function(){
+    const sel=document.getElementById('map_select'); if(!sel||sel.value==='') return;
+    const idx=parseInt(sel.value); const m=(dm.maps||[])[idx]; if(!m) return;
+    if(!confirm('Delete "'+m.name+'"?')) return;
+    if(m.path) window._deleteObject(window._sRef(window._storage,m.path)).catch(()=>{});
+    dm.maps.splice(idx,1); saveAll(); refreshMapSelect(); toast('Map deleted.');
+  };
+
+  // Init
+  window._mapInitDone=false;
+  window.initMapCanvas=function(){
+    if(window._mapInitDone) return;
+    window._mapInitDone=true;
+    const base=document.getElementById('map_base');
+    if(base){ const ctx=base.getContext('2d'); ctx.fillStyle='#1a1a1a'; ctx.fillRect(0,0,CANVAS_W,CANVAS_H); }
+    setLayer('base');
+    document.getElementById('map_size')?.addEventListener('input',function(){ document.getElementById('map_size_val').textContent=this.value; });
+    setupVPEvents();
+    vpFitToScreen();
+    refreshTokenRoster();
+    setupTokenDrag();
+  };
+})();
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded',async()=>{
+  loadCfg(); loadLocal();
+
+  // Firebase SDK loads as an async ESM module — window._db may not be set yet.
+  // Poll until it's ready (max 4s) before trying any Firestore calls.
+  await new Promise(resolve=>{
+    if(window._db)return resolve();
+    let attempts=0;
+    const check=setInterval(()=>{
+      attempts++;
+      if(window._db||attempts>40){clearInterval(check);resolve();}
+    },100);
+  });
+
+  if(window._db){
+    // Re-attach live listeners for all chars that were restored from localStorage
+    Object.entries(chars).forEach(([id,c])=>{
+      if(c.source==='firestore')subscribeChar(c.charId||id);
+    });
+    // Load DM notes from cloud
+    if(cfg.dmId){
+      try{
+        const snap=await window._fsGetDoc(window._fsDoc(window._db,'dm_data',cfg.dmId));
+        if(snap.exists()){
+          const d=snap.data();
+          if(d.dm)Object.assign(dm,d.dm);
+          applyDM();
+          setStatus('DM data loaded from cloud','saved');
+        }
+      }catch(e){console.warn('DM cloud load failed:',e);}
+    }
+    setStatus('Live sync ready — Firestore connected','saved');
+    if(cfg.dmId) subscribeTokens(cfg.dmId);
+    if(cfg.dmId) subscribeDiceRolls(cfg.dmId);
+  }
+
+  if(!cfg.dmId)setTimeout(showSetup,800);
+  setTimeout(updateSyncIndicator, 200);
+
+  // ── AUTOSAVE every 5 seconds ──
+  setInterval(()=>{ collectDM(); saveAll(); }, 5000);
+
+  // ── TOKEN SYSTEM ──
+  if(window._db && cfg.dmId) subscribeTokens(cfg.dmId);
+});
+document.addEventListener('input',markUnsaved);
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();collectDM();saveAll()}});
+
+// ── TOKEN SYSTEM ──
+// tokens/{dmId} = { tokens: [ {id, charId, name, imgUrl, x, y, size} ] }
+let _tokenUnsub=null;
+let _tokens={}; // keyed by token id
+
+function subscribeTokens(dmId){
+  if(_tokenUnsub){ _tokenUnsub(); _tokenUnsub=null; }
+  if(!window._db||!dmId) return;
+  const ref=window._fsDoc(window._db,'tokens',dmId);
+  _tokenUnsub=window._fsOnSnapshot(ref,snap=>{
+    if(!snap.exists()){ _tokens={}; renderTokenCanvas(); return; }
+    const d=snap.data();
+    _tokens={}; (d.tokens||[]).forEach(t=>{ _tokens[t.id]=t; });
+    renderTokenCanvas();
+    refreshPlacedList();
+  },err=>console.warn('Token listener:',err));
+}
+
+async function pushTokens(){
+  if(!window._db||!cfg.dmId) return;
+  const ref=window._fsDoc(window._db,'tokens',cfg.dmId);
+  await window._fsSetDoc(ref,{tokens:Object.values(_tokens),_updatedAt:Date.now()}).catch(e=>console.warn('token push:',e));
+}
+
+function renderTokenCanvas(){
+  const tc=document.getElementById('map_token_canvas'); if(!tc) return;
+  const ctx=tc.getContext('2d');
+  ctx.clearRect(0,0,2048,1536);
+  Object.values(_tokens).forEach(t=>{
+    if(t.imgUrl){
+      const img=new Image(); img.crossOrigin='anonymous';
+      img.onload=()=>{
+        const sz=t.size||50;
+        // Circular clip
+        ctx.save();
+        ctx.beginPath(); ctx.arc(t.x,t.y,sz/2,0,Math.PI*2); ctx.clip();
+        ctx.drawImage(img,t.x-sz/2,t.y-sz/2,sz,sz);
+        ctx.restore();
+        // Border
+        ctx.beginPath(); ctx.arc(t.x,t.y,sz/2,0,Math.PI*2);
+        ctx.strokeStyle=t.color||'#c49a22'; ctx.lineWidth=2; ctx.stroke();
+        // Name label
+        ctx.fillStyle='rgba(0,0,0,0.7)';
+        ctx.fillRect(t.x-sz/2,t.y+sz/2,sz,14);
+        ctx.fillStyle='#ede0c4'; ctx.font='10px Cinzel,serif';
+        ctx.textAlign='center'; ctx.fillText(t.name||'',t.x,t.y+sz/2+10);
+        ctx.textAlign='left';
+      };
+      img.src=t.imgUrl;
+    } else {
+      // Fallback circle with initial
+      const sz=t.size||50;
+      ctx.save();
+      ctx.beginPath(); ctx.arc(t.x,t.y,sz/2,0,Math.PI*2);
+      ctx.fillStyle='#2a1a1a'; ctx.fill();
+      ctx.strokeStyle=t.color||'#c49a22'; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle='#ede0c4'; ctx.font=`${sz*0.4}px Cinzel,serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText((t.name||'?')[0].toUpperCase(),t.x,t.y);
+      ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+      ctx.restore();
+      ctx.fillStyle='rgba(0,0,0,0.7)';
+      ctx.fillRect(t.x-sz/2,t.y+sz/2,sz,14);
+      ctx.fillStyle='#ede0c4'; ctx.font='10px Cinzel,serif';
+      ctx.textAlign='center'; ctx.fillText(t.name||'',t.x,t.y+sz/2+10);
+      ctx.textAlign='left';
+    }
+  });
+}
+
+window.refreshTokenRoster=function(){
+  const roster=document.getElementById('token_roster'); if(!roster) return;
+  const entries=Object.values(chars);
+  if(!entries.length){
+    roster.innerHTML='<div style="font-size:10px;color:var(--subtext);text-align:center;padding:8px 0">No characters loaded.</div>';
+    return;
+  }
+  roster.innerHTML='';
+  entries.forEach(c=>{
+    const id=c.charId||Object.keys(chars).find(k=>chars[k]===c);
+    const name=c.name||'Unknown';
+    const tokenUrl=c.data?._tokenImg||'';
+    const div=document.createElement('div');
+    div.style.cssText='display:flex;align-items:center;gap:6px;padding:4px;border:1px solid var(--border);cursor:grab;background:var(--surface);user-select:none';
+    div.draggable=true;
+    div.dataset.charId=id;
+    div.dataset.name=name;
+    div.dataset.tokenUrl=tokenUrl;
+    // Token preview
+    const preview=document.createElement('div');
+    preview.style.cssText='width:32px;height:32px;border-radius:50%;border:1px solid var(--gold-dim);overflow:hidden;flex-shrink:0;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--gold)';
+    if(tokenUrl){ const img=document.createElement('img'); img.src=tokenUrl; img.style.cssText='width:100%;height:100%;object-fit:cover'; preview.appendChild(img); }
+    else preview.textContent=name[0]?.toUpperCase()||'?';
+    const label=document.createElement('span');
+    label.style.cssText='font-size:10px;font-family:Cinzel,serif;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    label.textContent=name;
+    div.appendChild(preview); div.appendChild(label);
+    roster.appendChild(div);
+  });
+};
+
+function refreshPlacedList(){
+  const list=document.getElementById('token_placed_list'); if(!list) return;
+  const placed=Object.values(_tokens);
+  list.innerHTML='';
+  if(!placed.length){ list.innerHTML='<div style="font-size:10px;color:var(--subtext);text-align:center">None placed</div>'; return; }
+  placed.forEach(t=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;justify-content:space-between;font-size:10px;padding:2px 0;';
+    row.innerHTML=`<span style="font-family:Cinzel,serif;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(t.name||'?')}</span>
+      <button class="btn danger sm" style="padding:1px 5px;font-size:8px" onclick="removeToken('${t.id}')">✕</button>`;
+    list.appendChild(row);
+  });
+}
+
+window.removeToken=function(id){
+  delete _tokens[id]; renderTokenCanvas(); refreshPlacedList(); pushTokens();
+};
+window.clearAllTokens=function(){
+  if(!Object.keys(_tokens).length) return;
+  if(!confirm('Remove all tokens from the map?')) return;
+  _tokens={}; renderTokenCanvas(); refreshPlacedList(); pushTokens();
+};
+
+window.setupTokenDrag=function(){
+  const vp=document.getElementById('map_viewport'); if(!vp) return;
+
+  // Drag from roster onto viewport
+  document.addEventListener('dragstart',e=>{
+    const el=e.target.closest('[data-char-id]'); if(!el) return;
+    e.dataTransfer.setData('charId',el.dataset.charId);
+    e.dataTransfer.setData('name',el.dataset.name);
+    e.dataTransfer.setData('tokenUrl',el.dataset.tokenUrl);
+    e.dataTransfer.effectAllowed='copy';
+  });
+
+  vp.addEventListener('dragover',e=>e.preventDefault());
+  vp.addEventListener('drop',e=>{
+    e.preventDefault();
+    const charId=e.dataTransfer.getData('charId'); if(!charId) return;
+    const name=e.dataTransfer.getData('name');
+    const tokenUrl=e.dataTransfer.getData('tokenUrl');
+    // Convert drop position to canvas coords
+    const vpRect=vp.getBoundingClientRect();
+    const canvasX=(e.clientX-vpRect.left-window._vpPanX||0)/window._vpScale||0;
+    const canvasY=(e.clientY-vpRect.top-window._vpPanY||0)/window._vpScale||0;
+    // Use the exposed pan/scale from the map engine
+    const mc=document.getElementById('map_canvas_wrap');
+    let cx=e.clientX-vpRect.left, cy=e.clientY-vpRect.top;
+    if(mc){
+      const m=new DOMMatrix(getComputedStyle(mc).transform);
+      cx=(e.clientX-vpRect.left-m.m41)/m.m11;
+      cy=(e.clientY-vpRect.top-m.m42)/m.m22;
+    }
+    const id='tok_'+charId+'_'+Date.now();
+    _tokens[id]={id,charId,name,imgUrl:tokenUrl,x:Math.round(cx),y:Math.round(cy),size:60};
+    renderTokenCanvas(); refreshPlacedList(); pushTokens();
+    toast('Token placed: '+name);
+  });
+
+  // DM can drag placed tokens by clicking near them on the token canvas
+  const tc=document.getElementById('map_token_canvas');
+  if(!tc) return;
+  // token canvas stays pointer-events:none; events go to viewport
+  let draggingTok=null, tokDragOx=0, tokDragOy=0;
+
+  function tokFromPos(cx,cy){
+    return Object.values(_tokens).find(t=>{
+      const sz=(t.size||60)/2;
+      return Math.abs(cx-t.x)<sz&&Math.abs(cy-t.y)<sz;
+    });
+  }
+  function tokCanvasPos(e){
+    const r=vp.getBoundingClientRect();
+    const mc=document.getElementById('map_canvas_wrap');
+    const m=new DOMMatrix(getComputedStyle(mc).transform);
+    return {
+      x:(e.clientX-r.left-m.m41)/m.m11,
+      y:(e.clientY-r.top-m.m42)/m.m22
+    };
+  }
+
+  // DM token drag: intercept on viewport when a token tool is active
+  // Uses same coord transform as drawing tools
+  vp.addEventListener('mousedown',e=>{
+    if(e.button!==0||window._dmActiveTool==='draw') return;
+    const r=vp.getBoundingClientRect();
+    const mc=document.getElementById('map_canvas_wrap');
+    const m=new DOMMatrix(getComputedStyle(mc).transform);
+    const cx=(e.clientX-r.left-m.m41)/m.m11;
+    const cy=(e.clientY-r.top-m.m42)/m.m22;
+    const tok=tokFromPos(cx,cy); if(!tok) return;
+    e.stopPropagation();
+    draggingTok=tok; tokDragOx=cx-tok.x; tokDragOy=cy-tok.y;
+    window._dmTokenDragging=true;
+    vp.style.cursor='grabbing';
+  });
+  window.addEventListener('mousemove',e=>{
+    if(!draggingTok) return;
+    const r=vp.getBoundingClientRect();
+    const mc=document.getElementById('map_canvas_wrap');
+    const m=new DOMMatrix(getComputedStyle(mc).transform);
+    const cx=(e.clientX-r.left-m.m41)/m.m11;
+    const cy=(e.clientY-r.top-m.m42)/m.m22;
+    draggingTok.x=Math.round(cx-tokDragOx);
+    draggingTok.y=Math.round(cy-tokDragOy);
+    renderTokenCanvas();
+  });
+  window.addEventListener('mouseup',()=>{
+    if(!draggingTok) return;
+    pushTokens(); draggingTok=null; window._dmTokenDragging=false; vp.style.cursor='default';
+  });
+};
+
+// Patch addCharTab and removeChar to refresh token roster
+(function(){
+  const origAdd=window.addCharTab;
+  window.addCharTab=function(id,name){
+    origAdd(id,name);
+    setTimeout(refreshTokenRoster,100);
+  };
+  const origRemove=window.removeChar;
+  window.removeChar=function(id,e){
+    origRemove(id,e);
+    // also remove that char's token from map
+    Object.keys(_tokens).forEach(tid=>{ if(_tokens[tid].charId===id){ delete _tokens[tid]; } });
+    renderTokenCanvas(); refreshPlacedList(); pushTokens();
+    setTimeout(refreshTokenRoster,100);
+  };
+})();
+
+// ── TASK 1: Firestore dice_rolls cross-computer sync ──
+// dice_rolls/{dmId} = { rolls: [...], _updatedAt }
+// Player rolls are broadcast via BroadcastChannel (same browser) already.
+// For cross-computer, players write to dice_rolls/{dmId}/player_rolls subcollection.
+// DM listens and merges incoming player rolls into rollHistory.
+let _diceRollsUnsub=null;
+let _lastDiceTs=0; // track timestamp to avoid duplicate entries
+
+function subscribeDiceRolls(dmId){
+  if(_diceRollsUnsub){ _diceRollsUnsub(); _diceRollsUnsub=null; }
+  if(!window._db||!dmId) return;
+  // Listen to player_dice subcollection — players write here
+  const ref=window._fsDoc(window._db,'dice_rolls',dmId+'_players');
+  _diceRollsUnsub=window._fsOnSnapshot(ref,snap=>{
+    if(!snap.exists()) return;
+    const d=snap.data();
+    const incoming=(d.rolls||[]).filter(r=>r._ts && r._ts>_lastDiceTs);
+    if(!incoming.length) return;
+    _lastDiceTs=Math.max(...incoming.map(r=>r._ts));
+    let added=0;
+    incoming.forEach(r=>{
+      // Skip if a BC entry with same time+label already exists (same-browser dedup)
+      const dupe=rollHistory.some(h=>h.source==='bc'&&h._bcTime===r.time&&h.label.includes(r.label||''));
+      if(dupe) return;
+      const entry={
+        label:'['+esc(r.charName||'Player')+'] '+esc(r.label||'Roll'),
+        regRolls:r.regRolls||[], hungerRolls:r.hungerRolls||[],
+        successes:r.successes||0, outcome:r.outcome||'',
+        outcomeColor:r.outcome==='SUCCESS'||r.outcome==='CRITICAL SUCCESS'?'var(--green-lt)':
+                     r.outcome==='MESSY CRITICAL'?'#e0c060':'var(--crimson-lt)',
+        diff:r.diff||2, time:r.time||new Date().toLocaleTimeString(),
+        source:'player', _ts:r._ts
+      };
+      rollHistory.unshift(entry);
+      added++;
+    });
+    if(!added) return;
+    if(rollHistory.length>30) rollHistory.length=30;
+    renderRollHistory();
+    // Flash dice nav
+    const diceNav=document.getElementById('nav_dice');
+    if(diceNav){ diceNav.style.color='var(--gold-lt)'; setTimeout(()=>{diceNav.style.color='';},2000); }
+    toast('Player roll received — check Dice Roller');
+  },err=>console.warn('dice_rolls listener:',err));
+}
+
+// ── TASK 2: DM Roll Request system ──
+// roll_requests/{dmId} = { request: {charId,label,pool,hunger,diff,requestedAt}, status:'pending'|'fulfilled'|'' }
+
+function openRollRequest(){
+  // Wait for Firebase if not ready yet
+  if(!window._db){
+    let tries=0;
+    const wait=setInterval(()=>{
+      tries++;
+      if(window._db){ clearInterval(wait); openRollRequest(); }
+      else if(tries>40){ clearInterval(wait); toast('Firebase unavailable — check your connection','error'); }
+    },100);
+    toast('Connecting to Firebase…');
+    return;
+  }
+  if(!cfg.dmId){toast('No session ID — open Setup first','error');return;}
+  const charList=Object.entries(chars);
+  if(!charList.length){toast('No characters loaded — load a character first','error');return;}
+  const charOpts=charList.map(([id,c])=>`<option value="${esc(id)}">${esc(c.name||id)}</option>`).join('');
+  // Insert modal if not present
+  let modal=document.getElementById('rollRequestModal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='rollRequestModal';
+    modal.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:8500;align-items:center;justify-content:center';
+    modal.innerHTML=`
+      <div style="background:var(--surface);border:1px solid var(--dm-border);max-width:420px;width:90%">
+        <div class="ph dm-ph" style="display:flex;align-items:center;justify-content:space-between">
+          <span>📨 Request Player Roll</span>
+          <button class="btn sm danger" onclick="document.getElementById('rollRequestModal').style.display='none'">✕</button>
+        </div>
+        <div class="pb" style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <div class="itl dm" style="margin-top:0">Player</div>
+            <select id="rr_char" class="ri-select" style="width:100%">${charOpts}</select>
+          </div>
+          <div>
+            <div class="itl dm">Roll Label (e.g. Strength + Brawl)</div>
+            <input id="rr_label" class="ri-input" placeholder="e.g. Wits + Awareness" style="width:100%">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div><div class="itl dm">Pool</div><input id="rr_pool" class="ri-input" type="number" min="1" max="20" value="5" style="width:100%"></div>
+            <div><div class="itl dm">Hunger</div><input id="rr_hunger" class="ri-input" type="number" min="0" max="5" value="1" style="width:100%"></div>
+            <div><div class="itl dm">Difficulty</div><input id="rr_diff" class="ri-input" type="number" min="1" max="10" value="2" style="width:100%"></div>
+          </div>
+          <div id="rr_status" style="font-size:11px;color:var(--subtext);min-height:16px;font-family:Cinzel,serif;letter-spacing:1px"></div>
+        </div>
+        <div style="padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn" onclick="document.getElementById('rollRequestModal').style.display='none'">Cancel</button>
+          <button class="btn green" onclick="sendRollRequest()">📨 Send Request</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  } else {
+    document.getElementById('rr_char').innerHTML=charOpts;
+  }
+  modal.style.display='flex';
+}
+
+async function sendRollRequest(){
+  const charId=document.getElementById('rr_char')?.value;
+  const label=document.getElementById('rr_label')?.value.trim()||'Roll';
+  const pool=parseInt(document.getElementById('rr_pool')?.value)||5;
+  const hunger=parseInt(document.getElementById('rr_hunger')?.value)||1;
+  const diff=parseInt(document.getElementById('rr_diff')?.value)||2;
+  const stEl=document.getElementById('rr_status');
+  if(!charId){if(stEl)stEl.textContent='Select a player';return;}
+  if(!window._db||!cfg.dmId){if(stEl){stEl.textContent='Firebase not ready — try again in a moment';stEl.style.color='var(--crimson-lt)';}return;}
   if(stEl){stEl.textContent='Sending…';stEl.style.color='var(--gold)';}
   try{
     const ref=window._fsDoc(window._db,'roll_requests',charId);
