@@ -16,12 +16,12 @@
   --blue:#1a3a7a;--blue-lt:#6080e0;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:20px;min-height:100vh;
+body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:16px;min-height:100vh;
   background-image:radial-gradient(ellipse at 20% 20%,rgba(122,21,21,.06) 0%,transparent 60%),
   radial-gradient(ellipse at 80% 80%,rgba(196,154,34,.04) 0%,transparent 60%);}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;opacity:.35;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");}
-.page{max-width:1920px;margin:0 auto;padding:32px 48px;}
+.page{max-width:1600px;margin:0 auto;padding:24px 32px;}
 
 /* HEADER */
 .header{text-align:center;padding:24px 20px 18px;border:1px solid var(--border);
@@ -32,17 +32,17 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;o
 .header-sub{font-family:'Cinzel',serif;font-size:8px;letter-spacing:5px;color:var(--subtext);margin-bottom:8px;}
 .header-div{width:180px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto;}
 .header-name-input{background:transparent;border:none;border-bottom:2px solid var(--gold-dim);color:var(--gold-lt);
-  font-family:'Cinzel Decorative',serif;font-size:42px;letter-spacing:5px;text-align:center;outline:none;
+  font-family:'Cinzel Decorative',serif;font-size:28px;letter-spacing:5px;text-align:center;outline:none;
   width:100%;max-width:700px;text-transform:uppercase;position:relative;z-index:1;}
 .header-name-input::placeholder{color:rgba(232,201,106,.3);}
 .header-name-input:focus{border-bottom-color:var(--gold);}
 
 /* SAVE BAR */
-.save-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:12px 20px;
+.save-bar{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:7px 12px;
   border:1px solid var(--field-border);background:var(--surface);flex-wrap:wrap;}
 .save-status{font-size:10px;font-family:'Cinzel',serif;letter-spacing:1px;color:var(--subtext);transition:color .3s;flex:1;min-width:100px;}
 .save-status.saved{color:var(--green-lt);} .save-status.error{color:var(--crimson-lt);} .save-status.syncing{color:var(--gold);}
-.btn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;padding:7px 16px;background:transparent;
+.btn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;padding:5px 12px;background:transparent;
   border:1px solid var(--gold-dim);color:var(--gold);cursor:pointer;transition:all .2s;text-transform:uppercase;white-space:nowrap;}
 .btn:hover{background:rgba(196,154,34,.1);border-color:var(--gold);}
 .btn.green{border-color:var(--green);color:var(--green-lt);} .btn.green:hover{background:rgba(58,122,58,.15);}
@@ -52,13 +52,13 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;o
 .code-badge:hover{background:rgba(196,154,34,.12);}
 
 /* LAYOUT */
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
 .full{margin-bottom:10px;}
 
 /* PANEL */
 .panel{border:1px solid var(--border);background:var(--panel);overflow:visible;}
-.ph{background:var(--crimson);padding:8px 14px;font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;
+.ph{background:var(--crimson);padding:5px 10px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;
   color:var(--gold-lt);text-transform:uppercase;border-bottom:1px solid var(--gold-dim);
   display:flex;align-items:center;justify-content:space-between;gap:6px;}
 .ph-left{display:flex;align-items:center;gap:6px;}
@@ -66,18 +66,18 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;o
 .pb{padding:10px;}
 
 /* FIELDS */
-.fr{display:flex;align-items:baseline;gap:6px;margin-bottom:8px;border-bottom:1px solid rgba(122,94,24,.2);padding-bottom:7px;}
+.fr{display:flex;align-items:baseline;gap:6px;margin-bottom:6px;border-bottom:1px solid rgba(122,94,24,.2);padding-bottom:5px;}
 .fr:last-child{margin-bottom:0;border-bottom:none;padding-bottom:0;}
-.fl{font-size:13px;color:var(--subtext);min-width:110px;font-family:'Cinzel',serif;letter-spacing:.5px;flex-shrink:0;}
+.fl{font-size:11px;color:var(--subtext);min-width:88px;font-family:'Cinzel',serif;letter-spacing:.5px;flex-shrink:0;}
 .fi{flex:1;background:transparent;border:none;border-bottom:1px solid var(--field-border);
-  color:var(--input-text);font-family:'EB Garamond',serif;font-size:16px;padding:2px 5px;outline:none;transition:border-color .2s;width:100%;}
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:14px;padding:1px 4px;outline:none;transition:border-color .2s;width:100%;}
 .fi:focus{border-bottom-color:var(--gold-dim);}
 select.fi{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}
 select.fi option{background:#0e0b08;color:#d4c898;}
 select.fi:focus{border-bottom-color:var(--gold-dim);}
 select.fi::-ms-expand{display:none;}
 .fta{width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);
-  font-family:'EB Garamond',serif;font-size:16px;padding:10px;outline:none;resize:vertical;min-height:80px;
+  font-family:'EB Garamond',serif;font-size:14px;padding:8px;outline:none;resize:vertical;min-height:80px;
   transition:border-color .2s;line-height:1.6;}
 .fta:focus{border-color:var(--gold-dim);}
 .fta.lg{min-height:120px;} .fta.xl{min-height:160px;} .fta.xxl{min-height:220px;}
@@ -96,7 +96,7 @@ select.fi::-ms-expand{display:none;}
 .dr:last-child{margin-bottom:0;}
 .dl{font-size:12px;color:var(--text);min-width:108px;flex-shrink:0;}
 .dots{display:flex;gap:4px;align-items:center;}
-.dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--gold-dim);
+.dot{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--gold-dim);
   background:var(--field-bg);cursor:pointer;transition:all .15s;flex-shrink:0;}
 .dot.filled{background:var(--gold);border-color:var(--gold-lt);box-shadow:0 0 5px rgba(196,154,34,.4);}
 .dot:hover{border-color:var(--gold);}
@@ -134,7 +134,7 @@ select.fi::-ms-expand{display:none;}
 
 /* BLOOD POTENCY PANEL */
 .bp-dots-row{display:flex;gap:7px;margin:8px 0 4px;flex-wrap:wrap;}
-.bp-dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;transition:all .15s;flex-shrink:0;}
+.bp-dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;transition:all .15s;flex-shrink:0;}
 .bp-dot.filled{background:var(--crimson-lt);border-color:#e03030;box-shadow:0 0 8px rgba(192,32,32,.5);}
 .bp-dot:hover{transform:scale(1.12);}
 .bp-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
@@ -242,7 +242,7 @@ select.fi::-ms-expand{display:none;}
 /* ═══════════════════════════════
    HUNGER FRENZY WARNING
    ═══════════════════════════════ */
-.frenzy-warning{display:none;margin-top:8px;padding:10px 17px;background:rgba(192,32,32,.18);
+.frenzy-warning{display:none;margin-top:8px;padding:7px 12px;background:rgba(192,32,32,.18);
   border:1px solid var(--crimson-lt);font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;
   color:var(--crimson-lt);text-transform:uppercase;animation:frenzyPulse 1.8s ease-in-out infinite;}
 .frenzy-warning.show{display:flex;align-items:center;gap:8px;}
@@ -440,7 +440,7 @@ select.fi::-ms-expand{display:none;}
   min-height:36px;}
 .char-switcher-label{font-family:Cinzel,serif;font-size:7px;letter-spacing:3px;color:var(--subtext);
   padding:0 12px;white-space:nowrap;flex-shrink:0;border-right:1px solid var(--border);
-  height:48px;display:flex;align-items:center;}
+  height:36px;display:flex;align-items:center;}
 .char-tab{display:flex;align-items:center;gap:6px;padding:7px 14px;cursor:pointer;border-right:1px solid var(--border);
   font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;color:var(--subtext);white-space:nowrap;
   transition:all .15s;flex-shrink:0;min-width:0;max-width:180px;background:transparent;border-bottom:none;}
@@ -454,12 +454,12 @@ select.fi::-ms-expand{display:none;}
   color:var(--gold-lt);border:1px solid var(--gold-dim);background:rgba(196,154,34,.08);
   transition:all .15s;flex-shrink:0;margin:4px 8px;}
 .char-tab-add:hover{color:#fff;background:rgba(196,154,34,.2);border-color:var(--gold);}
-.char-switcher-btn{display:flex;align-items:center;gap:8px;padding:0 14px;height:48px;cursor:pointer;
+.char-switcher-btn{display:flex;align-items:center;gap:8px;padding:0 14px;height:36px;cursor:pointer;
   font-family:Cinzel,serif;font-size:10px;letter-spacing:1px;color:var(--text);
   border:none;border-right:1px solid var(--border);background:transparent;white-space:nowrap;flex-shrink:0;transition:background .15s;}
 .char-switcher-btn:hover{background:rgba(196,154,34,.08);}
 .char-switcher-btn.active-char{background:rgba(196,154,34,.12);color:var(--gold-lt);border-bottom:2px solid var(--gold);}
-.char-switcher-new{display:flex;align-items:center;gap:6px;padding:0 12px;height:34px;cursor:pointer;
+.char-switcher-new{display:flex;align-items:center;gap:6px;padding:0 12px;height:26px;cursor:pointer;
   font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;color:var(--gold-lt);
   border:1px solid var(--gold-dim);background:rgba(196,154,34,.08);margin:5px 8px;flex-shrink:0;transition:all .15s;}
 .char-switcher-new:hover{background:rgba(196,154,34,.2);border-color:var(--gold);}
@@ -467,7 +467,45 @@ select.fi::-ms-expand{display:none;}
   font-size:11px;padding:0 2px;line-height:1;transition:color .15s;flex-shrink:0;}
 .char-switcher-x:hover{color:var(--crimson-lt);}
 
-/* TOAST */
+/* ── INVENTORY & HAVEN ── */
+.inv-item{border:1px solid rgba(122,94,24,.35);background:rgba(16,12,8,.7);margin-bottom:6px;transition:border-color .2s;}
+.inv-item:hover{border-color:rgba(196,154,34,.5);}
+.inv-item.equipped{border-color:var(--gold);background:rgba(196,154,34,.05);}
+.inv-item.stored{border-color:rgba(80,80,80,.4);opacity:.8;}
+.inv-item-hdr{display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;border-bottom:1px solid transparent;}
+.inv-item.expanded .inv-item-hdr{border-bottom-color:rgba(122,94,24,.2);}
+.inv-cat-badge{font-family:Cinzel,serif;font-size:7px;letter-spacing:1px;padding:2px 6px;border:1px solid;flex-shrink:0;text-transform:uppercase;}
+.inv-cat-badge.weapon-melee{color:#e08080;border-color:#7a3030;background:rgba(120,40,40,.15);}
+.inv-cat-badge.weapon-ranged{color:#e0a060;border-color:#7a5020;background:rgba(120,80,20,.15);}
+.inv-cat-badge.armor{color:#80a0e0;border-color:#304080;background:rgba(40,60,120,.15);}
+.inv-cat-badge.tool{color:var(--subtext);border-color:rgba(122,94,24,.4);background:rgba(122,94,24,.06);}
+.inv-cat-badge.occult{color:#c080e0;border-color:#603080;background:rgba(80,20,120,.15);}
+.inv-cat-badge.vehicle{color:#60c0a0;border-color:#207060;background:rgba(20,80,60,.15);}
+.inv-cat-badge.personal{color:var(--subtext);border-color:rgba(80,80,80,.4);}
+.inv-cat-badge.blood{color:var(--crimson-lt);border-color:var(--crimson);background:rgba(122,21,21,.1);}
+.inv-cat-badge.document{color:#a0c0a0;border-color:#406040;}
+.inv-cat-badge.other{color:var(--subtext);border-color:rgba(80,80,80,.3);}
+.inv-name{font-family:Cinzel,serif;font-size:11px;color:var(--gold-lt);letter-spacing:1px;flex:1;}
+.inv-qty{font-family:'Cinzel Decorative',serif;font-size:14px;color:var(--gold);min-width:24px;text-align:center;flex-shrink:0;}
+.inv-tag{font-family:Cinzel,serif;font-size:7px;letter-spacing:1px;padding:1px 5px;border:1px solid;display:inline-block;margin:1px;}
+.inv-tag.concealable{color:#80e080;border-color:#307030;}
+.inv-tag.illegal{color:var(--crimson-lt);border-color:var(--crimson);animation:masqPulse 2s ease-in-out infinite;}
+.inv-tag.noisy{color:#e0c060;border-color:#706020;}
+.inv-tag.ritual{color:#c080e0;border-color:#603080;}
+.inv-tag.fragile{color:#c09060;border-color:#705030;}
+.inv-tag.heavy{color:#8090a0;border-color:#405060;}
+.inv-tag.valuable{color:var(--gold-lt);border-color:var(--gold-dim);}
+.inv-tag.masquerade-risk{color:var(--crimson-lt);border-color:var(--crimson);background:rgba(122,21,21,.15);}
+@keyframes masqPulse{0%,100%{opacity:1;}50%{opacity:.55;}}
+.inv-body{padding:8px 10px;display:none;}
+.inv-item.expanded .inv-body{display:block;}
+.inv-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+.haven-feature-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid rgba(196,154,34,.35);background:rgba(196,154,34,.06);font-family:Cinzel,serif;font-size:8px;letter-spacing:1px;color:var(--gold);margin:2px;}
+.haven-feature-pill .hfp-x{background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:9px;padding:0;margin-left:3px;}
+.haven-feature-pill .hfp-x:hover{color:var(--crimson-lt);}
+.haven-occupant{display:flex;align-items:center;gap:8px;padding:4px 8px;border-bottom:1px solid rgba(122,94,24,.12);font-size:13px;}
+.haven-occupant:last-child{border-bottom:none;}
+.lib-label-map{0:'No occult resources.',1:'Dabbler (pamphlets, folklore)',2:'Practitioner (grimoires, rituals)',3:'Scholar (rare tomes, elder lore)',4:'Adept (restricted texts, coveted secrets)',5:'Master (legendary, unique works)'}
 .toast{position:fixed;bottom:20px;right:20px;z-index:9800;background:var(--panel);border:1px solid var(--border);
   padding:10px 16px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;color:var(--gold-lt);
   box-shadow:0 4px 20px rgba(0,0,0,.6);animation:toastIn .3s ease;max-width:300px;}
@@ -620,7 +658,7 @@ select.fi::-ms-expand{display:none;}
         <button class="btn green sm" onclick="playerRollDice()">Roll</button>
         <button class="btn sm" onclick="playerRouseRoll()" title="Roll 1d10 — 6+ = no Hunger gained, 1–5 = gain 1 Hunger">Rouse (1d)</button>
         <button class="btn sm" onclick="playerQuickRoll(2,'Frenzy Check',parseInt(document.getElementById('p_dice_diff').value)||2)" title="Roll 2d10 vs current DIFF — succeed to resist the Beast">Frenzy (2d)</button>
-        <button class="btn sm" onclick="playerRemorsRoll()" title="Roll 1d10 — any success (6+) = keep Humanity. Difficulty always 1.">Remorse</button>
+        <button class="btn sm" onclick="playerQuickRoll(1,'Remorse Check',parseInt(document.getElementById('p_dice_diff').value)||1)" title="Roll 1d10 vs current DIFF — succeed to avoid Humanity loss">Remorse</button>
       </div>
       <div id="p_dice_result" class="panel" style="min-height:80px;padding:10px;font-size:13px;line-height:1.8;margin-bottom:8px"></div>
       <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin-bottom:6px">HISTORY</div>
@@ -640,29 +678,21 @@ select.fi::-ms-expand{display:none;}
   <div class="panel">
     <div class="ph"><span class="ph-left">Identity</span></div>
     <div class="pb" style="display:flex;gap:0;padding:0">
-      <!-- Portrait column: full-height black box, token as circle overlay bottom-right -->
-      <div style="flex:0 0 160px;display:flex;flex-direction:column;border-right:1px solid var(--border);position:relative">
-        <!-- Full-height portrait area -->
-        <div id="char_portrait_box"
-          onclick="document.getElementById('char_portrait_input').click()"
-          title="Click to set portrait"
-          style="flex:1;min-height:380px;background:#050505;cursor:pointer;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center">
-          <div id="char_portrait_preview"
-            style="position:absolute;inset:0;background-size:cover;background-position:center center;background-repeat:no-repeat"></div>
-          <span id="char_portrait_placeholder"
-            style="position:relative;z-index:1;font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:rgba(196,154,34,.3);pointer-events:none">PORTRAIT</span>
+      <!-- Vertical portrait column -->
+      <div style="flex:0 0 160px;display:flex;flex-direction:column;border-right:1px solid var(--border)">
+        <!-- Portrait: tall box, token circle overlaid bottom-right -->
+        <div style="position:relative;height:360px;background:#000;cursor:pointer;overflow:hidden;flex-shrink:0" onclick="document.getElementById('char_portrait_input').click()" title="Click to set portrait">
+          <div id="char_portrait_preview" style="width:100%;height:100%;background:var(--field-bg);display:flex;align-items:center;justify-content:center;color:var(--subtext);font-size:9px;font-family:Cinzel,serif;letter-spacing:1px;text-align:center;background-size:cover;background-position:center center">Portrait</div>
+          <div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-family:Cinzel,serif;font-size:6px;letter-spacing:2px;color:rgba(232,201,106,.35)">PORTRAIT</div>
+          <!-- Token circle overlaid bottom-right -->
+          <div style="position:absolute;bottom:10px;right:10px;cursor:pointer;z-index:2" onclick="event.stopPropagation();document.getElementById('char_token_input').click()" title="Click to set token">
+            <div id="char_token_preview" style="width:62px;height:62px;border-radius:50%;border:2px solid var(--gold-dim);background:var(--field-bg);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--subtext);font-size:7px;font-family:Cinzel,serif;text-align:center;background-size:cover;background-position:center;box-shadow:0 0 0 3px rgba(0,0,0,.7)">Token</div>
+          </div>
         </div>
-        <!-- Token circle overlay — bottom right of portrait box -->
-        <div onclick="document.getElementById('char_token_input').click()"
-          title="Click to set map token"
-          style="position:absolute;bottom:28px;right:6px;z-index:5;cursor:pointer">
-          <div id="char_token_preview"
-            style="width:54px;height:54px;border-radius:50%;border:2px solid var(--gold);background:#050505;overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:Cinzel,serif;font-size:7px;color:rgba(196,154,34,.5);text-align:center;background-size:cover;background-position:center;box-shadow:0 0 8px rgba(0,0,0,.8)">Token</div>
-        </div>
-        <!-- Buttons row -->
-        <div style="border-top:1px solid var(--border);display:flex;gap:2px;padding:3px;background:var(--surface)">
-          <button class="btn sm" style="flex:1;font-size:6px;padding:2px 3px" onclick="document.getElementById('char_portrait_input').click()">Portrait</button>
-          <button class="btn sm" style="flex:1;font-size:6px;padding:2px 3px" onclick="document.getElementById('char_token_input').click()">Token</button>
+        <!-- Buttons -->
+        <div style="border-top:1px solid var(--border);display:flex;flex-direction:column;gap:3px;padding:4px">
+          <button class="btn sm" style="font-size:6px;padding:2px 4px;width:100%" onclick="document.getElementById('char_portrait_input').click()">Portrait</button>
+          <button class="btn sm" style="font-size:6px;padding:2px 4px;width:100%" onclick="document.getElementById('char_token_input').click()">Token</button>
         </div>
       </div>
       <input type="file" id="char_portrait_input" accept="image/*" style="display:none" onchange="loadCharImage('portrait',event)">
@@ -1180,6 +1210,151 @@ select.fi::-ms-expand{display:none;}
   </div>
 </div>
 
+<!-- INVENTORY -->
+<div class="panel full" id="inv_panel">
+  <div class="ph">
+    <span class="ph-left">Inventory</span>
+    <div style="display:flex;gap:6px;align-items:center">
+      <span id="inv_weight_warn" style="display:none;font-family:Cinzel,serif;font-size:8px;letter-spacing:1px;color:var(--crimson-lt);animation:frenzyPulse 1.8s ease-in-out infinite">⚠ OVER LIMIT</span>
+      <button class="add-btn" onclick="openAddItemModal()">+ Add Item</button>
+      <button class="add-btn" onclick="openPresetLibrary()">⚡ Quick Add</button>
+    </div>
+  </div>
+  <div class="pb">
+    <!-- Filter bar -->
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+      <select id="inv_filter_cat" onchange="renderInventory()" style="background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'Cinzel',serif;font-size:9px;padding:3px 8px;outline:none">
+        <option value="">All Categories</option>
+        <option value="weapon-melee">Melee Weapons</option>
+        <option value="weapon-ranged">Ranged Weapons</option>
+        <option value="armor">Armor</option>
+        <option value="tool">Tools</option>
+        <option value="occult">Occult</option>
+        <option value="vehicle">Vehicle</option>
+        <option value="personal">Personal</option>
+        <option value="blood">Blood Supply</option>
+        <option value="document">Documents</option>
+        <option value="other">Other</option>
+      </select>
+      <label style="display:flex;align-items:center;gap:5px;font-family:Cinzel,serif;font-size:9px;color:var(--subtext);cursor:pointer">
+        <input type="checkbox" id="inv_filter_equipped" onchange="renderInventory()"> Equipped only
+      </label>
+      <label style="display:flex;align-items:center;gap:5px;font-family:Cinzel,serif;font-size:9px;color:var(--subtext);cursor:pointer">
+        <input type="checkbox" id="inv_filter_carried" onchange="renderInventory()"> Carried only
+      </label>
+      <span id="inv_summary" style="margin-left:auto;font-family:Cinzel,serif;font-size:9px;color:var(--subtext)"></span>
+    </div>
+    <!-- Item list -->
+    <div id="inv_list"></div>
+    <div id="inv_empty" style="text-align:center;padding:20px;font-size:12px;color:var(--subtext);font-style:italic;display:none">
+      Nothing carried. Add items above or quick-add from the preset library.
+    </div>
+  </div>
+</div>
+
+<!-- HAVEN -->
+<div class="panel full" id="haven_panel">
+  <div class="ph">
+    <span class="ph-left">Haven</span>
+    <div style="display:flex;gap:6px;align-items:center">
+      <span style="font-family:Cinzel,serif;font-size:9px;color:var(--subtext)">Rating:</span>
+      <div id="haven_rating_dots" style="display:flex;gap:4px"></div>
+      <button class="add-btn" onclick="openHavenEditor()">⚙ Edit Haven</button>
+    </div>
+  </div>
+  <div class="pb">
+    <div class="grid-2" style="margin-bottom:10px">
+      <!-- Haven stats -->
+      <div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid rgba(122,94,24,.2)">
+          <div style="padding:6px 10px;border-bottom:1px solid rgba(122,94,24,.15);border-right:1px solid rgba(122,94,24,.15);display:flex;gap:6px;align-items:baseline">
+            <span style="font-family:Cinzel,serif;font-size:9px;color:var(--subtext);min-width:90px">Location Type</span>
+            <span id="haven_location_display" style="font-size:13px;color:var(--text)">—</span>
+          </div>
+          <div style="padding:6px 10px;border-bottom:1px solid rgba(122,94,24,.15);display:flex;gap:6px;align-items:baseline">
+            <span style="font-family:Cinzel,serif;font-size:9px;color:var(--subtext);min-width:80px">Security</span>
+            <span id="haven_security_display" style="font-size:13px;color:var(--text)">—</span>
+          </div>
+          <div style="padding:6px 10px;border-bottom:1px solid rgba(122,94,24,.15);border-right:1px solid rgba(122,94,24,.15);display:flex;gap:6px;align-items:baseline">
+            <span style="font-family:Cinzel,serif;font-size:9px;color:var(--subtext);min-width:90px">Location Bonus</span>
+            <span id="haven_bonus_display" style="font-size:13px;color:var(--text)">—</span>
+          </div>
+          <div style="padding:6px 10px;border-bottom:1px solid rgba(122,94,24,.15);display:flex;gap:6px;align-items:baseline">
+            <span style="font-family:Cinzel,serif;font-size:9px;color:var(--subtext);min-width:80px">Upkeep</span>
+            <span id="haven_upkeep_display" style="font-size:13px;color:var(--text)">—</span>
+          </div>
+        </div>
+        <!-- Features -->
+        <div style="margin-top:8px">
+          <div class="itl" style="margin-top:0;margin-bottom:4px">Haven Features</div>
+          <div id="haven_features_display" style="display:flex;flex-wrap:wrap;gap:4px;min-height:24px">
+            <span style="font-size:11px;color:var(--subtext);font-style:italic">None installed.</span>
+          </div>
+        </div>
+        <!-- Notes -->
+        <div id="haven_notes_block" style="display:none;margin-top:8px">
+          <div class="itl" style="margin-top:0;margin-bottom:4px">Notes</div>
+          <div id="haven_notes_display" style="font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap"></div>
+        </div>
+      </div>
+      <!-- Resources -->
+      <div>
+        <div class="itl" style="margin-top:0;margin-bottom:8px">Haven Resources</div>
+        <!-- Blood supply -->
+        <div style="border:1px solid rgba(122,21,21,.3);background:rgba(122,21,21,.06);padding:10px;margin-bottom:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <span style="font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;color:var(--crimson-lt)">🩸 BLOOD SUPPLY</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <button onclick="adjustResource('bloodSupply',-1)" style="background:transparent;border:1px solid var(--crimson);color:var(--crimson-lt);width:20px;height:20px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">−</button>
+              <span id="res_blood" style="font-family:'Cinzel Decorative',serif;font-size:18px;color:var(--crimson-lt);min-width:24px;text-align:center">0</span>
+              <button onclick="adjustResource('bloodSupply',1)" style="background:transparent;border:1px solid var(--crimson);color:var(--crimson-lt);width:20px;height:20px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">+</button>
+              <span style="font-size:10px;color:var(--subtext);font-family:Cinzel,serif">units</span>
+            </div>
+          </div>
+          <button class="btn green sm" style="width:100%;font-size:8px" onclick="restAtHaven()" title="Rest at Haven — spend 1 Blood to reduce Hunger by 1">🌙 Rest at Haven (−1 Blood, −1 Hunger)</button>
+        </div>
+        <!-- Cash -->
+        <div style="border:1px solid rgba(196,154,34,.2);background:rgba(196,154,34,.04);padding:10px;margin-bottom:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;color:var(--gold)">💰 CASH ON HAND</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <button onclick="adjustResource('cashOnHand',-100)" style="background:transparent;border:1px solid var(--gold-dim);color:var(--subtext);width:20px;height:20px;cursor:pointer;font-size:10px">−</button>
+              <span id="res_cash" style="font-family:'Cinzel',serif;font-size:14px;color:var(--gold-lt);min-width:48px;text-align:center">$0</span>
+              <button onclick="adjustResource('cashOnHand',100)" style="background:transparent;border:1px solid var(--gold-dim);color:var(--subtext);width:20px;height:20px;cursor:pointer;font-size:10px">+</button>
+            </div>
+          </div>
+          <input type="number" id="res_cash_input" placeholder="Set exact amount…" style="width:100%;margin-top:6px;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:3px 6px;outline:none" oninput="state.haven.cashOnHand=parseInt(this.value)||0;updateHavenDisplay();markUnsaved()">
+        </div>
+        <!-- Occult library -->
+        <div style="border:1px solid rgba(80,40,120,.35);background:rgba(60,20,100,.08);padding:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;color:#b090e0">📚 OCCULT LIBRARY</span>
+            <div style="display:flex;align-items:center;gap:4px">
+              ${[0,1,2,3,4,5].map(i=>`<div class="ld" id="lib_dot_${i}" onclick="setOccultLib(${i})" style="width:16px;height:16px;border-color:rgba(180,120,240,.4)"></div>`).join('')}
+            </div>
+          </div>
+          <div id="lib_label" style="font-size:11px;color:var(--subtext);font-style:italic;margin-top:4px">No occult resources.</div>
+        </div>
+        <!-- Occupants -->
+        <div style="margin-top:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <div class="itl" style="margin:0">Occupants (Ghouls / Retainers)</div>
+            <button class="add-btn" onclick="addHavenOccupant()" style="font-size:7px;padding:2px 8px">+ Add</button>
+          </div>
+          <div id="haven_occupants_list"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Stored items from inventory -->
+    <div>
+      <div class="itl" style="margin-top:0;margin-bottom:6px">Items Stored at Haven <span style="color:var(--subtext);font-size:8px">(from inventory — marked "Stored in Haven")</span></div>
+      <div id="haven_stored_items" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px">
+        <span id="haven_stored_empty" style="font-size:11px;color:var(--subtext);font-style:italic">No items stored here yet.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="footer">✦ &nbsp; Vampire: The Masquerade V5 &nbsp;·&nbsp; Player Sheet &nbsp;·&nbsp; Player Sheet — Group Sync &nbsp; ✦</div>
 </div><!-- end .page -->
 
@@ -1283,10 +1458,18 @@ let state = {
   downtime: [],
   coterie: [],
   npcs: [],
+  inventory: [],
+  haven: {
+    rating:0, locationType:'', securityLevel:0, locationBonus:'',
+    cashOnHand:0, bloodSupply:0, occultLibrary:0,
+    upkeepCost:'', notes:'', features:[],
+    occupants:[], customFeatures:''
+  },
   _portraitImg: '',
   _tokenImg: ''
 };
 let autoSyncTimer = null;
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 // ── Multi-character helpers ──
 function charDataKey(id){ return 'vtm_char_' + id; }
@@ -2346,6 +2529,7 @@ function collectData() {
     disciplines: state.disciplines, merits: state.merits, flaws: state.flaws,
     specialties: state.specialties, rituals: state.rituals, xpLog: state.xpLog,
     feedLog: state.feedLog, downtime: state.downtime, coterie: state.coterie, npcs: state.npcs,
+    inventory: state.inventory, haven: state.haven,
     _portraitImg: state._portraitImg || '',
     _tokenImg: state._tokenImg || ''
   };
@@ -2381,6 +2565,8 @@ function applyData(d) {
   if (d.downtime) { state.downtime = d.downtime; renderDowntime(); }
   if (d.coterie) { state.coterie = d.coterie; renderCoterie(); }
   if (d.npcs) { state.npcs = d.npcs; renderNPCs(); }
+  if (d.inventory) { state.inventory = d.inventory; renderInventory(); }
+  if (d.haven) { state.haven = Object.assign({rating:0,locationType:'',securityLevel:0,locationBonus:'',cashOnHand:0,bloodSupply:0,occultLibrary:0,upkeepCost:'',notes:'',features:[],occupants:[],customFeatures:''}, d.haven); renderHaven(); applyHavenFields(); }
   if (d._portraitImg !== undefined) { state._portraitImg = d._portraitImg; applyCharImagePreview('portrait', d._portraitImg); }
   if (d._tokenImg !== undefined) { state._tokenImg = d._tokenImg; applyCharImagePreview('token', d._tokenImg); }
   updateHeader();
@@ -2390,22 +2576,21 @@ function applyData(d) {
 function applyCharImagePreview(type, dataUrl){
   if(type==='portrait'){
     const el = document.getElementById('char_portrait_preview'); if(!el) return;
-    const placeholder = document.getElementById('char_portrait_placeholder');
     if(dataUrl){
       el.style.backgroundImage = `url(${dataUrl})`;
       el.style.backgroundSize = 'cover';
       el.style.backgroundPosition = 'center center';
-      if(placeholder) placeholder.style.display = 'none';
+      el.textContent = '';
     } else {
       el.style.backgroundImage = '';
-      if(placeholder) placeholder.style.display = '';
+      el.textContent = 'Portrait';
     }
   } else {
     const el = document.getElementById('char_token_preview'); if(!el) return;
     if(dataUrl){
       el.style.backgroundImage = `url(${dataUrl})`;
       el.style.backgroundSize = 'cover';
-      el.style.backgroundPosition = 'center center';
+      el.style.backgroundPosition = 'center';
       el.textContent = '';
     } else {
       el.style.backgroundImage = '';
@@ -2613,7 +2798,7 @@ function switchCharacter(id) {
   if(window._mapSubscribeForChar) window._mapSubscribeForChar(id);
   if(!cfg.chars?.[id]?.skipCloud) subscribeRollRequests(id);
   // Reset state
-  state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[], _portraitImg:'', _tokenImg:'' };
+  state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[], inventory:[], haven:{rating:0,locationType:'',securityLevel:0,locationBonus:'',cashOnHand:0,bloodSupply:0,occultLibrary:0,upkeepCost:'',notes:'',features:[],occupants:[],customFeatures:''}, _portraitImg:'', _tokenImg:'' };
   // Re-init UI
   initAllDots();
   initBoxTrack('health_track', 5);
@@ -2669,7 +2854,7 @@ function deleteCharacter(id) {
     saveCfg();
     renderCharSwitcher();
     // Clear the sheet
-    state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[], _portraitImg:'', _tokenImg:'' };
+    state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[], inventory:[], haven:{rating:0,locationType:'',securityLevel:0,locationBonus:'',cashOnHand:0,bloodSupply:0,occultLibrary:0,upkeepCost:'',notes:'',features:[],occupants:[],customFeatures:''}, _portraitImg:'', _tokenImg:'' };
     initAllDots();
     applyData({});
     setStatus('No characters — click ＋ to add one', '');
@@ -2765,7 +2950,7 @@ async function confirmSetup() {
       if (snap.exists()) {
         const cloud = snap.data();
         // Switch UI first
-        state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[], _portraitImg:'', _tokenImg:'' };
+        state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[], inventory:[], haven:{rating:0,locationType:'',securityLevel:0,locationBonus:'',cashOnHand:0,bloodSupply:0,occultLibrary:0,upkeepCost:'',notes:'',features:[],occupants:[],customFeatures:''}, _portraitImg:'', _tokenImg:'' };
         initAllDots(); initBPDots();
         applyData(cloud);
         const pSnap = await window._fsGetDoc(window._fsDoc(window._db, 'characters_private', charId));
@@ -2847,7 +3032,7 @@ function resetAll() {
     localStorage.removeItem(charDataKey(id));
     localStorage.removeItem(charPrivKey(id));
   }
-  state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[], _portraitImg:'', _tokenImg:'' };
+  state = { disciplines:[], merits:[], flaws:[], specialties:[], rituals:[], xpLog:[], feedLog:[], downtime:[], coterie:[], npcs:[], inventory:[], haven:{rating:0,locationType:'',securityLevel:0,locationBonus:'',cashOnHand:0,bloodSupply:0,occultLibrary:0,upkeepCost:'',notes:'',features:[],occupants:[],customFeatures:''}, _portraitImg:'', _tokenImg:'' };
   initAllDots(); initBPDots();
   applyData({});
   setStatus('Reset — ' + name, '');
@@ -3366,6 +3551,7 @@ function subscribeRollRequests(charId){
     };
     modal.style.display = 'flex';
   };
+
   document.addEventListener('keydown', e=>{
     if(e.key==='Escape'){
       const dh = document.getElementById('diceHelpModal');
@@ -3437,74 +3623,6 @@ function subscribeRollRequests(charId){
       const rollEntry = {label, regRolls:[die], hungerRolls:[], successes:pass?1:0, outcome:entry.outcome, diff:6, time:entry.time, charId, charName, _ts:Date.now()};
       function doWrite(){ if(!window._db)return; const ref=window._fsDoc(window._db,'dice_rolls',dmId+'_players'); window._fsGetDoc(ref).then(snap=>{ const existing=snap.exists()?(snap.data().rolls||[]):[];window._fsSetDoc(ref,{rolls:[rollEntry,...existing].slice(0,30),_updatedAt:Date.now()}).catch(()=>{}); }).catch(()=>{ window._fsSetDoc(ref,{rolls:[rollEntry],_updatedAt:Date.now()}).catch(()=>{}); }); }
       if(window._db) doWrite(); else { let t=0; const w=setInterval(()=>{ t++; if(window._db||t>30){clearInterval(w);doWrite();} },100); }
-    })();
-  };
-
-  // Remorse Check — V5 Rules:
-  // Pool = empty boxes on Humanity track = 10 - (Humanity + Stains), min 1
-  // Roll d10s, no Hunger dice. Any single success (6+) = pass. Criticals irrelevant.
-  // Pass → all Stains removed, Humanity unchanged.
-  // Fail → lose 1 Humanity, all Stains still removed.
-  window.playerRemorsRoll = function(){
-    const humanity = parseInt(document.getElementById('f_humanity_text')?.value) || 7;
-    const stains   = parseInt(document.getElementById('f_stains')?.value) || 0;
-    const filled   = humanity + stains;
-    const pool     = Math.max(1, 10 - filled);
-    const rolls    = Array.from({length:pool}, ()=>Math.ceil(Math.random()*10));
-
-    // Simple check: any success (6+)? No hunger dice, no crits counted.
-    const anySuccess = rolls.some(v => v >= 6);
-    const outcomeColor = anySuccess ? 'var(--green-lt)' : 'var(--crimson-lt)';
-    const outcome = anySuccess ? 'REMORSE SUCCEEDS' : 'REMORSE FAILS';
-    const consequence = anySuccess
-      ? 'All Stains removed. Humanity remains at ' + humanity + '.'
-      : 'All Stains removed. Lose 1 Humanity (now ' + Math.max(0, humanity - 1) + ').';
-    const label = 'Remorse Check';
-    const subLabel = `Humanity ${humanity} · Stains ${stains} · Empty boxes: ${10-filled} → ${pool}d`;
-
-    function dieFace(v){
-      const pass = v >= 6;
-      return `<div title="${v} — ${pass?'Success':'Failure'}" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:rgba(196,154,34,.08);border:2px solid ${pass?'var(--green)':'var(--border)'};font-family:'Cinzel',serif;font-size:13px;color:${pass?'var(--green-lt)':'var(--subtext)'};font-weight:${pass?'bold':'normal'};margin:2px;border-radius:3px">${v}</div>`;
-    }
-
-    const resultEl = document.getElementById('p_dice_result');
-    if(resultEl) resultEl.innerHTML = `
-      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--subtext);margin-bottom:4px;letter-spacing:1px">${label}</div>
-      <div style="font-family:'Cinzel',serif;font-size:9px;color:var(--subtext);margin-bottom:8px;font-style:italic">${subLabel}</div>
-      <div style="margin-bottom:10px;display:flex;flex-wrap:wrap">${rolls.map(v=>dieFace(v)).join('')}</div>
-      <div style="font-family:'Cinzel Decorative',serif;font-size:18px;color:${outcomeColor}">${outcome}</div>
-      <div style="font-size:13px;color:var(--text);margin-top:6px">${consequence}</div>
-      <div style="font-size:11px;color:var(--subtext);margin-top:6px;font-style:italic">${anySuccess?'At least one die showed 6+. The conscience holds.':'All dice showed 1–5. The Beast claims another piece of the soul.'}</div>`;
-
-    const entry = {
-      label: subLabel, regRolls: rolls, hungerRolls: [],
-      successes: anySuccess ? 1 : 0, outcome, outcomeColor,
-      outcomeTooltip: consequence, diff: 1,
-      time: new Date().toLocaleTimeString(), isRemorse: true
-    };
-    pRollHistory.unshift(entry);
-    if(pRollHistory.length > MAX_HIST) pRollHistory.pop();
-    renderPRollHistory();
-
-    // Broadcast to DM
-    if(typeof BC !== 'undefined' && BC){
-      const charId = (typeof getActiveCharId === 'function') ? getActiveCharId() : null;
-      const charName = charId ? (cfg.chars?.[charId]?.charName || charId) : 'Player';
-      BC.postMessage({ type:'dice_roll', charId, charName, label: subLabel, regRolls: rolls, hungerRolls:[], successes: anySuccess?1:0, outcome, diff:1, time: entry.time });
-    }
-    // Firestore sync
-    (function pushToFirestore(){
-      const charId = (typeof getActiveCharId === 'function') ? getActiveCharId() : null;
-      const cc = charId && cfg.chars ? cfg.chars[charId] : null;
-      const dmId = cc?.sessionId;
-      if(!dmId || !window._db) return;
-      const charName = cc?.charName || charId || 'Player';
-      const rollEntry = {label: subLabel, regRolls: rolls, hungerRolls:[], successes: anySuccess?1:0, outcome, diff:1, time: entry.time, charId, charName, _ts: Date.now()};
-      const ref = window._fsDoc(window._db, 'dice_rolls', dmId+'_players');
-      window._fsGetDoc(ref).then(snap=>{
-        const existing = snap.exists() ? (snap.data().rolls||[]) : [];
-        window._fsSetDoc(ref, {rolls:[rollEntry,...existing].slice(0,30), _updatedAt:Date.now()}).catch(()=>{});
-      }).catch(()=>{ window._fsSetDoc(ref,{rolls:[rollEntry],_updatedAt:Date.now()}).catch(()=>{}); });
     })();
   };
 
@@ -3771,6 +3889,433 @@ function subscribeRollRequests(charId){
   });
 })();
 
+// ════════════════════════════════════════════════════════════
+// INVENTORY SYSTEM
+// ════════════════════════════════════════════════════════════
+
+const INV_CATS = {
+  'weapon-melee':'Melee','weapon-ranged':'Ranged','armor':'Armor',
+  'tool':'Tool','occult':'Occult','vehicle':'Vehicle',
+  'personal':'Personal','blood':'Blood','document':'Document','other':'Other'
+};
+const INV_TAGS = ['concealable','illegal','noisy','ritual','fragile','heavy','valuable','masquerade-risk'];
+const MASQ_WARNING_CATS = ['weapon-ranged'];
+
+// Preset quick-add library
+const INV_PRESETS = [
+  {name:'Combat Knife',cat:'weapon-melee',qty:1,desc:'Standard blade. Concealable under a jacket.',tags:['concealable'],dmgBonus:'+1',armorRating:0},
+  {name:'Stake',cat:'weapon-melee',qty:1,desc:'Wooden stake — the classic vampire deterrent.',tags:['ritual'],dmgBonus:'+0',armorRating:0},
+  {name:'Pistol (9mm)',cat:'weapon-ranged',qty:1,desc:'Semi-automatic sidearm. Two magazines.',tags:['illegal','noisy','masquerade-risk'],dmgBonus:'+2',armorRating:0},
+  {name:'Shotgun',cat:'weapon-ranged',qty:1,desc:'Pump-action. Devastating at close range.',tags:['illegal','noisy','heavy','masquerade-risk'],dmgBonus:'+3',armorRating:0},
+  {name:'Leather Jacket',cat:'armor',qty:1,desc:'Heavy leather. Light protection, great concealment.',tags:['concealable'],dmgBonus:'+0',armorRating:1},
+  {name:'Kevlar Vest',cat:'armor',qty:1,desc:'Ballistic protection under clothing.',tags:['heavy'],dmgBonus:'+0',armorRating:2},
+  {name:'Blood Bag',cat:'blood',qty:3,desc:'Hospital-grade. Each bag slakes 1 Hunger.',tags:[],dmgBonus:'',armorRating:0},
+  {name:'Smartphone',cat:'personal',qty:1,desc:'Encrypted. Burner SIM.',tags:[],dmgBonus:'',armorRating:0},
+  {name:'Lockpicks',cat:'tool',qty:1,desc:'Professional set. Adds die to Larceny.',tags:['concealable'],dmgBonus:'',armorRating:0},
+  {name:'Flashlight',cat:'tool',qty:1,desc:'High-lumen tactical light.',tags:[],dmgBonus:'',armorRating:0},
+  {name:'Burner Phone',cat:'personal',qty:2,desc:'Untraceable. Dump after one use.',tags:[],dmgBonus:'',armorRating:0},
+  {name:'Fake ID',cat:'document',qty:1,desc:'Convincing forgery. Different name and address.',tags:['valuable'],dmgBonus:'',armorRating:0},
+  {name:'Occult Tome',cat:'occult',qty:1,desc:'Dog-eared grimoire. Ritual reference.',tags:['ritual','valuable'],dmgBonus:'',armorRating:0},
+  {name:'Ritual Components',cat:'occult',qty:1,desc:'Herbs, chalk, candles. One ritual set.',tags:['ritual'],dmgBonus:'',armorRating:0},
+  {name:'Car (Sedan)',cat:'vehicle',qty:1,desc:'Nondescript. Clean plates.',tags:[],dmgBonus:'',armorRating:0},
+  {name:'Motorcycle',cat:'vehicle',qty:1,desc:'Fast, agile, exposed.',tags:['noisy'],dmgBonus:'',armorRating:0},
+  {name:'First Aid Kit',cat:'tool',qty:1,desc:'Bandages, antiseptic, sutures.',tags:[],dmgBonus:'',armorRating:0},
+  {name:'Zip Ties',cat:'tool',qty:5,desc:'Restraint. Utility. Narrative use.',tags:[],dmgBonus:'',armorRating:0},
+  {name:'Burner Wallet',cat:'personal',qty:1,desc:'$200 in small bills. No cards.',tags:['valuable'],dmgBonus:'',armorRating:0},
+  {name:'Tactical Vest',cat:'armor',qty:1,desc:'Military-grade. Not subtle.',tags:['heavy','masquerade-risk'],dmgBonus:'',armorRating:3},
+];
+
+const HAVEN_FEATURES_LIST = [
+  'Hidden Entrance','Reinforced Doors','Security Cameras','Alarm System',
+  'Blackout Shutters','Underground Access','Safe Room','Feeding Chamber',
+  'Occult Library','Blood Fridge','Guest Haven','Panic Room',
+  'Soundproofing','Ghoul Quarters','Armory','Ritual Space',
+  'Communications Hub','Med Bay','Vehicle Storage','Rooftop Access',
+];
+
+let _invExpandedId = null;
+
+function mkItemId(){ return 'itm_'+Date.now()+'_'+Math.floor(Math.random()*9999); }
+
+function addInventoryItem(item){
+  const newItem = {
+    id: mkItemId(),
+    name: item.name||'Unknown Item',
+    cat: item.cat||'other',
+    qty: item.qty||1,
+    desc: item.desc||'',
+    notes: item.notes||'',
+    equipped: item.equipped||false,
+    stored: item.stored||false,
+    tags: item.tags||[],
+    dmgBonus: item.dmgBonus||'',
+    armorRating: item.armorRating||0,
+  };
+  state.inventory.push(newItem);
+  renderInventory();
+  renderHavenStoredItems();
+  markUnsaved();
+  return newItem;
+}
+
+function deleteItem(id){
+  if(!confirm('Remove this item?')) return;
+  state.inventory = state.inventory.filter(i=>i.id!==id);
+  if(_invExpandedId===id) _invExpandedId=null;
+  renderInventory(); renderHavenStoredItems(); markUnsaved();
+}
+
+function toggleEquip(id){
+  const item = state.inventory.find(i=>i.id===id); if(!item) return;
+  item.equipped = !item.equipped;
+  renderInventory(); markUnsaved();
+}
+
+function toggleStored(id){
+  const item = state.inventory.find(i=>i.id===id); if(!item) return;
+  item.stored = !item.stored;
+  if(item.stored) item.equipped=false;
+  renderInventory(); renderHavenStoredItems(); markUnsaved();
+}
+
+function adjustQty(id, delta){
+  const item = state.inventory.find(i=>i.id===id); if(!item) return;
+  item.qty = Math.max(0, (item.qty||1)+delta);
+  if(item.qty===0 && !confirm('Quantity is 0 — remove item?')){ item.qty=1; }
+  else if(item.qty===0){ state.inventory=state.inventory.filter(i=>i.id!==id); if(_invExpandedId===id) _invExpandedId=null; }
+  renderInventory(); renderHavenStoredItems(); markUnsaved();
+}
+
+function toggleInvExpand(id){
+  _invExpandedId = _invExpandedId===id ? null : id;
+  renderInventory();
+}
+
+function renderInventory(){
+  const list = document.getElementById('inv_list');
+  const empty = document.getElementById('inv_empty');
+  const summary = document.getElementById('inv_summary');
+  const warnEl = document.getElementById('inv_weight_warn');
+  if(!list) return;
+
+  const catFilter = document.getElementById('inv_filter_cat')?.value||'';
+  const equippedOnly = document.getElementById('inv_filter_equipped')?.checked||false;
+  const carriedOnly = document.getElementById('inv_filter_carried')?.checked||false;
+
+  let items = state.inventory.slice();
+  if(catFilter) items = items.filter(i=>i.cat===catFilter);
+  if(equippedOnly) items = items.filter(i=>i.equipped);
+  if(carriedOnly) items = items.filter(i=>!i.stored);
+
+  // Summary
+  const total = state.inventory.length;
+  const carried = state.inventory.filter(i=>!i.stored).length;
+  const equipped = state.inventory.filter(i=>i.equipped).length;
+  const weapons = state.inventory.filter(i=>i.cat.startsWith('weapon')&&!i.stored).length;
+  if(summary) summary.textContent = `${carried} carried · ${equipped} equipped · ${total} total`;
+  if(warnEl) warnEl.style.display = weapons>3?'inline':'none';
+
+  list.innerHTML='';
+  if(!items.length){ empty.style.display='block'; return; }
+  empty.style.display='none';
+
+  items.forEach(item=>{
+    const expanded = _invExpandedId===item.id;
+    const catLabel = INV_CATS[item.cat]||'Other';
+    const hasMasq = item.tags.includes('illegal')||item.tags.includes('masquerade-risk');
+    const tagHtml = item.tags.map(t=>`<span class="inv-tag ${t}">${t.replace('-',' ')}</span>`).join('');
+    const equippable = item.cat.startsWith('weapon')||item.cat==='armor';
+
+    const div = document.createElement('div');
+    div.className = 'inv-item'+(item.equipped?' equipped':'')+(item.stored?' stored':'')+(expanded?' expanded':'');
+    div.innerHTML = `
+      <div class="inv-item-hdr" onclick="toggleInvExpand('${item.id}')">
+        <span class="inv-cat-badge ${item.cat}">${catLabel}</span>
+        <span class="inv-name">${esc(item.name)}</span>
+        ${hasMasq?'<span style="color:var(--crimson-lt);font-size:10px" title="Masquerade Risk">⚠</span>':''}
+        ${item.equipped?'<span style="font-family:Cinzel,serif;font-size:8px;color:var(--gold);border:1px solid var(--gold-dim);padding:1px 5px">EQUIPPED</span>':''}
+        ${item.stored?'<span style="font-family:Cinzel,serif;font-size:8px;color:var(--subtext);border:1px solid rgba(80,80,80,.4);padding:1px 5px">HAVEN</span>':''}
+        <div style="display:flex;align-items:center;gap:3px" onclick="event.stopPropagation()">
+          <button onclick="adjustQty('${item.id}',-1)" style="background:transparent;border:1px solid var(--field-border);color:var(--subtext);width:18px;height:18px;cursor:pointer;font-size:11px">−</button>
+          <span class="inv-qty">${item.qty}</span>
+          <button onclick="adjustQty('${item.id}',1)" style="background:transparent;border:1px solid var(--field-border);color:var(--subtext);width:18px;height:18px;cursor:pointer;font-size:11px">+</button>
+        </div>
+        <span style="font-size:9px;color:var(--subtext);flex-shrink:0">${expanded?'▲':'▼'}</span>
+      </div>
+      ${expanded?`<div class="inv-body">
+        ${item.desc?`<div style="font-size:13px;color:var(--text);margin-bottom:6px;line-height:1.6">${esc(item.desc)}</div>`:''}
+        ${tagHtml?`<div style="margin-bottom:6px">${tagHtml}</div>`:''}
+        ${(item.dmgBonus||item.armorRating)?`<div style="display:flex;gap:12px;margin-bottom:6px;font-size:11px">
+          ${item.dmgBonus?`<span style="font-family:Cinzel,serif;color:var(--crimson-lt)">DMG ${item.dmgBonus}</span>`:''}
+          ${item.armorRating?`<span style="font-family:Cinzel,serif;color:#80a0e0">ARMOR ${item.armorRating}</span>`:''}
+        </div>`:''}
+        ${item.notes?`<div style="font-size:12px;color:var(--subtext);font-style:italic;margin-bottom:6px;white-space:pre-wrap">${esc(item.notes)}</div>`:''}
+        <div class="inv-actions">
+          ${equippable?`<button class="btn sm" style="font-size:8px" onclick="toggleEquip('${item.id}')">${item.equipped?'⬇ Unequip':'⬆ Equip'}</button>`:''}
+          <button class="btn sm" style="font-size:8px" onclick="toggleStored('${item.id}')">${item.stored?'🎒 Move to Carried':'🏠 Store at Haven'}</button>
+          <button class="btn sm" style="font-size:8px" onclick="openEditItemModal('${item.id}')">✏ Edit</button>
+          <button class="btn sm danger" style="font-size:8px" onclick="deleteItem('${item.id}')">✕ Remove</button>
+        </div>
+      </div>`:''}`;
+    list.appendChild(div);
+  });
+}
+
+function openPresetLibrary(){
+  let html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">`;
+  INV_PRESETS.forEach((p,i)=>{
+    const hasMasq = p.tags.includes('illegal')||p.tags.includes('masquerade-risk');
+    html += `<div onclick="addPreset(${i})" style="border:1px solid rgba(122,94,24,.35);background:rgba(16,12,8,.7);padding:8px 10px;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='rgba(122,94,24,.35)'">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+        <span class="inv-cat-badge ${p.cat}">${INV_CATS[p.cat]||'?'}</span>
+        <span style="font-family:Cinzel,serif;font-size:10px;color:var(--gold-lt);flex:1">${esc(p.name)}</span>
+        ${hasMasq?'<span style="color:var(--crimson-lt);font-size:9px" title="Masquerade Risk">⚠</span>':''}
+      </div>
+      <div style="font-size:11px;color:var(--subtext)">${esc(p.desc)}</div>
+      ${p.tags.length?`<div style="margin-top:4px">${p.tags.map(t=>`<span class="inv-tag ${t}">${t.replace('-',' ')}</span>`).join('')}</div>`:''}
+    </div>`;
+  });
+  html += '</div>';
+  openModal('⚡ Quick Add — Preset Items', html, true);
+}
+window.addPreset=function(i){ const p=INV_PRESETS[i]; addInventoryItem({...p}); toast('Added: '+p.name); };
+
+function openAddItemModal(editId){
+  const existing = editId ? state.inventory.find(i=>i.id===editId) : null;
+  const e = existing||{};
+  const catOpts = Object.entries(INV_CATS).map(([v,l])=>`<option value="${v}"${e.cat===v?' selected':''}>${l}</option>`).join('');
+  const tagChecks = INV_TAGS.map(t=>`<label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer"><input type="checkbox" value="${t}" class="itag-cb" ${(e.tags||[]).includes(t)?'checked':''}> ${t.replace('-',' ')}</label>`).join('');
+  const html = `<div style="display:flex;flex-direction:column;gap:10px">
+    <div><div class="itl dm" style="margin-top:0">Item Name</div><input id="ni_name" class="ri-input" style="width:100%" value="${esc(e.name||'')}" placeholder="e.g. Combat Knife"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div><div class="itl dm">Category</div><select id="ni_cat" class="ri-select" style="width:100%">${catOpts}</select></div>
+      <div><div class="itl dm">Quantity</div><input id="ni_qty" class="ri-input" type="number" min="1" value="${e.qty||1}" style="width:100%"></div>
+    </div>
+    <div><div class="itl dm">Description / Flavor Text</div><input id="ni_desc" class="ri-input" style="width:100%" value="${esc(e.desc||'')}" placeholder="Brief flavor description…"></div>
+    <div><div class="itl dm">Notes (private, mechanical details)</div><textarea id="ni_notes" style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:6px;outline:none;min-height:60px;resize:vertical">${esc(e.notes||'')}</textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div><div class="itl dm">Damage Bonus (e.g. +2)</div><input id="ni_dmg" class="ri-input" style="width:100%" value="${esc(e.dmgBonus||'')}" placeholder="+1"></div>
+      <div><div class="itl dm">Armor Rating (0–5)</div><input id="ni_armor" class="ri-input" type="number" min="0" max="5" value="${e.armorRating||0}" style="width:100%"></div>
+    </div>
+    <div><div class="itl dm">Tags</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:4px">${tagChecks}</div></div>
+    <div style="display:flex;gap:12px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="ni_equipped" ${e.equipped?'checked':''}> Equipped</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="ni_stored" ${e.stored?'checked':''}> Stored at Haven</label>
+    </div>
+    <button class="btn green" style="width:100%" onclick="saveItemFromModal('${editId||''}')">✓ ${editId?'Update':'Add'} Item</button>
+  </div>`;
+  openModal((editId?'Edit Item':'Add Custom Item'), html, false);
+}
+window.openEditItemModal = openAddItemModal;
+
+function saveItemFromModal(editId){
+  const name = document.getElementById('ni_name')?.value?.trim();
+  if(!name){toast('Enter an item name','error');return;}
+  const tags = [...document.querySelectorAll('.itag-cb:checked')].map(cb=>cb.value);
+  const data = {
+    name, cat:document.getElementById('ni_cat').value,
+    qty:parseInt(document.getElementById('ni_qty').value)||1,
+    desc:document.getElementById('ni_desc').value.trim(),
+    notes:document.getElementById('ni_notes').value.trim(),
+    dmgBonus:document.getElementById('ni_dmg').value.trim(),
+    armorRating:parseInt(document.getElementById('ni_armor').value)||0,
+    tags, equipped:document.getElementById('ni_equipped').checked,
+    stored:document.getElementById('ni_stored').checked,
+  };
+  if(editId){
+    const item = state.inventory.find(i=>i.id===editId);
+    if(item) Object.assign(item,data);
+    toast('Item updated: '+name);
+  } else {
+    addInventoryItem(data);
+    toast('Added: '+name);
+  }
+  renderInventory(); renderHavenStoredItems(); markUnsaved(); closeModal();
+}
+
+// ════════════════════════════════════════════════════════════
+// HAVEN SYSTEM
+// ════════════════════════════════════════════════════════════
+
+const LIB_LABELS = ['No occult resources.','Dabbler (pamphlets, folklore)','Practitioner (grimoires, rituals)',
+  'Scholar (rare tomes, elder lore)','Adept (restricted texts, coveted secrets)','Master (legendary, unique works)'];
+
+const SEC_LABELS = ['None','Basic (locks, deadbolts)','Reinforced (bars, heavy doors)','High-Tech (cameras, alarms)','Fortified (safe-room, sensors)','Impenetrable (military-grade)'];
+
+function initHavenDots(){
+  // Rating dots (haven panel header)
+  const rc = document.getElementById('haven_rating_dots');
+  if(!rc) return;
+  rc.innerHTML='';
+  for(let i=1;i<=5;i++){
+    const d=document.createElement('div');
+    d.className='ld';
+    d.style.cssText='width:16px;height:16px;cursor:pointer';
+    d.id='haven_rdot_'+i;
+    d.title='Set Haven Rating to '+i;
+    d.onclick=(()=>{const v=i;return()=>{state.haven.rating=state.haven.rating===v?v-1:v;updateHavenDisplay();markUnsaved();}})();
+    rc.appendChild(d);
+  }
+  // Occult library dots
+  for(let i=1;i<=5;i++){
+    const el=document.getElementById('lib_dot_'+i);
+    if(el){el.onclick=(()=>{const v=i;return()=>{state.haven.occultLibrary=state.haven.occultLibrary===v?v-1:v;updateHavenDisplay();markUnsaved();}})();}
+  }
+  updateHavenDisplay();
+}
+
+function updateHavenDisplay(){
+  const h=state.haven;
+  // Rating dots
+  for(let i=1;i<=5;i++){
+    const d=document.getElementById('haven_rdot_'+i);
+    if(d) d.className='ld'+(i<=h.rating?' filled':'');
+  }
+  // Library dots
+  for(let i=1;i<=5;i++){
+    const d=document.getElementById('lib_dot_'+i);
+    if(d){ d.className='ld'+(i<=h.occultLibrary?' filled':''); d.style.borderColor=i<=h.occultLibrary?'rgba(180,120,240,.8)':'rgba(180,120,240,.4)'; }
+  }
+  document.getElementById('lib_label').textContent=LIB_LABELS[h.occultLibrary]||'No occult resources.';
+  document.getElementById('res_blood').textContent=h.bloodSupply||0;
+  document.getElementById('res_cash').textContent='$'+(h.cashOnHand||0).toLocaleString();
+  const ci=document.getElementById('res_cash_input'); if(ci&&document.activeElement!==ci) ci.value=h.cashOnHand||0;
+  document.getElementById('haven_location_display').textContent=h.locationType||'—';
+  document.getElementById('haven_security_display').textContent=SEC_LABELS[h.securityLevel]||'—';
+  document.getElementById('haven_bonus_display').textContent=h.locationBonus||'—';
+  document.getElementById('haven_upkeep_display').textContent=h.upkeepCost||'—';
+  // Notes
+  const nb=document.getElementById('haven_notes_block');
+  const nd=document.getElementById('haven_notes_display');
+  if(nb&&nd){nb.style.display=h.notes?'block':'none';nd.textContent=h.notes||'';}
+  renderHavenFeatures();
+  renderHavenStoredItems();
+  renderHavenOccupants();
+}
+
+function renderHaven(){ updateHavenDisplay(); }
+
+function applyHavenFields(){
+  // Called after applyData — update display
+  updateHavenDisplay();
+}
+
+function renderHavenFeatures(){
+  const el=document.getElementById('haven_features_display'); if(!el) return;
+  const feats=state.haven.features||[];
+  if(!feats.length){el.innerHTML='<span style="font-size:11px;color:var(--subtext);font-style:italic">None installed.</span>';return;}
+  el.innerHTML=feats.map((f,i)=>`<span class="haven-feature-pill">${esc(f)}<button class="hfp-x" onclick="removeHavenFeature(${i})">✕</button></span>`).join('');
+}
+
+function renderHavenStoredItems(){
+  const el=document.getElementById('haven_stored_items');
+  const empty=document.getElementById('haven_stored_empty');
+  if(!el) return;
+  const stored=state.inventory.filter(i=>i.stored);
+  el.querySelectorAll('.haven-stored-chip').forEach(c=>c.remove());
+  if(!stored.length){if(empty)empty.style.display='inline';return;}
+  if(empty)empty.style.display='none';
+  stored.forEach(item=>{
+    const chip=document.createElement('span');
+    chip.className='haven-stored-chip';
+    chip.style.cssText='display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid rgba(122,94,24,.35);background:rgba(28,18,8,.8);font-size:12px;margin:2px';
+    chip.innerHTML=`<span class="inv-cat-badge ${item.cat}" style="margin:0">${INV_CATS[item.cat]}</span><span style="color:var(--text)">${esc(item.name)}</span><span style="font-family:'Cinzel Decorative',serif;font-size:12px;color:var(--gold)">${item.qty}</span><button onclick="toggleStored('${item.id}')" style="background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:10px" title="Move to Carried">🎒</button>`;
+    el.appendChild(chip);
+  });
+}
+
+function renderHavenOccupants(){
+  const el=document.getElementById('haven_occupants_list'); if(!el) return;
+  const occ=state.haven.occupants||[];
+  if(!occ.length){el.innerHTML='<div style="font-size:11px;color:var(--subtext);font-style:italic;padding:4px 0">No occupants.</div>';return;}
+  el.innerHTML=occ.map((o,i)=>`<div class="haven-occupant">
+    <span style="font-family:Cinzel,serif;font-size:9px;color:var(--subtext);min-width:60px;text-transform:capitalize">${esc(o.type||'Other')}</span>
+    <span style="flex:1;font-size:13px">${esc(o.name)}</span>
+    ${o.notes?`<span style="font-size:11px;color:var(--subtext);font-style:italic">${esc(o.notes)}</span>`:''}
+    <button onclick="removeOccupant(${i})" style="background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px">✕</button>
+  </div>`).join('');
+}
+
+function adjustResource(key,delta){
+  state.haven[key]=(state.haven[key]||0)+delta;
+  if(state.haven[key]<0)state.haven[key]=0;
+  updateHavenDisplay();markUnsaved();
+}
+
+window.setOccultLib=function(v){state.haven.occultLibrary=state.haven.occultLibrary===v?v-1:v;updateHavenDisplay();markUnsaved();};
+
+function restAtHaven(){
+  const h=state.haven;
+  if((h.bloodSupply||0)<1){toast('No blood supply in haven!','error');return;}
+  const hunger=getLDVal('hunger_dots');
+  if(hunger<=0){toast('Hunger is already 0.','error');return;}
+  h.bloodSupply-=1;
+  updateLargeDots('hunger_dots',hunger-1);
+  updateHavenDisplay();markUnsaved();
+  toast('🌙 Rested at Haven — 1 Blood spent, Hunger reduced to '+(hunger-1));
+}
+
+function removeHavenFeature(idx){
+  state.haven.features.splice(idx,1);
+  renderHavenFeatures();markUnsaved();
+}
+
+function addHavenOccupant(){
+  const html=`<div style="display:flex;flex-direction:column;gap:10px">
+    <div><div class="itl dm" style="margin-top:0">Name</div><input id="occ_name" class="ri-input" style="width:100%" placeholder="e.g. Marcus (ghoul)"></div>
+    <div><div class="itl dm">Type</div>
+      <select id="occ_type" class="ri-select" style="width:100%">
+        <option value="ghoul">Ghoul</option><option value="retainer">Retainer (Mortal)</option>
+        <option value="animal">Animal Familiar</option><option value="other">Other</option>
+      </select></div>
+    <div><div class="itl dm">Notes</div><input id="occ_notes" class="ri-input" style="width:100%" placeholder="Role, disciplines, loyalty…"></div>
+    <button class="btn green" onclick="saveOccupant()">Add Occupant</button>
+  </div>`;
+  openModal('Add Occupant',html,false);
+}
+window.saveOccupant=function(){
+  const name=document.getElementById('occ_name')?.value?.trim();
+  if(!name){toast('Enter a name','error');return;}
+  if(!state.haven.occupants)state.haven.occupants=[];
+  state.haven.occupants.push({name,type:document.getElementById('occ_type').value,notes:document.getElementById('occ_notes').value.trim()});
+  renderHavenOccupants();markUnsaved();closeModal();toast('Added: '+name);
+};
+window.removeOccupant=function(idx){state.haven.occupants.splice(idx,1);renderHavenOccupants();markUnsaved();};
+
+function openHavenEditor(){
+  const h=state.haven;
+  const secOpts=SEC_LABELS.map((l,i)=>`<option value="${i}"${h.securityLevel===i?' selected':''}>${i} — ${l}</option>`).join('');
+  const featChecks=HAVEN_FEATURES_LIST.map(f=>`<label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer"><input type="checkbox" class="hfeat-cb" value="${f}" ${(h.features||[]).includes(f)?'checked':''}> ${f}</label>`).join('');
+  const html=`<div style="display:flex;flex-direction:column;gap:10px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div><div class="itl dm" style="margin-top:0">Haven Rating (0–5)</div>
+        <select id="he_rating" class="ri-select" style="width:100%">${[0,1,2,3,4,5].map(i=>`<option value="${i}"${h.rating===i?' selected':''}>●`.repeat(i)||'○ 0 — No Haven'+'</option>').join('')}</select>
+      </div>
+      <div><div class="itl dm" style="margin-top:0">Security Level</div><select id="he_sec" class="ri-select" style="width:100%">${secOpts}</select></div>
+    </div>
+    <div><div class="itl dm">Location Type</div><input id="he_loc" class="ri-input" style="width:100%" value="${esc(h.locationType||'')}" placeholder="e.g. Downtown Apartment, Abandoned Warehouse…"></div>
+    <div><div class="itl dm">Location Bonus</div><input id="he_bonus" class="ri-input" style="width:100%" value="${esc(h.locationBonus||'')}" placeholder="e.g. Hidden, Well-connected, Secluded…"></div>
+    <div><div class="itl dm">Upkeep Cost (per month)</div><input id="he_upkeep" class="ri-input" style="width:100%" value="${esc(h.upkeepCost||'')}" placeholder="e.g. 2 Resources or $800/month…"></div>
+    <div><div class="itl dm">Notes & Custom Features</div><textarea id="he_notes" style="width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:'EB Garamond',serif;font-size:13px;padding:6px;outline:none;min-height:80px;resize:vertical">${esc(h.notes||'')}</textarea></div>
+    <div>
+      <div class="itl dm">Standard V5 Features (select all that apply)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px;max-height:200px;overflow-y:auto;border:1px solid var(--field-border);padding:8px">${featChecks}</div>
+    </div>
+    <button class="btn green" style="width:100%" onclick="saveHavenEditor()">✓ Save Haven</button>
+  </div>`;
+  openModal('⚙ Haven Editor',html,false);
+}
+window.saveHavenEditor=function(){
+  state.haven.rating=parseInt(document.getElementById('he_rating').value)||0;
+  state.haven.securityLevel=parseInt(document.getElementById('he_sec').value)||0;
+  state.haven.locationType=document.getElementById('he_loc').value.trim();
+  state.haven.locationBonus=document.getElementById('he_bonus').value.trim();
+  state.haven.upkeepCost=document.getElementById('he_upkeep').value.trim();
+  state.haven.notes=document.getElementById('he_notes').value.trim();
+  state.haven.features=[...document.querySelectorAll('.hfeat-cb:checked')].map(cb=>cb.value);
+  updateHavenDisplay();markUnsaved();closeModal();toast('Haven saved.');
+};
+
 // INIT
 // ════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async () => {
@@ -3779,6 +4324,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initAllDots();
   initBPDots();
   renderXPLog(); renderFeedLog(); renderDowntime(); renderCoterie(); renderNPCs();
+  renderInventory(); renderHaven(); initHavenDots();
   renderCharSwitcher();
 
   const activeId = getActiveCharId();
