@@ -20,9 +20,9 @@ body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,se
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;opacity:.3;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");}
 .layout{display:flex;min-height:100vh;}
-.sidebar{width:230px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+.sidebar{width:280px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
   display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:10;}
-.main{flex:1;padding:18px 24px;overflow-x:hidden;min-width:0;}
+.main{flex:1;padding:24px 32px;overflow-x:hidden;min-width:0;}
 .sb-header{padding:16px 14px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#1e1308,#120e09);}
 .sb-campaign{font-family:'Cinzel Decorative',serif;font-size:12px;color:var(--gold-lt);letter-spacing:1px;line-height:1.4;word-break:break-word;}
 .sb-sub{font-family:'Cinzel',serif;font-size:7px;letter-spacing:4px;color:var(--subtext);margin-top:3px;}
@@ -40,7 +40,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;o
 .sb-btn:hover .tc{opacity:1;}
 .sb-divider{height:1px;background:var(--border);margin:4px 0;opacity:.4;}
 .sb-bottom{margin-top:auto;padding:10px 12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:5px;}
-.btn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;padding:5px 12px;background:transparent;
+.btn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;padding:7px 16px;background:transparent;
   border:1px solid var(--gold-dim);color:var(--gold);cursor:pointer;transition:all .2s;text-transform:uppercase;white-space:nowrap;}
 .btn:hover{background:rgba(196,154,34,.1);border-color:var(--gold);}
 .btn.green{border-color:var(--green);color:var(--green-lt);}
@@ -57,14 +57,14 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;o
 .add-btn:hover{background:rgba(196,154,34,.12);}
 .panel{border:1px solid var(--border);background:var(--panel);overflow:hidden;margin-bottom:10px;}
 .dm-panel{border:1px solid var(--dm-border);background:rgba(14,10,42,.4);margin-bottom:10px;overflow:hidden;}
-.ph{background:var(--crimson);padding:5px 12px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;
+.ph{background:var(--crimson);padding:7px 14px;font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;
   color:var(--gold-lt);text-transform:uppercase;border-bottom:1px solid var(--gold-dim);display:flex;align-items:center;gap:8px;}
 .ph::before{content:'✦';font-size:7px;color:var(--gold-dim);}
 .ph.dm-ph{background:var(--dm-dim);border-bottom:1px solid var(--dm-border);}
 .ph.dm-ph::before{content:'⊕';}
 .pb{padding:12px;}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
 .status-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:6px 12px;
   border:1px solid var(--field-border);background:var(--surface);flex-wrap:wrap;}
 .sv-status{font-size:10px;font-family:'Cinzel',serif;letter-spacing:1px;color:var(--subtext);flex:1;}
@@ -83,7 +83,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;o
 .tab-content{display:none;}
 .tab-content.active{display:block;}
 .fi{flex:1;background:transparent;border:none;border-bottom:1px solid var(--field-border);
-  color:var(--input-text);font-family:'EB Garamond',serif;font-size:14px;padding:1px 4px;outline:none;width:100%;}
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:16px;padding:2px 5px;outline:none;width:100%;}
 .fi:focus{border-bottom-color:var(--gold-dim);}
 .fta{width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);
   font-family:'EB Garamond',serif;font-size:14px;padding:8px;outline:none;resize:vertical;min-height:80px;line-height:1.6;}
@@ -93,7 +93,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;o
 .fta.lg{min-height:120px;} .fta.xl{min-height:180px;} .fta.xxl{min-height:260px;}
 .fr{display:flex;align-items:baseline;gap:6px;margin-bottom:6px;border-bottom:1px solid rgba(122,94,24,.2);padding-bottom:5px;}
 .fr:last-child{border-bottom:none;}
-.fl{font-size:11px;color:var(--subtext);min-width:90px;font-family:'Cinzel',serif;letter-spacing:.5px;flex-shrink:0;}
+.fl{font-size:13px;color:var(--subtext);min-width:110px;font-family:'Cinzel',serif;letter-spacing:.5px;flex-shrink:0;}
 .itl{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--subtext);text-transform:uppercase;margin-bottom:4px;margin-top:8px;}
 .itl.dm{color:var(--dm-lt);}
 .div{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:8px 0;}
@@ -460,8 +460,8 @@ select.fi option{background:#0e0b08;color:#d4c898;}
           </div>
           <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
             <button class="btn green" onclick="rollDice()" style="font-size:11px;padding:6px 18px">🎲 Roll</button>
-            <button class="btn sm" onclick="quickRoll(1,'Rouse Check',6)">Rouse</button>
-            <button class="btn sm" onclick="quickRoll(2,'Frenzy Check',1)">Frenzy (2d)</button>
+            <button class="btn sm" onclick="dmRouseRoll()" title="Roll 1d10 — 6+ = no Hunger gained">Rouse</button>
+            <button class="btn sm" onclick="quickRoll(2,'Frenzy Check',parseInt(document.getElementById('dice_diff').value)||2)" title="Roll 2d10 vs current Difficulty">Frenzy (2d)</button>
             <button class="btn danger sm" onclick="clearRollHistory()">Clear</button>
             <button class="btn dm sm" onclick="openRollRequest()" title="Ask a player to roll">📨 Request Roll</button>
           </div>
@@ -1656,7 +1656,30 @@ function rollDice(){
 }
 function quickRoll(n,label,diff){
   const rolls=Array.from({length:n},()=>Math.ceil(Math.random()*10));
-  displayRoll(label||(n===1?'Rouse Check':'Frenzy Check'),rolls,[],diff||1);
+  displayRoll(label||(n===1?'Rouse Check':'Frenzy Check'),rolls,[],diff||2);
+}
+function dmRouseRoll(){
+  const die=Math.ceil(Math.random()*10);
+  const pass=die>=6;
+  const outcomeColor=pass?'var(--green-lt)':'var(--crimson-lt)';
+  const outcome=pass?'PASS':'FAIL';
+  const resultEl=document.getElementById('dice_result');
+  if(resultEl) resultEl.innerHTML=`
+    <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--subtext);margin-bottom:6px;letter-spacing:1px">Rouse Check · Roll 6+ to avoid Hunger</div>
+    <div style="margin-bottom:10px">
+      <div title="Rouse die — 6+ pass, 1–5 gain Hunger" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(196,154,34,.08);border:2px solid ${pass?'var(--green)':'var(--crimson)'};font-family:'Cinzel',serif;font-size:16px;color:${outcomeColor};font-weight:bold;border-radius:3px;cursor:help">${die}</div>
+    </div>
+    <div style="font-family:'Cinzel Decorative',serif;font-size:20px;color:${outcomeColor};margin-bottom:4px">${pass?'✓ PASS':'✕ FAIL'}</div>
+    <div style="font-size:14px;color:var(--text)">${pass?'No Hunger gained':'<span style="color:var(--crimson-lt)">+1 Hunger</span>'}</div>
+    <div style="font-size:12px;color:var(--subtext);margin-top:6px;font-style:italic">${pass?'Rolled '+die+' — 6 or higher, the Blood holds.':'Rolled '+die+' — below 6, the Blood is spent. Increase Hunger by 1.'}</div>`;
+  const entry={label:'Rouse Check',regRolls:[die],hungerRolls:[],successes:pass?1:0,outcome:pass?'PASS — No Hunger':'FAIL — +1 Hunger',outcomeColor,diff:6,time:new Date().toLocaleTimeString(),source:'dm',isRouse:true,_ts:Date.now()};
+  rollHistory.unshift(entry);
+  if(rollHistory.length>30)rollHistory.pop();
+  renderRollHistory();
+  if(window._db&&cfg.dmId){
+    const ref=window._fsDoc(window._db,'dice_rolls',cfg.dmId);
+    window._fsSetDoc(ref,{rolls:rollHistory.slice(0,30),_updatedAt:Date.now()}).catch(()=>{});
+  }
 }
 function displayRoll(label,regRolls,hungerRolls,diff){
   const allRolls=[...regRolls.map(v=>({v,hunger:false})),...hungerRolls.map(v=>({v,hunger:true}))];
@@ -1726,7 +1749,7 @@ function renderRollHistory(){
       <span style="font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;min-width:60px">${r.time}</span>
       <span style="flex:1;color:var(--text)">${esc(r.label)}</span>
       <span style="font-family:'Cinzel',serif;font-size:11px;color:${r.outcomeColor}">${r.outcome}</span>
-      <span style="font-family:'Cinzel',serif;font-size:11px;color:var(--subtext)">${r.successes}✓ / d${r.diff}</span>
+      <span style="font-family:'Cinzel',serif;font-size:11px;color:var(--subtext)">${r.isRouse ? (r.successes?'✓ PASS':'✕ FAIL') : r.successes+'✓ / d'+r.diff}</span>
     </div>`).join('');
   if(rollHistory.length>8){
     el.innerHTML+=`<div style="text-align:center;padding:6px"><button class="btn sm" style="font-size:8px" onclick="_dmHistExpanded=!_dmHistExpanded;renderRollHistory()">${_dmHistExpanded?'▲ Show less':'▼ Show all ('+rollHistory.length+')' }</button></div>`;
@@ -2833,9 +2856,9 @@ body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,se
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;opacity:.3;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");}
 .layout{display:flex;min-height:100vh;}
-.sidebar{width:230px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+.sidebar{width:280px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
   display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:10;}
-.main{flex:1;padding:18px 24px;overflow-x:hidden;min-width:0;}
+.main{flex:1;padding:24px 32px;overflow-x:hidden;min-width:0;}
 .sb-header{padding:16px 14px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#1e1308,#120e09);}
 .sb-campaign{font-family:'Cinzel Decorative',serif;font-size:12px;color:var(--gold-lt);letter-spacing:1px;line-height:1.4;word-break:break-word;}
 .sb-sub{font-family:'Cinzel',serif;font-size:7px;letter-spacing:4px;color:var(--subtext);margin-top:3px;}
@@ -2853,7 +2876,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;o
 .sb-btn:hover .tc{opacity:1;}
 .sb-divider{height:1px;background:var(--border);margin:4px 0;opacity:.4;}
 .sb-bottom{margin-top:auto;padding:10px 12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:5px;}
-.btn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;padding:5px 12px;background:transparent;
+.btn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;padding:7px 16px;background:transparent;
   border:1px solid var(--gold-dim);color:var(--gold);cursor:pointer;transition:all .2s;text-transform:uppercase;white-space:nowrap;}
 .btn:hover{background:rgba(196,154,34,.1);border-color:var(--gold);}
 .btn.green{border-color:var(--green);color:var(--green-lt);}
@@ -2870,14 +2893,14 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;o
 .add-btn:hover{background:rgba(196,154,34,.12);}
 .panel{border:1px solid var(--border);background:var(--panel);overflow:hidden;margin-bottom:10px;}
 .dm-panel{border:1px solid var(--dm-border);background:rgba(14,10,42,.4);margin-bottom:10px;overflow:hidden;}
-.ph{background:var(--crimson);padding:5px 12px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;
+.ph{background:var(--crimson);padding:7px 14px;font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;
   color:var(--gold-lt);text-transform:uppercase;border-bottom:1px solid var(--gold-dim);display:flex;align-items:center;gap:8px;}
 .ph::before{content:'✦';font-size:7px;color:var(--gold-dim);}
 .ph.dm-ph{background:var(--dm-dim);border-bottom:1px solid var(--dm-border);}
 .ph.dm-ph::before{content:'⊕';}
 .pb{padding:12px;}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
 .status-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:6px 12px;
   border:1px solid var(--field-border);background:var(--surface);flex-wrap:wrap;}
 .sv-status{font-size:10px;font-family:'Cinzel',serif;letter-spacing:1px;color:var(--subtext);flex:1;}
@@ -2896,7 +2919,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;o
 .tab-content{display:none;}
 .tab-content.active{display:block;}
 .fi{flex:1;background:transparent;border:none;border-bottom:1px solid var(--field-border);
-  color:var(--input-text);font-family:'EB Garamond',serif;font-size:14px;padding:1px 4px;outline:none;width:100%;}
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:16px;padding:2px 5px;outline:none;width:100%;}
 .fi:focus{border-bottom-color:var(--gold-dim);}
 .fta{width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);
   font-family:'EB Garamond',serif;font-size:14px;padding:8px;outline:none;resize:vertical;min-height:80px;line-height:1.6;}
@@ -2906,7 +2929,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;o
 .fta.lg{min-height:120px;} .fta.xl{min-height:180px;} .fta.xxl{min-height:260px;}
 .fr{display:flex;align-items:baseline;gap:6px;margin-bottom:6px;border-bottom:1px solid rgba(122,94,24,.2);padding-bottom:5px;}
 .fr:last-child{border-bottom:none;}
-.fl{font-size:11px;color:var(--subtext);min-width:90px;font-family:'Cinzel',serif;letter-spacing:.5px;flex-shrink:0;}
+.fl{font-size:13px;color:var(--subtext);min-width:110px;font-family:'Cinzel',serif;letter-spacing:.5px;flex-shrink:0;}
 .itl{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--subtext);text-transform:uppercase;margin-bottom:4px;margin-top:8px;}
 .itl.dm{color:var(--dm-lt);}
 .div{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:8px 0;}
@@ -3273,8 +3296,8 @@ select.fi option{background:#0e0b08;color:#d4c898;}
           </div>
           <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
             <button class="btn green" onclick="rollDice()" style="font-size:11px;padding:6px 18px">🎲 Roll</button>
-            <button class="btn sm" onclick="quickRoll(1,'Rouse Check',6)">Rouse</button>
-            <button class="btn sm" onclick="quickRoll(2,'Frenzy Check',1)">Frenzy (2d)</button>
+            <button class="btn sm" onclick="dmRouseRoll()" title="Roll 1d10 — 6+ = no Hunger gained">Rouse</button>
+            <button class="btn sm" onclick="quickRoll(2,'Frenzy Check',parseInt(document.getElementById('dice_diff').value)||2)" title="Roll 2d10 vs current Difficulty">Frenzy (2d)</button>
             <button class="btn danger sm" onclick="clearRollHistory()">Clear</button>
             <button class="btn dm sm" onclick="openRollRequest()" title="Ask a player to roll">📨 Request Roll</button>
           </div>
@@ -4469,7 +4492,30 @@ function rollDice(){
 }
 function quickRoll(n,label,diff){
   const rolls=Array.from({length:n},()=>Math.ceil(Math.random()*10));
-  displayRoll(label||(n===1?'Rouse Check':'Frenzy Check'),rolls,[],diff||1);
+  displayRoll(label||(n===1?'Rouse Check':'Frenzy Check'),rolls,[],diff||2);
+}
+function dmRouseRoll(){
+  const die=Math.ceil(Math.random()*10);
+  const pass=die>=6;
+  const outcomeColor=pass?'var(--green-lt)':'var(--crimson-lt)';
+  const outcome=pass?'PASS':'FAIL';
+  const resultEl=document.getElementById('dice_result');
+  if(resultEl) resultEl.innerHTML=`
+    <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--subtext);margin-bottom:6px;letter-spacing:1px">Rouse Check · Roll 6+ to avoid Hunger</div>
+    <div style="margin-bottom:10px">
+      <div title="Rouse die — 6+ pass, 1–5 gain Hunger" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(196,154,34,.08);border:2px solid ${pass?'var(--green)':'var(--crimson)'};font-family:'Cinzel',serif;font-size:16px;color:${outcomeColor};font-weight:bold;border-radius:3px;cursor:help">${die}</div>
+    </div>
+    <div style="font-family:'Cinzel Decorative',serif;font-size:20px;color:${outcomeColor};margin-bottom:4px">${pass?'✓ PASS':'✕ FAIL'}</div>
+    <div style="font-size:14px;color:var(--text)">${pass?'No Hunger gained':'<span style="color:var(--crimson-lt)">+1 Hunger</span>'}</div>
+    <div style="font-size:12px;color:var(--subtext);margin-top:6px;font-style:italic">${pass?'Rolled '+die+' — 6 or higher, the Blood holds.':'Rolled '+die+' — below 6, the Blood is spent. Increase Hunger by 1.'}</div>`;
+  const entry={label:'Rouse Check',regRolls:[die],hungerRolls:[],successes:pass?1:0,outcome:pass?'PASS — No Hunger':'FAIL — +1 Hunger',outcomeColor,diff:6,time:new Date().toLocaleTimeString(),source:'dm',isRouse:true,_ts:Date.now()};
+  rollHistory.unshift(entry);
+  if(rollHistory.length>30)rollHistory.pop();
+  renderRollHistory();
+  if(window._db&&cfg.dmId){
+    const ref=window._fsDoc(window._db,'dice_rolls',cfg.dmId);
+    window._fsSetDoc(ref,{rolls:rollHistory.slice(0,30),_updatedAt:Date.now()}).catch(()=>{});
+  }
 }
 function displayRoll(label,regRolls,hungerRolls,diff){
   const allRolls=[...regRolls.map(v=>({v,hunger:false})),...hungerRolls.map(v=>({v,hunger:true}))];
@@ -4539,7 +4585,7 @@ function renderRollHistory(){
       <span style="font-size:10px;color:var(--subtext);font-family:'Cinzel',serif;min-width:60px">${r.time}</span>
       <span style="flex:1;color:var(--text)">${esc(r.label)}</span>
       <span style="font-family:'Cinzel',serif;font-size:11px;color:${r.outcomeColor}">${r.outcome}</span>
-      <span style="font-family:'Cinzel',serif;font-size:11px;color:var(--subtext)">${r.successes}✓ / d${r.diff}</span>
+      <span style="font-family:'Cinzel',serif;font-size:11px;color:var(--subtext)">${r.isRouse ? (r.successes?'✓ PASS':'✕ FAIL') : r.successes+'✓ / d'+r.diff}</span>
     </div>`).join('');
   if(rollHistory.length>8){
     el.innerHTML+=`<div style="text-align:center;padding:6px"><button class="btn sm" style="font-size:8px" onclick="_dmHistExpanded=!_dmHistExpanded;renderRollHistory()">${_dmHistExpanded?'▲ Show less':'▼ Show all ('+rollHistory.length+')' }</button></div>`;
