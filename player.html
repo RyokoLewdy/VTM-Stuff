@@ -16,12 +16,12 @@
   --blue:#1a3a7a;--blue-lt:#6080e0;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:16px;min-height:100vh;
+body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:20px;min-height:100vh;
   background-image:radial-gradient(ellipse at 20% 20%,rgba(122,21,21,.06) 0%,transparent 60%),
   radial-gradient(ellipse at 80% 80%,rgba(196,154,34,.04) 0%,transparent 60%);}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;opacity:.35;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");}
-.page{max-width:1600px;margin:0 auto;padding:24px 32px;}
+.page{max-width:1920px;margin:0 auto;padding:32px 48px;}
 
 /* HEADER */
 .header{text-align:center;padding:24px 20px 18px;border:1px solid var(--border);
@@ -32,17 +32,17 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;o
 .header-sub{font-family:'Cinzel',serif;font-size:8px;letter-spacing:5px;color:var(--subtext);margin-bottom:8px;}
 .header-div{width:180px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto;}
 .header-name-input{background:transparent;border:none;border-bottom:2px solid var(--gold-dim);color:var(--gold-lt);
-  font-family:'Cinzel Decorative',serif;font-size:28px;letter-spacing:5px;text-align:center;outline:none;
+  font-family:'Cinzel Decorative',serif;font-size:42px;letter-spacing:5px;text-align:center;outline:none;
   width:100%;max-width:700px;text-transform:uppercase;position:relative;z-index:1;}
 .header-name-input::placeholder{color:rgba(232,201,106,.3);}
 .header-name-input:focus{border-bottom-color:var(--gold);}
 
 /* SAVE BAR */
-.save-bar{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:7px 12px;
+.save-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:12px 20px;
   border:1px solid var(--field-border);background:var(--surface);flex-wrap:wrap;}
 .save-status{font-size:10px;font-family:'Cinzel',serif;letter-spacing:1px;color:var(--subtext);transition:color .3s;flex:1;min-width:100px;}
 .save-status.saved{color:var(--green-lt);} .save-status.error{color:var(--crimson-lt);} .save-status.syncing{color:var(--gold);}
-.btn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;padding:5px 12px;background:transparent;
+.btn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;padding:7px 16px;background:transparent;
   border:1px solid var(--gold-dim);color:var(--gold);cursor:pointer;transition:all .2s;text-transform:uppercase;white-space:nowrap;}
 .btn:hover{background:rgba(196,154,34,.1);border-color:var(--gold);}
 .btn.green{border-color:var(--green);color:var(--green-lt);} .btn.green:hover{background:rgba(58,122,58,.15);}
@@ -52,13 +52,13 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;o
 .code-badge:hover{background:rgba(196,154,34,.12);}
 
 /* LAYOUT */
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
 .full{margin-bottom:10px;}
 
 /* PANEL */
 .panel{border:1px solid var(--border);background:var(--panel);overflow:visible;}
-.ph{background:var(--crimson);padding:5px 10px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;
+.ph{background:var(--crimson);padding:8px 14px;font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;
   color:var(--gold-lt);text-transform:uppercase;border-bottom:1px solid var(--gold-dim);
   display:flex;align-items:center;justify-content:space-between;gap:6px;}
 .ph-left{display:flex;align-items:center;gap:6px;}
@@ -66,18 +66,18 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;o
 .pb{padding:10px;}
 
 /* FIELDS */
-.fr{display:flex;align-items:baseline;gap:6px;margin-bottom:6px;border-bottom:1px solid rgba(122,94,24,.2);padding-bottom:5px;}
+.fr{display:flex;align-items:baseline;gap:6px;margin-bottom:8px;border-bottom:1px solid rgba(122,94,24,.2);padding-bottom:7px;}
 .fr:last-child{margin-bottom:0;border-bottom:none;padding-bottom:0;}
-.fl{font-size:11px;color:var(--subtext);min-width:88px;font-family:'Cinzel',serif;letter-spacing:.5px;flex-shrink:0;}
+.fl{font-size:13px;color:var(--subtext);min-width:110px;font-family:'Cinzel',serif;letter-spacing:.5px;flex-shrink:0;}
 .fi{flex:1;background:transparent;border:none;border-bottom:1px solid var(--field-border);
-  color:var(--input-text);font-family:'EB Garamond',serif;font-size:14px;padding:1px 4px;outline:none;transition:border-color .2s;width:100%;}
+  color:var(--input-text);font-family:'EB Garamond',serif;font-size:16px;padding:2px 5px;outline:none;transition:border-color .2s;width:100%;}
 .fi:focus{border-bottom-color:var(--gold-dim);}
 select.fi{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a6a10'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px;}
 select.fi option{background:#0e0b08;color:#d4c898;}
 select.fi:focus{border-bottom-color:var(--gold-dim);}
 select.fi::-ms-expand{display:none;}
 .fta{width:100%;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);
-  font-family:'EB Garamond',serif;font-size:14px;padding:8px;outline:none;resize:vertical;min-height:80px;
+  font-family:'EB Garamond',serif;font-size:16px;padding:10px;outline:none;resize:vertical;min-height:80px;
   transition:border-color .2s;line-height:1.6;}
 .fta:focus{border-color:var(--gold-dim);}
 .fta.lg{min-height:120px;} .fta.xl{min-height:160px;} .fta.xxl{min-height:220px;}
@@ -96,7 +96,7 @@ select.fi::-ms-expand{display:none;}
 .dr:last-child{margin-bottom:0;}
 .dl{font-size:12px;color:var(--text);min-width:108px;flex-shrink:0;}
 .dots{display:flex;gap:4px;align-items:center;}
-.dot{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--gold-dim);
+.dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--gold-dim);
   background:var(--field-bg);cursor:pointer;transition:all .15s;flex-shrink:0;}
 .dot.filled{background:var(--gold);border-color:var(--gold-lt);box-shadow:0 0 5px rgba(196,154,34,.4);}
 .dot:hover{border-color:var(--gold);}
@@ -134,7 +134,7 @@ select.fi::-ms-expand{display:none;}
 
 /* BLOOD POTENCY PANEL */
 .bp-dots-row{display:flex;gap:7px;margin:8px 0 4px;flex-wrap:wrap;}
-.bp-dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;transition:all .15s;flex-shrink:0;}
+.bp-dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--gold-dim);background:var(--field-bg);cursor:pointer;transition:all .15s;flex-shrink:0;}
 .bp-dot.filled{background:var(--crimson-lt);border-color:#e03030;box-shadow:0 0 8px rgba(192,32,32,.5);}
 .bp-dot:hover{transform:scale(1.12);}
 .bp-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
@@ -242,7 +242,7 @@ select.fi::-ms-expand{display:none;}
 /* ═══════════════════════════════
    HUNGER FRENZY WARNING
    ═══════════════════════════════ */
-.frenzy-warning{display:none;margin-top:8px;padding:7px 12px;background:rgba(192,32,32,.18);
+.frenzy-warning{display:none;margin-top:8px;padding:10px 17px;background:rgba(192,32,32,.18);
   border:1px solid var(--crimson-lt);font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;
   color:var(--crimson-lt);text-transform:uppercase;animation:frenzyPulse 1.8s ease-in-out infinite;}
 .frenzy-warning.show{display:flex;align-items:center;gap:8px;}
@@ -440,7 +440,7 @@ select.fi::-ms-expand{display:none;}
   min-height:36px;}
 .char-switcher-label{font-family:Cinzel,serif;font-size:7px;letter-spacing:3px;color:var(--subtext);
   padding:0 12px;white-space:nowrap;flex-shrink:0;border-right:1px solid var(--border);
-  height:36px;display:flex;align-items:center;}
+  height:48px;display:flex;align-items:center;}
 .char-tab{display:flex;align-items:center;gap:6px;padding:7px 14px;cursor:pointer;border-right:1px solid var(--border);
   font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;color:var(--subtext);white-space:nowrap;
   transition:all .15s;flex-shrink:0;min-width:0;max-width:180px;background:transparent;border-bottom:none;}
@@ -454,12 +454,12 @@ select.fi::-ms-expand{display:none;}
   color:var(--gold-lt);border:1px solid var(--gold-dim);background:rgba(196,154,34,.08);
   transition:all .15s;flex-shrink:0;margin:4px 8px;}
 .char-tab-add:hover{color:#fff;background:rgba(196,154,34,.2);border-color:var(--gold);}
-.char-switcher-btn{display:flex;align-items:center;gap:8px;padding:0 14px;height:36px;cursor:pointer;
+.char-switcher-btn{display:flex;align-items:center;gap:8px;padding:0 14px;height:48px;cursor:pointer;
   font-family:Cinzel,serif;font-size:10px;letter-spacing:1px;color:var(--text);
   border:none;border-right:1px solid var(--border);background:transparent;white-space:nowrap;flex-shrink:0;transition:background .15s;}
 .char-switcher-btn:hover{background:rgba(196,154,34,.08);}
 .char-switcher-btn.active-char{background:rgba(196,154,34,.12);color:var(--gold-lt);border-bottom:2px solid var(--gold);}
-.char-switcher-new{display:flex;align-items:center;gap:6px;padding:0 12px;height:26px;cursor:pointer;
+.char-switcher-new{display:flex;align-items:center;gap:6px;padding:0 12px;height:34px;cursor:pointer;
   font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;color:var(--gold-lt);
   border:1px solid var(--gold-dim);background:rgba(196,154,34,.08);margin:5px 8px;flex-shrink:0;transition:all .15s;}
 .char-switcher-new:hover{background:rgba(196,154,34,.2);border-color:var(--gold);}
@@ -618,9 +618,9 @@ select.fi::-ms-expand{display:none;}
       <input type="text" id="p_dice_label" class="fi" placeholder="Label (e.g. Strength + Brawl)…" style="margin-bottom:8px" onkeydown="if(event.key==='Enter')playerRollDice()">
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
         <button class="btn green sm" onclick="playerRollDice()">Roll</button>
-        <button class="btn sm" onclick="playerQuickRoll(1,'Rouse Check',6)">Rouse (1d)</button>
-        <button class="btn sm" onclick="playerQuickRoll(2,'Frenzy Check',1)">Frenzy (2d)</button>
-        <button class="btn sm" onclick="playerQuickRoll(1,'Remorse Check',1)">Remorse</button>
+        <button class="btn sm" onclick="playerRouseRoll()" title="Roll 1d10 — 6+ = no Hunger gained, 1–5 = gain 1 Hunger">Rouse (1d)</button>
+        <button class="btn sm" onclick="playerQuickRoll(2,'Frenzy Check',parseInt(document.getElementById('p_dice_diff').value)||2)" title="Roll 2d10 vs current DIFF — succeed to resist the Beast">Frenzy (2d)</button>
+        <button class="btn sm" onclick="playerRemorsRoll()" title="Roll 1d10 — any success (6+) = keep Humanity. Difficulty always 1.">Remorse</button>
       </div>
       <div id="p_dice_result" class="panel" style="min-height:80px;padding:10px;font-size:13px;line-height:1.8;margin-bottom:8px"></div>
       <div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--subtext);margin-bottom:6px">HISTORY</div>
@@ -640,22 +640,29 @@ select.fi::-ms-expand{display:none;}
   <div class="panel">
     <div class="ph"><span class="ph-left">Identity</span></div>
     <div class="pb" style="display:flex;gap:0;padding:0">
-      <!-- Vertical portrait column — matches green box proportions from screenshot -->
-      <div style="flex:0 0 110px;display:flex;flex-direction:column;border-right:1px solid var(--border)">
-        <!-- Portrait: fills most of the column height -->
-        <div style="position:relative;height:260px;background:#000;cursor:pointer;overflow:hidden;flex-shrink:0" onclick="document.getElementById('char_portrait_input').click()" title="Click to set portrait">
-          <div id="char_portrait_preview" style="width:100%;height:100%;background:var(--field-bg);display:flex;align-items:center;justify-content:center;color:var(--subtext);font-size:9px;font-family:Cinzel,serif;letter-spacing:1px;text-align:center;background-size:cover;background-position:center top">Portrait</div>
-          <div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-family:Cinzel,serif;font-size:6px;letter-spacing:2px;color:rgba(232,201,106,.35)">PORTRAIT</div>
+      <!-- Portrait column: full-height black box, token as circle overlay bottom-right -->
+      <div style="flex:0 0 160px;display:flex;flex-direction:column;border-right:1px solid var(--border);position:relative">
+        <!-- Full-height portrait area -->
+        <div id="char_portrait_box"
+          onclick="document.getElementById('char_portrait_input').click()"
+          title="Click to set portrait"
+          style="flex:1;min-height:380px;background:#050505;cursor:pointer;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center">
+          <div id="char_portrait_preview"
+            style="position:absolute;inset:0;background-size:cover;background-position:center center;background-repeat:no-repeat"></div>
+          <span id="char_portrait_placeholder"
+            style="position:relative;z-index:1;font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:rgba(196,154,34,.3);pointer-events:none">PORTRAIT</span>
         </div>
-        <!-- Token: square-ish box below portrait -->
-        <div style="border-top:1px solid var(--border);height:100px;background:rgba(0,0,0,.4);cursor:pointer;overflow:hidden;position:relative;flex-shrink:0;display:flex;align-items:center;justify-content:center" onclick="document.getElementById('char_token_input').click()" title="Click to set token">
-          <div id="char_token_preview" style="width:72px;height:72px;border-radius:50%;border:2px solid var(--gold-dim);background:var(--field-bg);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--subtext);font-size:8px;font-family:Cinzel,serif;text-align:center;background-size:cover;background-position:center">Token</div>
-          <div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-family:Cinzel,serif;font-size:6px;letter-spacing:2px;color:rgba(232,201,106,.35)">TOKEN</div>
+        <!-- Token circle overlay — bottom right of portrait box -->
+        <div onclick="document.getElementById('char_token_input').click()"
+          title="Click to set map token"
+          style="position:absolute;bottom:28px;right:6px;z-index:5;cursor:pointer">
+          <div id="char_token_preview"
+            style="width:54px;height:54px;border-radius:50%;border:2px solid var(--gold);background:#050505;overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:Cinzel,serif;font-size:7px;color:rgba(196,154,34,.5);text-align:center;background-size:cover;background-position:center;box-shadow:0 0 8px rgba(0,0,0,.8)">Token</div>
         </div>
-        <!-- Buttons -->
-        <div style="border-top:1px solid var(--border);display:flex;flex-direction:column;gap:3px;padding:4px">
-          <button class="btn sm" style="font-size:6px;padding:2px 4px;width:100%" onclick="document.getElementById('char_portrait_input').click()">Portrait</button>
-          <button class="btn sm" style="font-size:6px;padding:2px 4px;width:100%" onclick="document.getElementById('char_token_input').click()">Token</button>
+        <!-- Buttons row -->
+        <div style="border-top:1px solid var(--border);display:flex;gap:2px;padding:3px;background:var(--surface)">
+          <button class="btn sm" style="flex:1;font-size:6px;padding:2px 3px" onclick="document.getElementById('char_portrait_input').click()">Portrait</button>
+          <button class="btn sm" style="flex:1;font-size:6px;padding:2px 3px" onclick="document.getElementById('char_token_input').click()">Token</button>
         </div>
       </div>
       <input type="file" id="char_portrait_input" accept="image/*" style="display:none" onchange="loadCharImage('portrait',event)">
@@ -2383,21 +2390,22 @@ function applyData(d) {
 function applyCharImagePreview(type, dataUrl){
   if(type==='portrait'){
     const el = document.getElementById('char_portrait_preview'); if(!el) return;
+    const placeholder = document.getElementById('char_portrait_placeholder');
     if(dataUrl){
       el.style.backgroundImage = `url(${dataUrl})`;
       el.style.backgroundSize = 'cover';
-      el.style.backgroundPosition = 'center top';
-      el.textContent = '';
+      el.style.backgroundPosition = 'center center';
+      if(placeholder) placeholder.style.display = 'none';
     } else {
       el.style.backgroundImage = '';
-      el.textContent = 'Portrait';
+      if(placeholder) placeholder.style.display = '';
     }
   } else {
     const el = document.getElementById('char_token_preview'); if(!el) return;
     if(dataUrl){
       el.style.backgroundImage = `url(${dataUrl})`;
       el.style.backgroundSize = 'cover';
-      el.style.backgroundPosition = 'center';
+      el.style.backgroundPosition = 'center center';
       el.textContent = '';
     } else {
       el.style.backgroundImage = '';
@@ -3245,39 +3253,119 @@ function subscribeRollRequests(charId){
     if(parent && !parent.querySelector('#diceHelpCard')){
       const card = document.createElement('div');
       card.id = 'diceHelpCard';
-      card.style.cssText = 'background:var(--surface);border:1px solid var(--border);padding:20px;font-size:13px;line-height:1.8;color:var(--text)';
+      card.style.cssText = 'background:var(--surface);border:1px solid var(--border);font-size:13px;color:var(--text);max-height:80vh;overflow-y:auto;max-width:860px;width:95vw';
       card.innerHTML = `
-        <div style="font-family:'Cinzel Decorative',serif;font-size:16px;color:var(--gold-lt);text-align:center;margin-bottom:16px;letter-spacing:3px">VtM V5 — BASIC MECHANICS</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div style="font-family:'Cinzel Decorative',serif;font-size:15px;color:var(--gold-lt);text-align:center;padding:16px;letter-spacing:3px;border-bottom:1px solid var(--border)">VtM V5 — DICE REFERENCE</div>
+        <div style="display:flex;border-bottom:1px solid var(--border);background:var(--panel)">
+          <button id="dht0" onclick="diceHelpTab(0)" style="padding:8px 16px;font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;border:none;border-bottom:2px solid var(--gold);background:transparent;color:var(--gold-lt);cursor:pointer">CORE RULES</button>
+          <button id="dht1" onclick="diceHelpTab(1)" style="padding:8px 16px;font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--subtext);cursor:pointer">REMORSE CHECK</button>
+          <button id="dht2" onclick="diceHelpTab(2)" style="padding:8px 16px;font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--subtext);cursor:pointer">ROUSE &amp; FRENZY</button>
+        </div>
+        <div id="dhp0" style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:20px;line-height:1.7">
           <div>
-            <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px">DICE RESULTS</div>
-            <div>🎲 <b>1–5</b> → <span style="color:var(--crimson-lt)">Failure</span></div>
-            <div>🎲 <b>6–9</b> → <span style="color:var(--green-lt)">Success (1)</span></div>
-            <div>🎲 <b>10</b> → Success — pair two 10s for <b>+2 extra</b></div>
-            <hr style="border-color:var(--border);margin:8px 0">
-            <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--crimson-lt);margin-bottom:6px">🩸 RED (HUNGER) DICE</div>
-            <div>Red dice represent your <b>Hunger</b> — the Beast's pull.</div>
-            <div style="margin-top:4px">🩸 <b>1</b> on red die + fail → <span style="color:var(--crimson-lt)">BESTIAL FAILURE</span></div>
-            <div>🩸 <b>10</b> on red die + win → <span style="color:#e0c060">MESSY CRITICAL</span></div>
-            <div style="margin-top:4px;font-size:11px;color:var(--subtext)">Red 10s still pair for crits — but success comes with horrifying consequences.</div>
-            <hr style="border-color:var(--border);margin:8px 0">
-            <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:6px">ROUSE CHECK</div>
-            <div>Roll 1d10 vs 6 — fail → gain 1 Hunger</div>
+            <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px">HOW TO ROLL</div>
+            <div style="margin-bottom:6px">1. Pool = <b>Attribute + Skill</b></div>
+            <div style="margin-bottom:6px">2. Replace dice equal to <b>Hunger</b> with red dice.</div>
+            <div style="margin-bottom:12px">3. Roll and count successes vs <b>Difficulty</b>.</div>
+            <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px">DIE RESULTS</div>
+            <div>🎲 <b>1–5</b> → <span style="color:var(--crimson-lt)">No success</span></div>
+            <div>🎲 <b>6–9</b> → <span style="color:var(--green-lt)">1 success</span></div>
+            <div style="margin-bottom:10px">🎲 <b>10</b> → 1 success — <b>pair two 10s for +2 extra</b></div>
+            <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--crimson-lt);margin-bottom:6px">🩸 HUNGER DICE (Red)</div>
+            <div>🩸 <b>1</b> + fail → <span style="color:var(--crimson-lt)">BESTIAL FAILURE</span></div>
+            <div>🩸 <b>10</b> + win → <span style="color:#e0c060">MESSY CRITICAL</span></div>
+            <hr style="border-color:var(--border);margin:10px 0">
+            <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:6px">COMMON TESTS</div>
+            <div style="font-size:11px;display:grid;grid-template-columns:1fr 1fr;gap:2px">
+              <div>Alertness: Wits+Awareness</div><div>Dodge: Dex+Athletics</div>
+              <div>Lie: Manip+Subterfuge</div><div>Convince: Manip+Persuasion</div>
+              <div>Punch: Str+Brawl</div><div>Sneak: Dex+Stealth</div>
+            </div>
           </div>
           <div>
-            <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px">OUTCOMES EXPLAINED</div>
-            <div style="margin-bottom:8px;padding:6px 8px;border-left:2px solid var(--green-lt)"><b style="color:var(--green-lt)">SUCCESS</b><br><span style="font-size:11px">You meet or beat difficulty. Action succeeds cleanly.</span></div>
-            <div style="margin-bottom:8px;padding:6px 8px;border-left:2px solid var(--green-lt)"><b style="color:var(--green-lt)">CRITICAL SUCCESS</b><br><span style="font-size:11px">Two or more 10s paired. +2 successes per pair. Exceptional result — narrate something spectacular.</span></div>
-            <div style="margin-bottom:8px;padding:6px 8px;border-left:2px solid #e0c060"><b style="color:#e0c060">MESSY CRITICAL</b><br><span style="font-size:11px">Critical success but a Hunger die hit 10. You succeed — violently. The Beast bleeds through. Expect collateral damage, Masquerade risk, or a Stain.</span></div>
-            <div style="margin-bottom:8px;padding:6px 8px;border-left:2px solid var(--crimson-lt)"><b style="color:var(--crimson-lt)">FAILURE</b><br><span style="font-size:11px">Successes fall short of difficulty. Action fails — no special consequences.</span></div>
-            <div style="padding:6px 8px;border-left:2px solid var(--crimson-lt)"><b style="color:var(--crimson-lt)">BESTIAL FAILURE</b><br><span style="font-size:11px">Failed roll AND a Hunger die showed 1. The Beast claws forward — you fail and act against your own nature. Lose Humanity or harm someone you care about.</span></div>
+            <div style="font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px">OUTCOMES</div>
+            <div style="margin-bottom:8px;padding:7px 10px;border-left:2px solid var(--green-lt)"><b style="color:var(--green-lt)">SUCCESS</b><br><span style="font-size:11px">Successes ≥ Difficulty. Action succeeds.</span></div>
+            <div style="margin-bottom:8px;padding:7px 10px;border-left:2px solid var(--green-lt)"><b style="color:var(--green-lt)">CRITICAL SUCCESS</b><br><span style="font-size:11px">Two or more 10s paired. +2 successes per pair. Exceptional result.</span></div>
+            <div style="margin-bottom:8px;padding:7px 10px;border-left:2px solid #e0c060"><b style="color:#e0c060">MESSY CRITICAL</b><br><span style="font-size:11px">You succeed — but a Hunger die hit 10. Masquerade risk, collateral harm, or a Stain.</span></div>
+            <div style="margin-bottom:8px;padding:7px 10px;border-left:2px solid var(--crimson-lt)"><b style="color:var(--crimson-lt)">FAILURE</b><br><span style="font-size:11px">Successes &lt; Difficulty. Action fails, no special consequences.</span></div>
+            <div style="padding:7px 10px;border-left:2px solid var(--crimson-lt)"><b style="color:var(--crimson-lt)">BESTIAL FAILURE</b><br><span style="font-size:11px">Failed roll + a Hunger die showed 1. You fail and act against your nature.</span></div>
+          </div>
+        </div>
+        <div id="dhp1" style="display:none;padding:20px;line-height:1.8">
+          <div style="font-family:Cinzel,serif;font-size:11px;letter-spacing:2px;color:var(--gold);margin-bottom:14px">REMORSE CHECK — FULL RULES</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+            <div>
+              <div style="font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;color:var(--subtext);margin-bottom:8px">STEP BY STEP</div>
+              <div style="margin-bottom:10px"><b>1. Count your dice pool:</b>
+                <div style="font-size:12px;margin-top:4px;padding:8px;background:var(--panel);border-left:2px solid var(--gold)">
+                  Pool = <b>10 − (Humanity + Stains)</b><br>Minimum 1 die always.
+                </div>
+              </div>
+              <div style="margin-bottom:10px"><b>2. Roll the dice:</b>
+                <div style="font-size:12px;margin-top:4px">Roll normal d10s — <b>no Hunger dice</b>.<br>
+                Succeed on <b>6–10</b>. Need <b>at least 1 success</b>.<br>
+                Criticals (paired 10s) do not matter here.</div>
+              </div>
+              <div><b>3. Outcome:</b>
+                <div style="font-size:12px;margin-top:4px;padding:8px;background:rgba(58,122,58,.1);border-left:2px solid var(--green-lt)">
+                  <b style="color:var(--green-lt)">≥1 success:</b> All Stains removed. Humanity unchanged.
+                </div>
+                <div style="font-size:12px;margin-top:6px;padding:8px;background:rgba(122,21,21,.1);border-left:2px solid var(--crimson-lt)">
+                  <b style="color:var(--crimson-lt)">0 successes:</b> Lose 1 Humanity. All Stains still removed.
+                </div>
+              </div>
+            </div>
+            <div>
+              <div style="font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;color:var(--subtext);margin-bottom:8px">EXAMPLES</div>
+              <div style="margin-bottom:10px;padding:10px;background:var(--panel);border:1px solid var(--border)">
+                <div style="font-family:Cinzel,serif;font-size:9px;color:var(--gold);margin-bottom:4px">HUMANITY 7, 1 STAIN</div>
+                <div style="font-size:12px">7+1=8 filled → 10−8=<b>2 dice</b><br>
+                6+ on any → Stains clear, stay at 7.<br>All 1–5 → drop to 6, Stains clear.</div>
+              </div>
+              <div style="margin-bottom:10px;padding:10px;background:var(--panel);border:1px solid var(--border)">
+                <div style="font-family:Cinzel,serif;font-size:9px;color:var(--gold);margin-bottom:4px">HUMANITY 7, 3 STAINS</div>
+                <div style="font-size:12px">7+3=10 filled → 0 empty → <b>1 die (minimum)</b><br>
+                6+ → stay at 7. 1–5 → drop to 6.</div>
+              </div>
+              <div style="padding:10px;background:var(--panel);border:1px solid var(--border)">
+                <div style="font-family:Cinzel,serif;font-size:9px;color:var(--gold);margin-bottom:4px">HUMANITY 4, 2 STAINS</div>
+                <div style="font-size:12px">4+2=6 filled → 10−6=<b>4 dice</b><br>
+                Much easier — lower Humanity = more empty boxes = more chances.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="dhp2" style="display:none;padding:20px;line-height:1.8">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+            <div>
+              <div style="font-family:Cinzel,serif;font-size:11px;letter-spacing:2px;color:var(--gold);margin-bottom:12px">ROUSE CHECK</div>
+              <div style="margin-bottom:8px">Roll <b>1d10</b> when spending blood.</div>
+              <div style="padding:8px;background:rgba(58,122,58,.1);border-left:2px solid var(--green-lt);margin-bottom:6px"><b style="color:var(--green-lt)">6–10:</b> No Hunger gained.</div>
+              <div style="padding:8px;background:rgba(122,21,21,.1);border-left:2px solid var(--crimson-lt);margin-bottom:12px"><b style="color:var(--crimson-lt)">1–5:</b> Gain 1 Hunger.</div>
+              <div style="font-size:12px;color:var(--subtext)">Roll Rouse when:<br>• Using a Discipline<br>• Mending Aggravated damage<br>• Waking at nightfall (Blood Surge)<br>• Blush of Life</div>
+            </div>
+            <div>
+              <div style="font-family:Cinzel,serif;font-size:11px;letter-spacing:2px;color:var(--gold);margin-bottom:12px">FRENZY CHECK</div>
+              <div style="margin-bottom:8px">Roll <b>Composure + Resolve</b> vs ST difficulty.</div>
+              <div style="padding:8px;background:rgba(58,122,58,.1);border-left:2px solid var(--green-lt);margin-bottom:6px"><b style="color:var(--green-lt)">Success:</b> Resist Frenzy.</div>
+              <div style="padding:8px;background:rgba(122,21,21,.1);border-left:2px solid var(--crimson-lt);margin-bottom:12px"><b style="color:var(--crimson-lt)">Failure:</b> The Beast takes over.</div>
+              <div style="font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;color:var(--subtext);margin-bottom:6px">FRENZY TRIGGERS</div>
+              <div style="font-size:12px;color:var(--subtext)">• Hunger 5 (any provocation)<br>• Blood deprivation<br>• Fire or sunlight<br>• Emotional extremes</div>
+            </div>
           </div>
         </div>`;
       parent.appendChild(card);
     }
+    window.diceHelpTab = function(idx){
+      [0,1,2].forEach(i=>{
+        const p=document.getElementById('dhp'+i);
+        const t=document.getElementById('dht'+i);
+        if(p) p.style.display = i===idx?'block':'none';
+        if(t){ t.style.color=i===idx?'var(--gold-lt)':'var(--subtext)'; t.style.borderBottom=i===idx?'2px solid var(--gold)':'2px solid transparent'; }
+      });
+    };
     modal.style.display = 'flex';
   };
-
   document.addEventListener('keydown', e=>{
     if(e.key==='Escape'){
       const dh = document.getElementById('diceHelpModal');
@@ -3307,9 +3395,122 @@ function subscribeRollRequests(charId){
     displayPRoll(label, regRolls, hungerRolls, diff);
   };
 
+  window.playerRouseRoll = function(){
+    const die = Math.ceil(Math.random()*10);
+    const pass = die >= 6;
+    const label = 'Rouse Check';
+    const outcomeColor = pass ? 'var(--green-lt)' : 'var(--crimson-lt)';
+    const outcome = pass ? 'PASS — No Hunger gained' : 'FAIL — Gain 1 Hunger';
+    const outcomeTooltip = pass
+      ? 'Rolled ' + die + ' (6+) — the Blood holds. No Hunger gained this time.'
+      : 'Rolled ' + die + ' (below 6) — the Blood is spent. Increase your Hunger by 1.';
+    const resultEl = document.getElementById('p_dice_result');
+    if(resultEl) resultEl.innerHTML = `
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--subtext);margin-bottom:6px;letter-spacing:1px">Rouse Check · Roll 6+ to avoid Hunger</div>
+      <div style="margin-bottom:8px;display:flex;flex-wrap:wrap">
+        <div title="Rouse die — 6+ = pass, 1–5 = gain Hunger" style="display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;background:rgba(196,154,34,.08);border:2px solid ${pass?'var(--green)':'var(--crimson)'};font-family:'Cinzel',serif;font-size:16px;color:${pass?'var(--green-lt)':'var(--crimson-lt)'};font-weight:bold;margin:2px;cursor:help;border-radius:3px">${die}</div>
+      </div>
+      <div style="font-family:'Cinzel Decorative',serif;font-size:18px;color:${outcomeColor}">${pass?'✓ PASS':'✕ FAIL'}</div>
+      <div style="font-size:13px;color:var(--text);margin-top:4px">${pass?'No Hunger gained':'<span style="color:var(--crimson-lt)">+1 Hunger</span>'}</div>
+      <div style="font-size:11px;color:var(--subtext);margin-top:6px;font-style:italic">${outcomeTooltip}</div>`;
+    // Add to history
+    const entry = {
+      label, regRolls:[die], hungerRolls:[], successes: pass?1:0,
+      outcome: pass?'PASS':'FAIL', outcomeColor, outcomeTooltip, diff:6,
+      time: new Date().toLocaleTimeString(), isRouse:true
+    };
+    pRollHistory.unshift(entry);
+    if(pRollHistory.length > MAX_HIST) pRollHistory.pop();
+    renderPRollHistory();
+    // Broadcast & sync
+    if(typeof BC !== 'undefined' && BC){
+      const charId = (typeof getActiveCharId === 'function') ? getActiveCharId() : null;
+      const charName = charId ? (cfg.chars?.[charId]?.charName || charId) : 'Player';
+      BC.postMessage({ type:'dice_roll', charId, charName, label, regRolls:[die], hungerRolls:[], successes:pass?1:0, outcome:entry.outcome, diff:6, time:entry.time });
+    }
+    (function pushToFirestore(){
+      const charId = (typeof getActiveCharId === 'function') ? getActiveCharId() : null;
+      const cc = charId && cfg.chars ? cfg.chars[charId] : null;
+      const dmId = cc?.sessionId;
+      if(!dmId) return;
+      const charName = cc?.charName || charId || 'Player';
+      const rollEntry = {label, regRolls:[die], hungerRolls:[], successes:pass?1:0, outcome:entry.outcome, diff:6, time:entry.time, charId, charName, _ts:Date.now()};
+      function doWrite(){ if(!window._db)return; const ref=window._fsDoc(window._db,'dice_rolls',dmId+'_players'); window._fsGetDoc(ref).then(snap=>{ const existing=snap.exists()?(snap.data().rolls||[]):[];window._fsSetDoc(ref,{rolls:[rollEntry,...existing].slice(0,30),_updatedAt:Date.now()}).catch(()=>{}); }).catch(()=>{ window._fsSetDoc(ref,{rolls:[rollEntry],_updatedAt:Date.now()}).catch(()=>{}); }); }
+      if(window._db) doWrite(); else { let t=0; const w=setInterval(()=>{ t++; if(window._db||t>30){clearInterval(w);doWrite();} },100); }
+    })();
+  };
+
+  // Remorse Check — V5 Rules:
+  // Pool = empty boxes on Humanity track = 10 - (Humanity + Stains), min 1
+  // Roll d10s, no Hunger dice. Any single success (6+) = pass. Criticals irrelevant.
+  // Pass → all Stains removed, Humanity unchanged.
+  // Fail → lose 1 Humanity, all Stains still removed.
+  window.playerRemorsRoll = function(){
+    const humanity = parseInt(document.getElementById('f_humanity_text')?.value) || 7;
+    const stains   = parseInt(document.getElementById('f_stains')?.value) || 0;
+    const filled   = humanity + stains;
+    const pool     = Math.max(1, 10 - filled);
+    const rolls    = Array.from({length:pool}, ()=>Math.ceil(Math.random()*10));
+
+    // Simple check: any success (6+)? No hunger dice, no crits counted.
+    const anySuccess = rolls.some(v => v >= 6);
+    const outcomeColor = anySuccess ? 'var(--green-lt)' : 'var(--crimson-lt)';
+    const outcome = anySuccess ? 'REMORSE SUCCEEDS' : 'REMORSE FAILS';
+    const consequence = anySuccess
+      ? 'All Stains removed. Humanity remains at ' + humanity + '.'
+      : 'All Stains removed. Lose 1 Humanity (now ' + Math.max(0, humanity - 1) + ').';
+    const label = 'Remorse Check';
+    const subLabel = `Humanity ${humanity} · Stains ${stains} · Empty boxes: ${10-filled} → ${pool}d`;
+
+    function dieFace(v){
+      const pass = v >= 6;
+      return `<div title="${v} — ${pass?'Success':'Failure'}" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:rgba(196,154,34,.08);border:2px solid ${pass?'var(--green)':'var(--border)'};font-family:'Cinzel',serif;font-size:13px;color:${pass?'var(--green-lt)':'var(--subtext)'};font-weight:${pass?'bold':'normal'};margin:2px;border-radius:3px">${v}</div>`;
+    }
+
+    const resultEl = document.getElementById('p_dice_result');
+    if(resultEl) resultEl.innerHTML = `
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--subtext);margin-bottom:4px;letter-spacing:1px">${label}</div>
+      <div style="font-family:'Cinzel',serif;font-size:9px;color:var(--subtext);margin-bottom:8px;font-style:italic">${subLabel}</div>
+      <div style="margin-bottom:10px;display:flex;flex-wrap:wrap">${rolls.map(v=>dieFace(v)).join('')}</div>
+      <div style="font-family:'Cinzel Decorative',serif;font-size:18px;color:${outcomeColor}">${outcome}</div>
+      <div style="font-size:13px;color:var(--text);margin-top:6px">${consequence}</div>
+      <div style="font-size:11px;color:var(--subtext);margin-top:6px;font-style:italic">${anySuccess?'At least one die showed 6+. The conscience holds.':'All dice showed 1–5. The Beast claims another piece of the soul.'}</div>`;
+
+    const entry = {
+      label: subLabel, regRolls: rolls, hungerRolls: [],
+      successes: anySuccess ? 1 : 0, outcome, outcomeColor,
+      outcomeTooltip: consequence, diff: 1,
+      time: new Date().toLocaleTimeString(), isRemorse: true
+    };
+    pRollHistory.unshift(entry);
+    if(pRollHistory.length > MAX_HIST) pRollHistory.pop();
+    renderPRollHistory();
+
+    // Broadcast to DM
+    if(typeof BC !== 'undefined' && BC){
+      const charId = (typeof getActiveCharId === 'function') ? getActiveCharId() : null;
+      const charName = charId ? (cfg.chars?.[charId]?.charName || charId) : 'Player';
+      BC.postMessage({ type:'dice_roll', charId, charName, label: subLabel, regRolls: rolls, hungerRolls:[], successes: anySuccess?1:0, outcome, diff:1, time: entry.time });
+    }
+    // Firestore sync
+    (function pushToFirestore(){
+      const charId = (typeof getActiveCharId === 'function') ? getActiveCharId() : null;
+      const cc = charId && cfg.chars ? cfg.chars[charId] : null;
+      const dmId = cc?.sessionId;
+      if(!dmId || !window._db) return;
+      const charName = cc?.charName || charId || 'Player';
+      const rollEntry = {label: subLabel, regRolls: rolls, hungerRolls:[], successes: anySuccess?1:0, outcome, diff:1, time: entry.time, charId, charName, _ts: Date.now()};
+      const ref = window._fsDoc(window._db, 'dice_rolls', dmId+'_players');
+      window._fsGetDoc(ref).then(snap=>{
+        const existing = snap.exists() ? (snap.data().rolls||[]) : [];
+        window._fsSetDoc(ref, {rolls:[rollEntry,...existing].slice(0,30), _updatedAt:Date.now()}).catch(()=>{});
+      }).catch(()=>{ window._fsSetDoc(ref,{rolls:[rollEntry],_updatedAt:Date.now()}).catch(()=>{}); });
+    })();
+  };
+
   window.playerQuickRoll = function(n, label, diff){
     const rolls = Array.from({length:n}, ()=>Math.ceil(Math.random()*10));
-    displayPRoll(label, rolls, [], diff||1);
+    displayPRoll(label, rolls, [], diff||2);
   };
 
   function calcOutcome(regRolls, hungerRolls, diff){
@@ -3428,25 +3629,7 @@ function subscribeRollRequests(charId){
     const el = document.getElementById('p_dice_history'); if(!el) return;
     if(!pRollHistory.length){ el.innerHTML='<div style="color:var(--subtext);font-style:italic;padding:8px 0">No rolls yet.</div>'; return; }
     const shown = _histExpanded ? pRollHistory : pRollHistory.slice(0,5);
-    el.innerHTML = shown.map((r,i)=>{
-      const isExpanded = _expandedIdx === i;
-      const diceHTML = buildDiceHTML(r.regRolls||[], r.hungerRolls||[], r.diff||2);
-      const expandedSection = isExpanded ? `
-        <div style="padding:8px 0 4px;border-top:1px solid rgba(122,94,24,.15);margin-top:4px">
-          <div style="display:flex;flex-wrap:wrap;margin-bottom:6px">${diceHTML}</div>
-          <div style="font-size:11px;color:var(--subtext);font-style:italic">${esc(r.outcomeTooltip||'')}</div>
-        </div>` : '';
-      return `<div style="padding:5px 4px;border-bottom:1px solid rgba(122,94,24,.12);cursor:pointer;${i===0?'background:rgba(196,154,34,.04)':''}" onclick="window._expandHistRow(${i})">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:9px;color:var(--subtext);font-family:Cinzel,serif;min-width:52px">${r.time}</span>
-          <span style="flex:1;font-size:11px">${esc(r.label)}</span>
-          <span style="font-family:Cinzel,serif;font-size:10px;color:${r.outcomeColor}">${r.outcome}</span>
-          <span style="font-size:10px;color:var(--subtext)">${r.successes}✓/d${r.diff}</span>
-          <span style="font-size:9px;color:var(--subtext)">${isExpanded?'▲':'▼'}</span>
-        </div>
-        ${expandedSection}
-      </div>`;
-    }).join('');
+    el.innerHTML = shown.map((r,i) => renderHistEntry(r, i)).join('');
     if(pRollHistory.length > 5){
       el.innerHTML += `<div style="text-align:center;padding:4px 0"><button class="btn sm" style="font-size:8px" onclick="window._toggleDiceHist()">${_histExpanded?'▲ Show less':'▼ Show all ('+pRollHistory.length+')'}</button></div>`;
     }
@@ -3456,6 +3639,39 @@ function subscribeRollRequests(charId){
     _expandedIdx = (_expandedIdx === i) ? null : i;
     renderPRollHistory();
   };
+
+  function renderHistEntry(r, i){
+    const isExpanded = _expandedIdx === i;
+    let expandedSection = '';
+    if(isExpanded){
+      if(r.isRouse){
+        // Rouse: just show the single die large
+        const die = r.regRolls[0] || 0;
+        const pass = die >= 6;
+        expandedSection = `<div style="padding:8px 0 4px;border-top:1px solid rgba(122,94,24,.15);margin-top:4px">
+          <div style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(196,154,34,.08);border:2px solid ${pass?'var(--green)':'var(--crimson)'};font-family:'Cinzel',serif;font-size:15px;color:${pass?'var(--green-lt)':'var(--crimson-lt)'};font-weight:bold;border-radius:3px">${die}</div>
+          <div style="font-size:11px;color:var(--subtext);margin-top:4px;font-style:italic">${esc(r.outcomeTooltip||'')}</div>
+        </div>`;
+      } else {
+        const diceHTML = buildDiceHTML(r.regRolls||[], r.hungerRolls||[], r.diff||2);
+        expandedSection = `<div style="padding:8px 0 4px;border-top:1px solid rgba(122,94,24,.15);margin-top:4px">
+          <div style="display:flex;flex-wrap:wrap;margin-bottom:6px">${diceHTML}</div>
+          <div style="font-size:11px;color:var(--subtext);font-style:italic">${esc(r.outcomeTooltip||'')}</div>
+        </div>`;
+      }
+    }
+    const diffLabel = r.isRouse ? '6+' : `d${r.diff}`;
+    return `<div style="padding:5px 4px;border-bottom:1px solid rgba(122,94,24,.12);cursor:pointer;${i===0?'background:rgba(196,154,34,.04)':''}" onclick="window._expandHistRow(${i})">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;color:var(--subtext);font-family:Cinzel,serif;min-width:52px">${r.time}</span>
+        <span style="flex:1;font-size:11px">${esc(r.label)}</span>
+        <span style="font-family:Cinzel,serif;font-size:10px;color:${r.outcomeColor}">${r.outcome}</span>
+        <span style="font-size:10px;color:var(--subtext)">${r.successes}✓/${diffLabel}</span>
+        <span style="font-size:9px;color:var(--subtext)">${isExpanded?'▲':'▼'}</span>
+      </div>
+      ${expandedSection}
+    </div>`;
+  }
   window._toggleDiceHist = function(){ _histExpanded = !_histExpanded; renderPRollHistory(); };
 })();
 
