@@ -2658,6 +2658,35 @@ function loadLocal(charId) {
 // ── BroadcastChannel: instant same-browser sync (player → DM tab) ──
 const BC = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('vtm_sheet_sync') : null;
 
+// Listen for DM → player messages (e.g. roll requests broadcast same-browser)
+if(BC){
+  BC.onmessage = function(event){
+    const msg = event.data;
+    if(!msg) return;
+    if(msg.type === 'roll_request'){
+      const activeId = getActiveCharId();
+      if(!activeId || msg.charId !== activeId) return; // not for this character
+      const reqKey = String(msg.requestedAt||'');
+      if(_seenRollRequests.has(reqKey)) return;
+      _seenRollRequests.add(reqKey);
+      const labelEl=document.getElementById('p_dice_label');
+      const poolEl=document.getElementById('p_dice_pool');
+      const hungerEl=document.getElementById('p_dice_hunger');
+      const diffEl=document.getElementById('p_dice_diff');
+      if(labelEl) labelEl.value=msg.label||'Roll';
+      if(poolEl) poolEl.value=msg.pool||5;
+      if(hungerEl) hungerEl.value=msg.hunger||1;
+      if(diffEl) diffEl.value=msg.diff||2;
+      const panel=document.getElementById('dicePanelOverlay');
+      if(panel) panel.style.display='flex';
+      const diceBtn=document.getElementById('diceBtn');
+      if(diceBtn){ diceBtn.style.borderColor='var(--gold)'; diceBtn.style.color='var(--gold-lt)'; diceBtn.textContent='🎲 Roll Request!'; }
+      setTimeout(()=>{ if(diceBtn){diceBtn.style.borderColor='';diceBtn.style.color='';diceBtn.textContent='🎲 Dice';} },6000);
+      toast('🎲 DM requests a roll: '+(msg.label||'Roll')+' (Pool '+msg.pool+', Diff '+msg.diff+')');
+    }
+  };
+}
+
 function broadcastState() {
   if (!BC) return;
   try {
@@ -3383,17 +3412,16 @@ function populateDropdowns() {
 
 // ── TASK 2: Player watches roll_requests/{charId} for DM prompts ──
 let _rollReqUnsub=null;
-const _seenRollRequests=new Set(); // track seen requestedAt values to avoid re-triggering
+const _seenRollRequests=new Set();
 function subscribeRollRequests(charId){
   if(_rollReqUnsub){ _rollReqUnsub(); _rollReqUnsub=null; }
   if(!charId) return;
-  // Poll until Firebase is ready (ESM module loads async)
   if(!window._db){
     let tries=0;
     const wait=setInterval(()=>{
       tries++;
       if(window._db){ clearInterval(wait); subscribeRollRequests(charId); }
-      else if(tries>50){ clearInterval(wait); } // give up after 5s
+      else if(tries>50){ clearInterval(wait); }
     },100);
     return;
   }
@@ -3402,8 +3430,11 @@ function subscribeRollRequests(charId){
     if(!snap.exists()) return;
     const d=snap.data();
     if(d.status!=='pending') return;
-    // Dedupe locally — no write-back needed (avoids permissions error)
-    const reqKey=String(d.requestedAt||'')+'_'+(d.label||'');
+    // Ignore requests older than 2 minutes (stale docs on page load)
+    const age=Date.now()-(d.requestedAt||0);
+    if(age>120000) return;
+    // Dedupe by requestedAt timestamp
+    const reqKey=String(d.requestedAt||'');
     if(_seenRollRequests.has(reqKey)) return;
     _seenRollRequests.add(reqKey);
     // Pre-fill dice panel and open it
