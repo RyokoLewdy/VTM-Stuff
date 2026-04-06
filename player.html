@@ -667,6 +667,23 @@ select.fi::-ms-expand{display:none;}
   </div>
 </div>
 
+<!-- DM ROLL PROMPT — full-screen popup triggered by DM request -->
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+<div id="rollPromptOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9000;flex-direction:column;align-items:center;justify-content:center;cursor:pointer" onclick="dismissRollPrompt()">
+  <div style="text-align:center;pointer-events:none;padding:20px">
+    <div style="font-family:'UnifrakturMaguntia',cursive;font-size:clamp(80px,18vw,160px);color:var(--crimson-lt);letter-spacing:8px;animation:rollPulse 1.4s ease-in-out infinite;line-height:1;filter:drop-shadow(0 0 30px rgba(192,32,32,.8))">Roll</div>
+    <div id="rollPromptLabel" style="font-family:'Cinzel',serif;font-size:clamp(14px,3vw,22px);color:var(--gold-lt);letter-spacing:4px;margin-top:20px;text-shadow:0 0 20px rgba(196,154,34,.4)"></div>
+    <div style="margin-top:40px;display:flex;gap:16px;justify-content:center;pointer-events:auto">
+      <button onclick="event.stopPropagation();openRollFromPrompt()" style="font-family:'Cinzel',serif;font-size:16px;letter-spacing:3px;padding:14px 40px;background:var(--crimson);border:2px solid var(--crimson-lt);color:var(--gold-lt);cursor:pointer;text-transform:uppercase;transition:all .2s">🎲 Roll Now</button>
+      <button onclick="event.stopPropagation();dismissRollPrompt()" style="font-family:'Cinzel',serif;font-size:12px;letter-spacing:2px;padding:14px 24px;background:transparent;border:1px solid var(--subtext);color:var(--subtext);cursor:pointer;text-transform:uppercase">Dismiss</button>
+    </div>
+    <div style="margin-top:20px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--subtext)">click anywhere to dismiss</div>
+  </div>
+</div>
+<style>
+@keyframes rollPulse{0%,100%{opacity:1;filter:drop-shadow(0 0 30px rgba(192,32,32,.8)) drop-shadow(0 0 60px rgba(192,32,32,.4));}50%{opacity:.75;filter:drop-shadow(0 0 60px rgba(192,32,32,1)) drop-shadow(0 0 120px rgba(192,32,32,.7));}}
+</style>
+
 <!-- DICE HELP MODAL (shows the reference image) -->
 <div id="diceHelpModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9000;align-items:center;justify-content:center;flex-direction:column;gap:10px">
   <div style="max-width:900px;width:95%;position:relative">
@@ -2665,27 +2682,45 @@ if(BC){
     if(!msg) return;
     if(msg.type === 'roll_request'){
       const activeId = getActiveCharId();
-      if(!activeId || msg.charId !== activeId) return; // not for this character
+      if(!activeId || msg.charId !== activeId) return;
       const reqKey = String(msg.requestedAt||'');
       if(_seenRollRequests.has(reqKey)) return;
       _seenRollRequests.add(reqKey);
-      const labelEl=document.getElementById('p_dice_label');
-      const poolEl=document.getElementById('p_dice_pool');
-      const hungerEl=document.getElementById('p_dice_hunger');
-      const diffEl=document.getElementById('p_dice_diff');
-      if(labelEl) labelEl.value=msg.label||'Roll';
-      if(poolEl) poolEl.value=msg.pool||5;
-      if(hungerEl) hungerEl.value=msg.hunger||1;
-      if(diffEl) diffEl.value=msg.diff||2;
-      const panel=document.getElementById('dicePanelOverlay');
-      if(panel) panel.style.display='flex';
-      const diceBtn=document.getElementById('diceBtn');
-      if(diceBtn){ diceBtn.style.borderColor='var(--gold)'; diceBtn.style.color='var(--gold-lt)'; diceBtn.textContent='🎲 Roll Request!'; }
-      setTimeout(()=>{ if(diceBtn){diceBtn.style.borderColor='';diceBtn.style.color='';diceBtn.textContent='🎲 Dice';} },6000);
-      toast('🎲 DM requests a roll: '+(msg.label||'Roll')+' (Pool '+msg.pool+', Diff '+msg.diff+')');
+      showRollPrompt(msg);
     }
   };
 }
+
+// ── Roll Prompt helpers ──
+let _pendingRollRequest = null;
+function showRollPrompt(d){
+  _pendingRollRequest = d;
+  const labelEl = document.getElementById('rollPromptLabel');
+  if(labelEl) labelEl.textContent = d.label || '';
+  const overlay = document.getElementById('rollPromptOverlay');
+  if(overlay) overlay.style.display = 'flex';
+  // Pre-fill dice panel in background
+  const lEl=document.getElementById('p_dice_label');
+  const pEl=document.getElementById('p_dice_pool');
+  const hEl=document.getElementById('p_dice_hunger');
+  const dEl=document.getElementById('p_dice_diff');
+  if(lEl) lEl.value=d.label||'Roll';
+  if(pEl) pEl.value=d.pool||5;
+  if(hEl) hEl.value=d.hunger||1;
+  if(dEl) dEl.value=d.diff||2;
+}
+window.dismissRollPrompt = function(){
+  const overlay = document.getElementById('rollPromptOverlay');
+  if(overlay) overlay.style.display = 'none';
+  _pendingRollRequest = null;
+};
+window.openRollFromPrompt = function(){
+  const overlay = document.getElementById('rollPromptOverlay');
+  if(overlay) overlay.style.display = 'none';
+  const panel = document.getElementById('dicePanelOverlay');
+  if(panel) panel.style.display = 'flex';
+  if(typeof renderPRollHistory === 'function') renderPRollHistory();
+};
 
 function broadcastState() {
   if (!BC) return;
@@ -3437,23 +3472,7 @@ function subscribeRollRequests(charId){
     const reqKey=String(d.requestedAt||'');
     if(_seenRollRequests.has(reqKey)) return;
     _seenRollRequests.add(reqKey);
-    // Pre-fill dice panel and open it
-    const labelEl=document.getElementById('p_dice_label');
-    const poolEl=document.getElementById('p_dice_pool');
-    const hungerEl=document.getElementById('p_dice_hunger');
-    const diffEl=document.getElementById('p_dice_diff');
-    if(labelEl) labelEl.value=d.label||'Roll';
-    if(poolEl) poolEl.value=d.pool||5;
-    if(hungerEl) hungerEl.value=d.hunger||1;
-    if(diffEl) diffEl.value=d.diff||2;
-    // Open dice panel
-    const panel=document.getElementById('dicePanelOverlay');
-    if(panel) panel.style.display='flex';
-    // Flash dice button
-    const diceBtn=document.getElementById('diceBtn');
-    if(diceBtn){ diceBtn.style.borderColor='var(--gold)'; diceBtn.style.color='var(--gold-lt)'; diceBtn.textContent='🎲 Roll Request!'; }
-    setTimeout(()=>{ if(diceBtn){diceBtn.style.borderColor='';diceBtn.style.color='';diceBtn.textContent='🎲 Dice';} },6000);
-    toast('🎲 DM requests a roll: '+(d.label||'Roll')+' (Pool '+d.pool+', Diff '+d.diff+')');
+    showRollPrompt(d);
   },err=>console.warn('roll_requests listener:',err));
 }
 
