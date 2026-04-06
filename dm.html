@@ -782,6 +782,7 @@ signInAnonymously(_auth).catch(e => console.warn('Anon auth failed:', e));
 
 <script>
 const SK='vtm_dm3_v1', SK_CFG='vtm_dm3_cfg';
+console.log('[VTM DM] v2-no-autosync loaded — '+new Date().toLocaleTimeString());
 
 // ── INSTANT SYNC via BroadcastChannel ──
 // Receives instant updates from player sheets open in the same browser.
