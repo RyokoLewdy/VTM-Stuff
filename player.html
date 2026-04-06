@@ -2717,9 +2717,23 @@ window.dismissRollPrompt = function(){
 window.openRollFromPrompt = function(){
   const overlay = document.getElementById('rollPromptOverlay');
   if(overlay) overlay.style.display = 'none';
+  if(!_pendingRollRequest) return;
+  const d = _pendingRollRequest;
+  _pendingRollRequest = null;
+  // Auto-roll with DM's values
+  const pool = d.pool||5;
+  const hunger = Math.min(d.hunger||1, pool);
+  const diff = d.diff||2;
+  const label = d.label||'Roll';
+  const hungerRolls = Array.from({length:hunger}, ()=>Math.ceil(Math.random()*10));
+  const regRolls = Array.from({length:pool-hunger}, ()=>Math.ceil(Math.random()*10));
+  // Use existing displayPRoll to show result and push to Firestore
+  if(typeof displayPRoll === 'function'){
+    displayPRoll(label, regRolls, hungerRolls, diff);
+  }
+  // Open dice panel so player can see the result
   const panel = document.getElementById('dicePanelOverlay');
   if(panel) panel.style.display = 'flex';
-  if(typeof renderPRollHistory === 'function') renderPRollHistory();
 };
 
 function broadcastState() {
@@ -3747,6 +3761,7 @@ function subscribeRollRequests(charId){
     }).join('');
   }
 
+  window.displayPRoll = displayPRoll;
   function displayPRoll(label, regRolls, hungerRolls, diff){
     const {successes, outcome, outcomeColor, outcomeTooltip, messy, bestial} = calcOutcome(regRolls, hungerRolls, diff);
     const diceHTML = buildDiceHTML(regRolls, hungerRolls, diff);
