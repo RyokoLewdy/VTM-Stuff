@@ -1464,6 +1464,7 @@ const VTM = {
 // STATE
 // ════════════════════════════════════════════════════════════
 const SK_CFG = 'vtm_blank_cfg_v2';
+console.log('[VTM Player] v2-no-autosync loaded — '+new Date().toLocaleTimeString());
 // Per-character keys: vtm_char_{charId}, vtm_priv_{charId}
 // cfg.chars = { charId: { charName, sessionId, username, skipCloud } }
 // cfg.activeCharId = currently displayed character
@@ -1490,7 +1491,7 @@ let state = {
   _portraitImg: '',
   _tokenImg: ''
 };
-let autoSyncTimer = null;
+// autoSyncTimer removed — no Firestore auto-sync on input
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 // ── Multi-character helpers ──
@@ -2736,37 +2737,41 @@ window.openRollFromPrompt = function(){
   if(panel) panel.style.display = 'flex';
 };
 
+let _lastBroadcastHash = '';
 function broadcastState() {
   if (!BC) return;
   try {
     const cc = getActiveCharCfg();
     const id = getActiveCharId();
     const d = collectData();
+    // Only broadcast if something actually changed
+    const h = JSON.stringify({dots:d.dots,boxes:d.boxes,ld:d.largeDots,t:d.text,inv:d.inventory?.length,haven:d.haven});
+    if (h === _lastBroadcastHash) return;
+    _lastBroadcastHash = h;
     BC.postMessage({ type: 'sheet_update', charId: id || ('local_anon'), data: d, charName: cc?.charName || 'Character' });
   } catch(e) {}
 }
 
-function scheduleAutoSync() {
-  broadcastState();
-  const cc = getActiveCharCfg();
-  if (!cc || cc.skipCloud) return;
-  if (!getActiveCharId()) return;
-  clearTimeout(autoSyncTimer);
-  autoSyncTimer = setTimeout(() => { syncToFirestore(true); }, 1000);
-}
+// Auto-sync disabled — use ☁ Sync to DM button. Dice/token events write directly.
 
 // ── Firestore sync ──
+let _lastSyncedHash = '';
 async function syncToFirestore(silent) {
   broadcastState();
   const cc = getActiveCharCfg();
   const charId = getActiveCharId();
   if (!window._db) { if (!silent) toast('Firebase not ready yet.', 'error'); return; }
   if (!charId || !cc || cc.skipCloud) { if (!silent) toast('No character connected — use ⚙ Setup first.', 'error'); return; }
+
+  const d = collectData();
+  const priv = document.getElementById('notes_private')?.value || '';
+  // Skip silent sync if nothing changed since last sync
+  const syncHash = JSON.stringify(d) + priv;
+  if (silent && syncHash === _lastSyncedHash) return;
+
   if (!silent) setStatus('Syncing...', 'syncing');
   const btn = document.getElementById('syncBtn'); if (btn) btn.disabled = true;
   try {
-    const d = collectData();
-    const priv = document.getElementById('notes_private')?.value || '';
     const charRef = window._fsDoc(window._db, 'characters', charId);
     const privRef = window._fsDoc(window._db, 'characters_private', charId);
     const payload = { ...d, _charName: cc.charName || 'Character', _updatedAt: Date.now() };
@@ -2778,6 +2783,7 @@ async function syncToFirestore(silent) {
         window._fsSetDoc(privRef, { notes_private: priv, _updatedAt: Date.now() })
       ]);
     }
+    _lastSyncedHash = syncHash;
     localStorage.setItem(charDataKey(charId), JSON.stringify(d));
     localStorage.setItem(charPrivKey(charId), priv);
     updateShareCode();
