@@ -1473,269 +1473,265 @@ function toggleDMEdit(id){
   }
 }
 
-// ── Clickable dot row used in edit mode for attrs/skills ──
-function dHEdit(charId, dotKey, val, max){
-  const dots = Array.from({length:max},(_,i)=>`<div class="dot-d${i<val?' f':''}" style="cursor:pointer;width:13px;height:13px;border-radius:50%;border:1.5px solid var(--gold-dim);background:${i<val?'var(--gold)':'var(--field-bg)'};transition:all .1s" onclick="dmDotClick('${charId}','${dotKey}',${i+1},${max})"></div>`).join('');
-  return `<div class="dots-d" style="gap:5px">${dots}</div>`;
-}
-window.dmDotClick=function(charId, dotKey, clickedIdx, max){
-  const c=chars[charId]; if(!c||!c.data) return;
-  if(!c.data.dots) c.data.dots={};
-  const cur=c.data.dots[dotKey]||0;
-  // Click same dot = decrease by 1, otherwise set to clicked value
-  c.data.dots[dotKey] = cur===clickedIdx ? clickedIdx-1 : clickedIdx;
-  // Re-render just the stat panels to reflect new value
-  const dots=c.data.dots, specs=c.data.specialties||[];
-  const ATTR_PHYS=['Strength','Dexterity','Stamina'],ATTR_PHY_K=['attr_str','attr_dex','attr_sta'];
-  const ATTR_SOC=['Charisma','Manipulation','Composure'],ATTR_SOC_K=['attr_cha','attr_man','attr_com'];
-  const ATTR_MEN=['Intelligence','Wits','Resolve'],ATTR_MEN_K=['attr_int','attr_wit','attr_res'];
-  const SK_PHY=['Athletics','Brawl','Craft','Drive','Firearms','Larceny','Melee','Stealth','Survival'],SK_PHY_K=['sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel','sk_ste','sk_sur'];
-  const SK_SOC=['Animal Ken','Etiquette','Insight','Intimidation','Leadership','Performance','Persuasion','Streetwise','Subterfuge'],SK_SOC_K=['sk_ani','sk_eti','sk_ins','sk_imi','sk_lea','sk_per','sk_prs','sk_str','sk_sub'];
-  const SK_MEN=['Academics','Awareness','Finance','Investigation','Medicine','Occult','Politics','Science','Technology'],SK_MEN_K=['sk_aca','sk_awa','sk_fin','sk_inv','sk_med','sk_occ','sk_pol','sk_sci','sk_tec'];
-  set('cv_st_attr_phys_'+charId, apEdit(charId,'Physical Attributes',ATTR_PHYS,ATTR_PHY_K,dots));
-  set('cv_st_attr_soc_'+charId,  apEdit(charId,'Social Attributes',ATTR_SOC,ATTR_SOC_K,dots));
-  set('cv_st_attr_men_'+charId,  apEdit(charId,'Mental Attributes',ATTR_MEN,ATTR_MEN_K,dots));
-  set('cv_st_sk_phys_'+charId, spEdit(charId,'Physical Skills',SK_PHY,SK_PHY_K,dots,specs));
-  set('cv_st_sk_soc_'+charId,  spEdit(charId,'Social Skills',SK_SOC,SK_SOC_K,dots,specs));
-  set('cv_st_sk_men_'+charId,  spEdit(charId,'Mental Skills',SK_MEN,SK_MEN_K,dots,specs));
-};
+// ── FULL SHEET EDIT MODE ──
+// Replaces all tab content with fully editable inputs. Save collects everything at once.
 
-function apEdit(cid,title,names,keys,dots){
-  return `<div class="panel"><div class="ph" style="background:rgba(58,122,58,.2)">${title} <span style="font-size:8px;color:var(--green-lt);margin-left:6px">✎ click dots</span></div><div class="pb">${names.map((n,i)=>`<div class="stat-row"><span class="stat-name">${n}</span>${dHEdit(cid,keys[i],dots[keys[i]]||0,5)}</div>`).join('')}</div></div>`;
+const EDIT_CLANS=['','Banu Haqim','Brujah','Gangrel','Hecata','Lasombra','Malkavian','Ministry','Nosferatu','Ravnos','Salubri','Toreador','Tremere','Tzimisce','Ventrue','Caitiff','Thin-Blood'];
+const EDIT_SECTS=['','Camarilla','Anarch','Sabbat','Ashirra','Independent'];
+const EDIT_PRED=['','Alley Cat','Bagger','Blood Leech','Cleaver','Consensualist','Farmer','Osiris','Sandman','Scene Queen','Siren','Extortionist','Graverobber'];
+const ATTR_KEYS={Strength:'attr_str',Dexterity:'attr_dex',Stamina:'attr_sta',Charisma:'attr_cha',Manipulation:'attr_man',Composure:'attr_com',Intelligence:'attr_int',Wits:'attr_wit',Resolve:'attr_res'};
+const SKILL_KEYS={'Athletics':'sk_ath','Brawl':'sk_bra','Craft':'sk_cra','Drive':'sk_dri','Firearms':'sk_fir','Larceny':'sk_lar','Melee':'sk_mel','Stealth':'sk_ste','Survival':'sk_sur','Animal Ken':'sk_ani','Etiquette':'sk_eti','Insight':'sk_ins','Intimidation':'sk_imi','Leadership':'sk_lea','Performance':'sk_per','Persuasion':'sk_prs','Streetwise':'sk_str','Subterfuge':'sk_sub','Academics':'sk_aca','Awareness':'sk_awa','Finance':'sk_fin','Investigation':'sk_inv','Medicine':'sk_med','Occult':'sk_occ','Politics':'sk_pol','Science':'sk_sci','Technology':'sk_tec'};
+
+function efi(id,field,val,ph){return `<div class="info-cell"><span class="ic-label">${field}</span><input class="fi" id="e_${id}_${field}" value="${esc(val||'')}" placeholder="${ph||''}" style="font-size:11px;flex:1"></div>`;}
+function esel(id,field,val,opts){return `<div class="info-cell"><span class="ic-label">${field}</span><select class="fi" id="e_${id}_${field}" style="font-size:11px;flex:1">${opts.map(o=>`<option${o===val?' selected':''}>${esc(o)}</option>`).join('')}</select></div>`;}
+function enum_num(id,field,val,min,max){return `<div class="info-cell"><span class="ic-label">${field}</span><input class="fi" type="number" id="e_${id}_${field}" value="${val||0}" min="${min}" max="${max}" style="font-size:11px;width:60px;flex:none"></div>`;}
+function eta(id,field,val,rows){return `<textarea class="fta" id="e_${id}_${field}" style="width:100%;min-height:${rows||60}px;font-size:13px">${esc(val||'')}</textarea>`;}
+function edot(cid,key,val,max){
+  return `<div class="dots-d" style="gap:5px">${Array.from({length:max},(_,i)=>`<div style="width:13px;height:13px;border-radius:50%;border:1.5px solid var(--gold-dim);background:${i<val?'var(--gold)':'var(--field-bg)'};cursor:pointer;transition:background .1s" onclick="edotClick('${cid}','${key}',${i+1},${max})"></div>`).join('')}</div>`;
 }
-function spEdit(cid,title,names,keys,dots,specs){
-  return `<div class="panel"><div class="ph" style="background:rgba(58,122,58,.2)">${title} <span style="font-size:8px;color:var(--green-lt);margin-left:6px">✎ click dots</span></div><div class="pb">${names.map((n,i)=>{const ss=specs.filter(s=>s.skill===n);return `<div class="stat-row"><span class="stat-name">${n}</span>${dHEdit(cid,keys[i],dots[keys[i]]||0,5)}${ss.map(s=>`<span style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--gold);border:1px solid rgba(196,154,34,.35);padding:1px 5px;margin-left:3px">${esc(s.name)}</span>`).join('')}</div>`}).join('')}</div></div>`;
-}
+window.edotClick=function(cid,key,idx,max){
+  if(!chars[cid]?.data?.dots) chars[cid].data.dots={};
+  const cur=chars[cid].data.dots[key]||0;
+  chars[cid].data.dots[key]=cur===idx?idx-1:idx;
+  // Re-render just this stat panel section
+  renderDMEditForm(cid);
+};
 
 function renderDMEditForm(id){
-  const c = chars[id]; if(!c||!c.data) return;
-  const t = c.data.text||{};
-  const ld = c.data.largeDots||{};
-  const d = c.data;
-  const dots=d.dots||{}, specs=d.specialties||[];
+  const c=chars[id]; if(!c?.data)return;
+  const d=c.data, t=d.text||{}, ld=d.largeDots||{}, dots=d.dots||{};
+  const merits=d.merits||[], flaws=d.flaws||[], discs=d.disciplines||[];
+  const specs=d.specialties||[], rits=d.rituals||[];
+  const boxes=d.boxes||{};
 
-  const CLANS=['','Banu Haqim','Brujah','Gangrel','Hecata','Lasombra','Malkavian','Ministry','Nosferatu','Ravnos','Salubri','Toreador','Tremere','Tzimisce','Ventrue','Caitiff','Thin-Blood'];
-  const SECTS=['','Camarilla','Anarch','Sabbat','Ashirra','Independent'];
+  const banner=`<div style="background:rgba(58,122,58,.15);border:1px solid var(--green);padding:8px 14px;margin-bottom:12px;font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--green-lt);display:flex;align-items:center;justify-content:space-between"><span>✎ EDIT MODE — all fields editable</span><button class="btn green sm" onclick="toggleDMEdit('${id}')">✓ Save Edits</button></div>`;
 
-  function efi(field,val,placeholder){
-    return `<div class="info-cell"><span class="ic-label">${field}</span><input class="fi" id="dmedit_${id}_${field.toLowerCase().replace(/\s/g,'_')}" value="${esc(val||'')}" placeholder="${placeholder||''}" style="font-size:11px;flex:1"></div>`;
+  // ── OVERVIEW ──
+  set('cv_ov_'+id, banner+`
+    <div class="grid-2">
+      <div class="panel"><div class="ph" style="background:rgba(58,122,58,.2)">Identity</div><div class="pb">
+        <div class="info-grid" style="grid-template-columns:1fr 1fr">
+          ${efi(id,'Name',t.f_name,'Character name')}
+          ${esel(id,'Clan',t.f_clan,EDIT_CLANS)}
+          ${efi(id,'Generation',t.f_gen,'e.g. 10th')}
+          ${esel(id,'Sect',t.f_sect,EDIT_SECTS)}
+          ${efi(id,'Sire',t.f_sire,'')}
+          ${esel(id,'Predator',t.f_predator,EDIT_PRED)}
+          ${efi(id,'Archetype',t.f_archetype,'')}
+          ${efi(id,'Concept',t.f_concept,'')}
+          ${efi(id,'Vampire Age',t.f_vamp_age,'e.g. Ancilla')}
+          ${efi(id,'Clan Bane',t.f_bane,'')}
+        </div>
+      </div></div>
+      <div class="panel"><div class="ph" style="background:rgba(58,122,58,.2)">Trackers</div><div class="pb">
+        <div class="info-grid" style="grid-template-columns:1fr 1fr">
+          ${enum_num(id,'Humanity',ld.humanity||7,0,10)}
+          ${enum_num(id,'Hunger',ld.hunger||1,0,5)}
+          ${enum_num(id,'Blood Potency',ld.bp||1,0,10)}
+          ${enum_num(id,'Stains',parseInt(t.f_stains)||0,0,10)}
+          ${enum_num(id,'Health Boxes',d.trackSizes?.health||5,1,15)}
+          ${enum_num(id,'WP Boxes',d.trackSizes?.wp||5,1,15)}
+        </div>
+        <div style="margin-top:10px">
+          <div class="itl" style="margin-top:0">Resonance</div>
+          <input class="fi" id="e_${id}_Resonance" value="${esc(t.f_resonance||'')}" style="width:100%">
+          <div class="itl">Ambition</div>
+          ${eta(id,'Ambition',t.f_ambition,40)}
+          <div class="itl">Desire</div>
+          ${eta(id,'Desire',t.f_desire,40)}
+        </div>
+      </div></div>
+    </div>
+    <div class="grid-2">
+      <div class="panel"><div class="ph" style="background:rgba(58,122,58,.2)">Convictions & Touchstones</div><div class="pb">
+        ${[1,2,3].map(n=>`<div style="margin-bottom:8px"><div class="itl" style="margin-top:0">Conviction ${n}</div><input class="fi" id="e_${id}_Conv${n}" value="${esc(t['conv_'+n]||'')}" style="width:100%;margin-bottom:4px"><div class="itl">Touchstone ${n}</div><input class="fi" id="e_${id}_Touch${n}" value="${esc(t['touch_'+n]||'')}" style="width:100%"></div>`).join('')}
+      </div></div>
+      <div class="panel"><div class="ph" style="background:rgba(58,122,58,.2)">Background</div><div class="pb">
+        ${eta(id,'Background',t.f_backstory,140)}
+      </div></div>
+    </div>`);
+
+  // ── STATS ──
+  function statGroup(title,names){
+    return `<div class="panel"><div class="ph" style="background:rgba(58,122,58,.2)">${title}</div><div class="pb">
+      ${names.map(n=>{
+        const key=ATTR_KEYS[n]||SKILL_KEYS[n]||'';
+        const val=dots[key]||0;
+        const ss=specs.filter(s=>s.skill===n);
+        return `<div class="stat-row"><span class="stat-name">${n}</span>${edot(id,key,val,5)}
+          ${ss.map((s,si)=>`<span style="font-family:Cinzel,serif;font-size:8px;color:var(--gold);border:1px solid rgba(196,154,34,.35);padding:1px 5px;margin-left:3px;cursor:pointer" title="Remove" onclick="dmRemoveSpec('${id}',${specs.indexOf(s)})">${esc(s.name)} ✕</span>`).join('')}
+          <span style="font-family:Cinzel,serif;font-size:8px;color:var(--subtext);cursor:pointer;margin-left:4px" onclick="dmAddSpec('${id}','${n}')">+ spec</span>
+        </div>`;
+      }).join('')}
+    </div></div>`;
   }
-  function esel(field,val,options){
-    const opts=options.map(o=>`<option${o===val?' selected':''}>${esc(o)}</option>`).join('');
-    return `<div class="info-cell"><span class="ic-label">${field}</span><select class="fi" id="dmedit_${id}_${field.toLowerCase().replace(/\s/g,'_')}" style="font-size:11px;flex:1">${opts}</select></div>`;
-  }
-  function enum_num(field,val,min,max){
-    return `<div class="info-cell"><span class="ic-label">${field}</span><input class="fi" type="number" id="dmedit_${id}_${field.toLowerCase().replace(/\s/g,'_')}" value="${val||0}" min="${min}" max="${max}" style="font-size:11px;width:60px;flex:none"></div>`;
-  }
+  set('cv_st_'+id,`
+    <div class="grid-3">
+      <div>${statGroup('Physical Attributes',['Strength','Dexterity','Stamina'])}</div>
+      <div>${statGroup('Social Attributes',['Charisma','Manipulation','Composure'])}</div>
+      <div>${statGroup('Mental Attributes',['Intelligence','Wits','Resolve'])}</div>
+    </div>
+    <div class="grid-3">
+      <div>${statGroup('Physical Skills',['Athletics','Brawl','Craft','Drive','Firearms','Larceny','Melee','Stealth','Survival'])}</div>
+      <div>${statGroup('Social Skills',['Animal Ken','Etiquette','Insight','Intimidation','Leadership','Performance','Persuasion','Streetwise','Subterfuge'])}</div>
+      <div>${statGroup('Mental Skills',['Academics','Awareness','Finance','Investigation','Medicine','Occult','Politics','Science','Technology'])}</div>
+    </div>
+    <div class="grid-2">
+      <div class="panel"><div class="ph" style="background:rgba(58,122,58,.2)">Advantages / Merits</div><div class="pb" id="e_merits_${id}">
+        ${merits.map((m,i)=>`<div class="adv-d"><input class="fi" value="${esc(m.name)}" style="flex:1;font-size:12px" onchange="chars['${id}'].data.merits[${i}].name=this.value"><input class="fi" type="number" min="0" max="5" value="${m.dots||0}" style="width:36px;font-size:12px" onchange="chars['${id}'].data.merits[${i}].dots=parseInt(this.value)||0"><button onclick="dmRemoveMerit('${id}',${i})" style="background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;padding:0 4px">✕</button></div>`).join('')}
+        <div style="display:flex;gap:5px;margin-top:6px"><input id="dmadd_mn_${id}" class="fi" placeholder="Merit name…" style="flex:1;font-size:12px"><input id="dmadd_md_${id}" class="fi" type="number" min="0" max="5" value="1" style="width:36px"><button class="btn green sm" onclick="dmAddMerit('${id}')">+ Add</button></div>
+      </div></div>
+      <div class="panel"><div class="ph" style="background:rgba(58,122,58,.2)">Flaws</div><div class="pb" id="e_flaws_${id}">
+        ${flaws.map((f,i)=>`<div class="adv-d"><input class="fi" value="${esc(f.name)}" style="flex:1;font-size:12px;color:#c08080" onchange="chars['${id}'].data.flaws[${i}].name=this.value"><button onclick="dmRemoveFlaw('${id}',${i})" style="background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;padding:0 4px">✕</button></div>`).join('')}
+        <div style="display:flex;gap:5px;margin-top:6px"><input id="dmadd_fn_${id}" class="fi" placeholder="Flaw name…" style="flex:1;font-size:12px;color:#c08080"><button class="btn danger sm" onclick="dmAddFlaw('${id}')">+ Add</button></div>
+      </div></div>
+    </div>`);
 
-  // ── OVERVIEW TAB: banner + identity + tracker edits ──
-  const ovEl = document.getElementById('cv_ov_'+id);
-  if(ovEl && !document.getElementById('dmedit_banner_'+id)){
-    const banner=document.createElement('div');
-    banner.id='dmedit_banner_'+id;
-    banner.style.cssText='background:rgba(58,122,58,.15);border:1px solid var(--green);padding:8px 14px;margin-bottom:12px;font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:var(--green-lt);display:flex;align-items:center;justify-content:space-between';
-    banner.innerHTML=`<span>✎ EDIT MODE — Overview: fields below · Stats tab: click dots · Disciplines tab: add/remove powers</span><button class="btn green sm" onclick="toggleDMEdit('${id}')">✓ Save Edits</button>`;
-    ovEl.insertBefore(banner,ovEl.firstChild);
-  }
-
-  const igEl=document.getElementById('ig_identity_'+id);
-  if(igEl) igEl.outerHTML=`<div class="info-grid" id="ig_identity_${id}" style="grid-template-columns:1fr 1fr">
-    ${efi('Name',t.f_name,'Character name')}${esel('Clan',t.f_clan,CLANS)}
-    ${efi('Generation',t.f_gen,'e.g. 10th')}${enum_num('Blood Potency',ld.bp||1,0,10)}
-    ${efi('Sire',t.f_sire,'Sire name')}${esel('Sect',t.f_sect,SECTS)}
-    ${efi('Predator Type',t.f_predator,'')}${efi('Archetype',t.f_archetype,'')}
-    ${efi('Vampire Age',t.f_vamp_age,'')}${efi('Concept',t.f_concept,'')}
-  </div>`;
-
-  const igResEl=document.getElementById('ig_res_'+id);
-  if(igResEl) igResEl.outerHTML=`<div class="info-grid" id="ig_res_${id}" style="margin-top:8px">
-    ${enum_num('Humanity',ld.humanity||7,0,10)}${enum_num('Hunger',ld.hunger||1,0,5)}
-    ${enum_num('Stains',parseInt(t.f_stains)||0,0,10)}${efi('Resonance',t.f_resonance,'')}
-    ${efi('Ambition',t.f_ambition,'')}${efi('Desire',t.f_desire,'')}
-  </div>`;
-
-  const trackEl=document.getElementById('trackers_'+id);
-  if(trackEl && !document.getElementById('dmedit_tracksizes_'+id)){
-    const tsDiv=document.createElement('div');
-    tsDiv.id='dmedit_tracksizes_'+id;
-    tsDiv.style.cssText='margin-top:10px;border-top:1px solid rgba(122,94,24,.2);padding-top:8px';
-    tsDiv.innerHTML=`<div class="itl" style="margin-top:0;margin-bottom:6px">Track Sizes</div>
-      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-        <label style="display:flex;align-items:center;gap:5px;font-family:Cinzel,serif;font-size:10px;color:var(--subtext)">Health <input type="number" id="dmedit_${id}_health_size" value="${d.trackSizes?.health||5}" min="1" max="15" style="width:45px;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:Cinzel,serif;font-size:12px;padding:2px 4px;outline:none;text-align:center"></label>
-        <label style="display:flex;align-items:center;gap:5px;font-family:Cinzel,serif;font-size:10px;color:var(--subtext)">Willpower <input type="number" id="dmedit_${id}_wp_size" value="${d.trackSizes?.wp||5}" min="1" max="15" style="width:45px;background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:Cinzel,serif;font-size:12px;padding:2px 4px;outline:none;text-align:center"></label>
-      </div>`;
-    trackEl.appendChild(tsDiv);
-  }
-
-  // ── STATS TAB: replace attr/skill panels with clickable-dot versions ──
-  const ATTR_PHYS=['Strength','Dexterity','Stamina'],ATTR_PHY_K=['attr_str','attr_dex','attr_sta'];
-  const ATTR_SOC=['Charisma','Manipulation','Composure'],ATTR_SOC_K=['attr_cha','attr_man','attr_com'];
-  const ATTR_MEN=['Intelligence','Wits','Resolve'],ATTR_MEN_K=['attr_int','attr_wit','attr_res'];
-  const SK_PHY=['Athletics','Brawl','Craft','Drive','Firearms','Larceny','Melee','Stealth','Survival'],SK_PHY_K=['sk_ath','sk_bra','sk_cra','sk_dri','sk_fir','sk_lar','sk_mel','sk_ste','sk_sur'];
-  const SK_SOC=['Animal Ken','Etiquette','Insight','Intimidation','Leadership','Performance','Persuasion','Streetwise','Subterfuge'],SK_SOC_K=['sk_ani','sk_eti','sk_ins','sk_imi','sk_lea','sk_per','sk_prs','sk_str','sk_sub'];
-  const SK_MEN=['Academics','Awareness','Finance','Investigation','Medicine','Occult','Politics','Science','Technology'],SK_MEN_K=['sk_aca','sk_awa','sk_fin','sk_inv','sk_med','sk_occ','sk_pol','sk_sci','sk_tec'];
-  set('cv_st_attr_phys_'+id, apEdit(id,'Physical Attributes',ATTR_PHYS,ATTR_PHY_K,dots));
-  set('cv_st_attr_soc_'+id,  apEdit(id,'Social Attributes',ATTR_SOC,ATTR_SOC_K,dots));
-  set('cv_st_attr_men_'+id,  apEdit(id,'Mental Attributes',ATTR_MEN,ATTR_MEN_K,dots));
-  set('cv_st_sk_phys_'+id, spEdit(id,'Physical Skills',SK_PHY,SK_PHY_K,dots,specs));
-  set('cv_st_sk_soc_'+id,  spEdit(id,'Social Skills',SK_SOC,SK_SOC_K,dots,specs));
-  set('cv_st_sk_men_'+id,  spEdit(id,'Mental Skills',SK_MEN,SK_MEN_K,dots,specs));
-
-  // ── STATS TAB: Merits/Flaws inline edit ──
-  const merits=d.merits||[], flaws=d.flaws||[];
-  function meritRow(m,idx){
-    return `<div class="adv-d" style="background:rgba(196,154,34,.04)">
-      <span class="adv-d-name"><input class="fi" value="${esc(m.name)}" style="font-size:12px" onchange="dmEditMerit('${id}',${idx},'name',this.value)"></span>
-      ${dHEdit(id,'__merit_'+idx,m.dots||0,5)}
-      <button onclick="dmRemoveMerit('${id}',${idx})" style="background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;padding:0 4px;opacity:.6" title="Remove">✕</button>
-    </div>`;
-  }
-  function flawRow(f,idx){
-    return `<div class="adv-d" style="background:rgba(122,21,21,.04)">
-      <span class="adv-d-name" style="color:#c08080"><input class="fi" value="${esc(f.name)}" style="font-size:12px;color:#c08080" onchange="dmEditFlaw('${id}',${idx},'name',this.value)"></span>
-      <button onclick="dmRemoveFlaw('${id}',${idx})" style="background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:11px;padding:0 4px;opacity:.6" title="Remove">✕</button>
-    </div>`;
-  }
-
-  const meritsEl=document.getElementById('cv_st_merits_'+id);
-  if(meritsEl) meritsEl.innerHTML=
-    merits.map((m,i)=>meritRow(m,i)).join('')+
-    `<div style="margin-top:6px;display:flex;gap:5px">
-      <input id="dmadd_merit_name_${id}" class="fi" placeholder="Merit name…" style="font-size:12px;flex:1">
-      <input id="dmadd_merit_dots_${id}" class="fi" type="number" min="0" max="5" value="1" style="width:40px;font-size:12px">
-      <button class="btn green sm" onclick="dmAddMerit('${id}')">+ Add</button>
-    </div>`;
-
-  const flawsEl=document.getElementById('cv_st_flaws_'+id);
-  if(flawsEl) flawsEl.innerHTML=
-    flaws.map((f,i)=>flawRow(f,i)).join('')+
-    `<div style="margin-top:6px;display:flex;gap:5px">
-      <input id="dmadd_flaw_name_${id}" class="fi" placeholder="Flaw name…" style="font-size:12px;flex:1">
-      <button class="btn danger sm" onclick="dmAddFlaw('${id}')">+ Add</button>
-    </div>`;
-
-  // ── DISCIPLINES TAB: add/remove power levels ──
-  renderDMDiscEdit(id);
+  // ── DISCIPLINES ──
+  set('cv_di_'+id,`
+    <div class="grid-2">
+      <div class="panel"><div class="ph" style="background:rgba(58,122,58,.2)">Disciplines & Powers</div><div class="pb">
+        ${discs.map((disc,di)=>`
+          <div class="disc-card-d" style="border-color:rgba(58,122,58,.4);margin-bottom:8px">
+            <div class="disc-card-d-hdr" style="background:rgba(58,122,58,.15);display:flex;align-items:center;gap:6px">
+              <input class="fi" value="${esc(disc.icon||'')}" style="width:32px;font-size:16px;text-align:center" onchange="chars['${id}'].data.disciplines[${di}].icon=this.value">
+              <input class="fi" value="${esc(disc.name)}" style="flex:1;font-family:Cinzel,serif;font-size:11px" onchange="chars['${id}'].data.disciplines[${di}].name=this.value">
+              <button onclick="dmRemoveDisc('${id}',${di})" style="background:transparent;border:1px solid var(--crimson);color:var(--crimson-lt);font-size:9px;padding:1px 6px;cursor:pointer;font-family:Cinzel,serif">✕ Remove</button>
+            </div>
+            <div class="disc-card-d-body">
+              ${(disc.powers||[]).map((p,pi)=>`<div class="power-d">
+                <select style="background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:Cinzel,serif;font-size:9px;padding:1px 3px;margin-right:4px" onchange="chars['${id}'].data.disciplines[${di}].powers[${pi}].level=parseInt(this.value)">
+                  ${[1,2,3,4,5].map(lv=>`<option value="${lv}"${p.level===lv?' selected':''}>${'●'.repeat(lv)}</option>`).join('')}
+                </select>
+                <input class="fi" value="${esc(p.name)}" style="flex:1;font-size:12px" onchange="chars['${id}'].data.disciplines[${di}].powers[${pi}].name=this.value">
+                <button onclick="dmRemovePower('${id}',${di},${pi})" style="background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:10px;padding:0 4px">✕</button>
+              </div>`).join('')||'<div style="font-size:11px;color:var(--subtext);font-style:italic">No powers</div>'}
+              <div style="display:flex;gap:4px;margin-top:6px">
+                <input id="dp_n_${id}_${di}" class="fi" placeholder="Power name…" style="flex:1;font-size:11px">
+                <select id="dp_l_${id}_${di}" style="background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:Cinzel,serif;font-size:10px;padding:2px 4px">
+                  ${[1,2,3,4,5].map(lv=>`<option value="${lv}">${'●'.repeat(lv)}</option>`).join('')}
+                </select>
+                <button class="btn green sm" onclick="dmAddPower('${id}',${di})">+ Power</button>
+              </div>
+            </div>
+          </div>`).join('')}
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <input id="dd_n_${id}" class="fi" placeholder="Discipline name…" style="flex:1;font-size:12px">
+          <input id="dd_i_${id}" class="fi" placeholder="🩸" style="width:40px;font-size:16px;text-align:center">
+          <button class="btn green sm" onclick="dmAddDisc('${id}')">+ Add Discipline</button>
+        </div>
+      </div></div>
+      <div>
+        <div class="panel" style="margin-bottom:10px"><div class="ph" style="background:rgba(58,122,58,.2)">Rituals & Formulae</div><div class="pb">
+          ${rits.map((r,ri)=>`<div class="adv-d">
+            <select style="background:var(--field-bg);border:1px solid var(--field-border);color:var(--crimson-lt);font-family:Cinzel,serif;font-size:9px;padding:1px 3px;margin-right:4px" onchange="chars['${id}'].data.rituals[${ri}].level=parseInt(this.value)">
+              ${[1,2,3,4,5].map(lv=>`<option value="${lv}"${r.level===lv?' selected':''}>${'●'.repeat(lv)}</option>`).join('')}
+            </select>
+            <input class="fi" value="${esc(r.name)}" style="flex:1;font-size:12px" onchange="chars['${id}'].data.rituals[${ri}].name=this.value">
+            <button onclick="dmRemoveRitual('${id}',${ri})" style="background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:10px;padding:0 4px">✕</button>
+          </div>`).join('')||'<div style="font-size:11px;color:var(--subtext);font-style:italic">None.</div>'}
+          <div style="display:flex;gap:4px;margin-top:6px">
+            <input id="dr_n_${id}" class="fi" placeholder="Ritual name…" style="flex:1;font-size:11px">
+            <select id="dr_l_${id}" style="background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:Cinzel,serif;font-size:10px;padding:2px 4px">
+              ${[1,2,3,4,5].map(lv=>`<option value="${lv}">${'●'.repeat(lv)}</option>`).join('')}
+            </select>
+            <button class="btn green sm" onclick="dmAddRitual('${id}')">+ Add</button>
+          </div>
+        </div></div>
+        <div class="panel"><div class="ph" style="background:rgba(58,122,58,.2)">XP</div><div class="pb">
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <select id="e_xp_type_${id}" style="background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:Cinzel,serif;font-size:10px;padding:3px 6px"><option value="gain">+ Gain</option><option value="spend">− Spend</option></select>
+            <input id="e_xp_amt_${id}" class="fi" type="number" min="1" placeholder="XP" style="width:56px">
+            <input id="e_xp_desc_${id}" class="fi" placeholder="Reason…" style="flex:1;min-width:100px">
+            <button class="btn green sm" onclick="dmAddXP('${id}')">+ Log</button>
+          </div>
+        </div></div>
+      </div>
+    </div>`);
 }
 
-// Merit/Flaw live edit helpers (mutate chars[id].data directly)
-window.dmEditMerit=function(id,idx,field,val){const m=chars[id]?.data?.merits;if(m&&m[idx])m[idx][field]=val;};
-window.dmEditFlaw=function(id,idx,field,val){const f=chars[id]?.data?.flaws;if(f&&f[idx])f[idx][field]=val;};
-window.dmRemoveMerit=function(id,idx){const c=chars[id];if(!c?.data?.merits)return;c.data.merits.splice(idx,1);renderDMEditForm(id);};
-window.dmRemoveFlaw=function(id,idx){const c=chars[id];if(!c?.data?.flaws)return;c.data.flaws.splice(idx,1);renderDMEditForm(id);};
+// ── Edit helpers (mutate data directly then re-render) ──
+window.dmRemoveMerit=function(id,i){chars[id]?.data?.merits?.splice(i,1);renderDMEditForm(id);};
+window.dmRemoveFlaw=function(id,i){chars[id]?.data?.flaws?.splice(i,1);renderDMEditForm(id);};
 window.dmAddMerit=function(id){
-  const name=document.getElementById('dmadd_merit_name_'+id)?.value.trim(); if(!name)return;
-  const dots=parseInt(document.getElementById('dmadd_merit_dots_'+id)?.value)||1;
-  const c=chars[id]; if(!c?.data)return;
-  if(!c.data.merits)c.data.merits=[];
-  c.data.merits.push({name,dots,cost:'●'.repeat(dots),type:'merit'});
-  renderDMEditForm(id);
+  const name=document.getElementById('dmadd_mn_'+id)?.value.trim();if(!name)return;
+  const d=parseInt(document.getElementById('dmadd_md_'+id)?.value)||1;
+  const c=chars[id];if(!c?.data)return;if(!c.data.merits)c.data.merits=[];
+  c.data.merits.push({name,dots:d,cost:'●'.repeat(d),type:'merit'});renderDMEditForm(id);
 };
 window.dmAddFlaw=function(id){
-  const name=document.getElementById('dmadd_flaw_name_'+id)?.value.trim(); if(!name)return;
-  const c=chars[id]; if(!c?.data)return;
-  if(!c.data.flaws)c.data.flaws=[];
-  c.data.flaws.push({name,cost:'●',type:'flaw'});
+  const name=document.getElementById('dmadd_fn_'+id)?.value.trim();if(!name)return;
+  const c=chars[id];if(!c?.data)return;if(!c.data.flaws)c.data.flaws=[];
+  c.data.flaws.push({name,cost:'●',type:'flaw'});renderDMEditForm(id);
+};
+window.dmRemoveDisc=function(id,di){chars[id]?.data?.disciplines?.splice(di,1);renderDMEditForm(id);};
+window.dmAddDisc=function(id){
+  const name=document.getElementById('dd_n_'+id)?.value.trim();if(!name)return;
+  const icon=document.getElementById('dd_i_'+id)?.value.trim()||'⚡';
+  const c=chars[id];if(!c?.data)return;if(!c.data.disciplines)c.data.disciplines=[];
+  c.data.disciplines.push({name,icon,desc:'',powers:[]});renderDMEditForm(id);
+};
+window.dmRemovePower=function(id,di,pi){chars[id]?.data?.disciplines?.[di]?.powers?.splice(pi,1);renderDMEditForm(id);};
+window.dmAddPower=function(id,di){
+  const name=document.getElementById('dp_n_'+id+'_'+di)?.value.trim();if(!name)return;
+  const lv=parseInt(document.getElementById('dp_l_'+id+'_'+di)?.value)||1;
+  const d=chars[id]?.data?.disciplines;if(!d||!d[di])return;
+  if(!d[di].powers)d[di].powers=[];d[di].powers.push({name,level:lv,dice:'',desc:''});renderDMEditForm(id);
+};
+window.dmRemoveRitual=function(id,ri){chars[id]?.data?.rituals?.splice(ri,1);renderDMEditForm(id);};
+window.dmAddRitual=function(id){
+  const name=document.getElementById('dr_n_'+id)?.value.trim();if(!name)return;
+  const lv=parseInt(document.getElementById('dr_l_'+id)?.value)||1;
+  const c=chars[id];if(!c?.data)return;if(!c.data.rituals)c.data.rituals=[];
+  c.data.rituals.push({name,level:lv,desc:''});renderDMEditForm(id);
+};
+window.dmRemoveSpec=function(id,si){chars[id]?.data?.specialties?.splice(si,1);renderDMEditForm(id);};
+window.dmAddSpec=function(id,skill){
+  const name=prompt('Specialty name for '+skill+':');if(!name?.trim())return;
+  const c=chars[id];if(!c?.data)return;if(!c.data.specialties)c.data.specialties=[];
+  c.data.specialties.push({skill,name:name.trim()});renderDMEditForm(id);
+};
+window.dmAddXP=function(id){
+  const type=document.getElementById('e_xp_type_'+id)?.value||'gain';
+  const amount=parseInt(document.getElementById('e_xp_amt_'+id)?.value)||0;if(!amount)return;
+  const desc=document.getElementById('e_xp_desc_'+id)?.value.trim()||'';
+  const c=chars[id];if(!c?.data)return;if(!c.data.xpLog)c.data.xpLog=[];
+  c.data.xpLog.unshift({type,amount,desc,cat:'Award',date:new Date().toLocaleDateString()});
   renderDMEditForm(id);
 };
 
-function renderDMDiscEdit(id){
-  const c=chars[id]; if(!c?.data)return;
-  const discs=c.data.disciplines||[];
-  const discEl=document.getElementById('cv_di_discs_'+id);
-  if(!discEl)return;
-  discEl.innerHTML=`<div style="font-family:Cinzel,serif;font-size:8px;letter-spacing:2px;color:var(--green-lt);margin-bottom:8px">✎ EDIT MODE — adjust power levels, add/remove disciplines</div>`+
-  discs.map((disc,di)=>`
-    <div class="disc-card-d" style="border-color:rgba(58,122,58,.4)">
-      <div class="disc-card-d-hdr" style="background:rgba(58,122,58,.15)">
-        <span style="font-size:14px">${esc(disc.icon||'')}</span>
-        <span class="disc-card-d-name">${esc(disc.name)}</span>
-        <button onclick="dmRemoveDisc('${id}',${di})" style="background:transparent;border:1px solid var(--crimson);color:var(--crimson-lt);font-size:9px;padding:1px 6px;cursor:pointer;font-family:Cinzel,serif;margin-left:auto">✕ Remove</button>
-      </div>
-      <div class="disc-card-d-body">
-        ${(disc.powers||[]).map((p,pi)=>`
-          <div class="power-d">
-            <select style="background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:Cinzel,serif;font-size:9px;padding:1px 3px;margin-right:4px" onchange="dmSetPowerLevel('${id}',${di},${pi},this.value)">
-              ${[1,2,3,4,5].map(lv=>`<option value="${lv}"${p.level===lv?' selected':''}>${'●'.repeat(lv)}</option>`).join('')}
-            </select>
-            <span style="flex:1">${esc(p.name)}</span>
-            <button onclick="dmRemovePower('${id}',${di},${pi})" style="background:transparent;border:none;color:var(--subtext);cursor:pointer;font-size:10px;padding:0 4px">✕</button>
-          </div>`).join('')||'<div style="font-size:11px;color:var(--subtext);font-style:italic">No powers</div>'}
-        <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">
-          <input id="dmadd_pow_${id}_${di}" class="fi" placeholder="Power name…" style="font-size:11px;flex:1;min-width:120px">
-          <select id="dmadd_pow_lv_${id}_${di}" style="background:var(--field-bg);border:1px solid var(--field-border);color:var(--input-text);font-family:Cinzel,serif;font-size:10px;padding:2px 4px">
-            ${[1,2,3,4,5].map(lv=>`<option value="${lv}">${'●'.repeat(lv)}</option>`).join('')}
-          </select>
-          <button class="btn green sm" onclick="dmAddPower('${id}',${di})">+ Power</button>
-        </div>
-      </div>
-    </div>`).join('')+
-  `<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center">
-    <input id="dmadd_disc_name_${id}" class="fi" placeholder="Discipline name…" style="font-size:12px;flex:1">
-    <input id="dmadd_disc_icon_${id}" class="fi" placeholder="Icon (emoji)" style="font-size:14px;width:48px">
-    <button class="btn green sm" onclick="dmAddDisc('${id}')">+ Add Discipline</button>
-  </div>`;
-}
-
-// Discipline live-edit helpers
-window.dmSetPowerLevel=function(id,di,pi,lv){const d=chars[id]?.data?.disciplines;if(d&&d[di]&&d[di].powers[pi])d[di].powers[pi].level=parseInt(lv);};
-window.dmRemovePower=function(id,di,pi){const d=chars[id]?.data?.disciplines;if(d&&d[di])d[di].powers.splice(pi,1);renderDMDiscEdit(id);};
-window.dmAddPower=function(id,di){
-  const name=document.getElementById('dmadd_pow_'+id+'_'+di)?.value.trim(); if(!name)return;
-  const lv=parseInt(document.getElementById('dmadd_pow_lv_'+id+'_'+di)?.value)||1;
-  const d=chars[id]?.data?.disciplines; if(!d||!d[di])return;
-  if(!d[di].powers)d[di].powers=[];
-  d[di].powers.push({name,level:lv,dice:'',desc:''});
-  renderDMDiscEdit(id);
-};
-window.dmRemoveDisc=function(id,di){const c=chars[id];if(!c?.data?.disciplines)return;c.data.disciplines.splice(di,1);renderDMDiscEdit(id);};
-window.dmAddDisc=function(id){
-  const name=document.getElementById('dmadd_disc_name_'+id)?.value.trim(); if(!name)return;
-  const icon=document.getElementById('dmadd_disc_icon_'+id)?.value.trim()||'⚡';
-  const c=chars[id]; if(!c?.data)return;
-  if(!c.data.disciplines)c.data.disciplines=[];
-  c.data.disciplines.push({name,icon,desc:'',powers:[]});
-  renderDMDiscEdit(id);
-};
+function gev(id,field){return document.getElementById('e_'+id+'_'+field)?.value||'';}
+function gen(id,field){return parseInt(document.getElementById('e_'+id+'_'+field)?.value)||0;}
 
 async function saveDMEdits(id){
-  document.getElementById('dmedit_banner_'+id)?.remove();
-  document.getElementById('dmedit_tracksizes_'+id)?.remove();
-
-  const c=chars[id]; if(!c||!c.data)return;
+  const c=chars[id];if(!c?.data)return;
   if(!c.data.text)c.data.text={};
   if(!c.data.largeDots)c.data.largeDots={};
   if(!c.data.trackSizes)c.data.trackSizes={};
 
-  function gv(k){return document.getElementById('dmedit_'+id+'_'+k)?.value||'';}
-  function gn(k){return parseInt(document.getElementById('dmedit_'+id+'_'+k)?.value)||0;}
-  function gno(k){const el=document.getElementById('dmedit_'+id+'_'+k);return el&&el.value!==''?parseInt(el.value):null;}
-
-  c.data.text.f_name      =gv('name');
-  c.data.text.f_clan      =gv('clan');
-  c.data.text.f_gen       =gv('generation');
-  c.data.text.f_sire      =gv('sire');
-  c.data.text.f_sect      =gv('sect');
-  c.data.text.f_predator  =gv('predator_type');
-  c.data.text.f_archetype =gv('archetype');
-  c.data.text.f_vamp_age  =gv('vampire_age');
-  c.data.text.f_concept   =gv('concept');
-  c.data.text.f_resonance =gv('resonance');
-  c.data.text.f_ambition  =gv('ambition');
-  c.data.text.f_desire    =gv('desire');
-  c.data.text.f_stains    =String(gn('stains'));
-  c.data.largeDots.bp     =gn('blood_potency');
-  c.data.largeDots.humanity=gn('humanity');
-  c.data.largeDots.hunger =gn('hunger');
-  const hs=gno('health_size'); if(hs!==null)c.data.trackSizes.health=hs;
-  const ws=gno('wp_size');     if(ws!==null)c.data.trackSizes.wp=ws;
-  // Dots were mutated directly via dmDotClick — already in c.data.dots
-  // Disciplines/merits/flaws were mutated directly via window helpers
+  // Text fields
+  const T=c.data.text;
+  T.f_name=gev(id,'Name'); T.f_clan=gev(id,'Clan'); T.f_gen=gev(id,'Generation');
+  T.f_sect=gev(id,'Sect'); T.f_sire=gev(id,'Sire'); T.f_predator=gev(id,'Predator');
+  T.f_archetype=gev(id,'Archetype'); T.f_concept=gev(id,'Concept');
+  T.f_vamp_age=gev(id,'Vampire Age'); T.f_bane=gev(id,'Clan Bane');
+  T.f_resonance=gev(id,'Resonance'); T.f_ambition=gev(id,'Ambition'); T.f_desire=gev(id,'Desire');
+  T.f_backstory=gev(id,'Background'); T.f_stains=String(gen(id,'Stains'));
+  T.conv_1=gev(id,'Conv1'); T.touch_1=gev(id,'Touch1');
+  T.conv_2=gev(id,'Conv2'); T.touch_2=gev(id,'Touch2');
+  T.conv_3=gev(id,'Conv3'); T.touch_3=gev(id,'Touch3');
+  // Large dots
+  c.data.largeDots.humanity=gen(id,'Humanity');
+  c.data.largeDots.hunger=gen(id,'Hunger');
+  c.data.largeDots.bp=gen(id,'Blood Potency');
+  // Track sizes
+  c.data.trackSizes.health=gen(id,'Health Boxes')||5;
+  c.data.trackSizes.wp=gen(id,'WP Boxes')||5;
+  // dots[] mutated directly via edotClick
 
   if(window._db && c.charId){
     try{
-      const ref=window._fsDoc(window._db,'characters',c.charId);
-      await window._fsSetDoc(ref,{...c.data,_updatedAt:Date.now()});
+      await window._fsSetDoc(window._fsDoc(window._db,'characters',c.charId),{...c.data,_updatedAt:Date.now()});
       toast('Sheet saved to cloud — player will see updates');
     }catch(e){toast('Cloud save failed: '+e.message,'error');}
   }
@@ -1762,10 +1758,6 @@ function cvt(id,tab){
     document.getElementById('vt_'+t+'_'+id)?.classList.toggle('active',t===tab);
     document.getElementById('cv_'+t+'_'+id)?.classList.toggle('active',t===tab);
   });
-  // If edit mode is active, re-apply edit overlays for the newly shown tab
-  if(_dmEditMode[id]){
-    if(tab==='st'||tab==='di') renderDMEditForm(id);
-  }
 }
 
 // ── SESSION PREP ──
